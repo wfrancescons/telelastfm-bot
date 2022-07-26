@@ -1,42 +1,37 @@
 const { Telegraf } = require('telegraf')
+const express = require('express')
+const { ln } = require('./commands')
 
-const bot = new Telegraf('')
 
-bot.command('quit', (ctx) => {
-  // Explicit usage
-  ctx.telegram.leaveChat(ctx.message.chat.id)
+const token = '5028529308:AAE_Y6ZE8vKRVi6b8o5lFEI4ulRMb5JvSxc'
+if (token === undefined) {
+  throw new Error('BOT_TOKEN must be provided!')
+}
 
-  // Using context shortcut
-  ctx.leaveChat()
+const bot = new Telegraf(token)
+
+// Set the bot response
+bot.command('ln', async (ctx) => {
+  ctx.replyWithChatAction('typing')
+  
+  const listeningNow = await ln(ctx.update.message.from.username, ctx)
+
+  ctx.replyWithMarkdownV2(listeningNow)
 })
 
-bot.on('text', (ctx) => {
-  // Explicit usage
-  ctx.telegram.sendMessage(ctx.message.chat.id, `Hello ${ctx.state.role}`)
+const secretPath = `/telegraf/${bot.secretPathComponent()}`
 
-  // Using context shortcut
-  ctx.reply(`Hello ${ctx.state.role}`)
+// Set telegram webhook
+// npm install -g localtunnel && lt --port 3000
+//bot.telegram.setWebhook(`https://d218-2804-14c-878d-9d59-9927-c332-c0-a398.ngrok.io${secretPath}`)
+
+const app = express()
+
+app.get('/', (req, res) => res.send('Hello World!'))
+
+// Set the bot API endpoint
+app.use(bot.webhookCallback(secretPath))
+
+app.listen(3000, () => {
+  console.log('Example app listening on port 3000!')
 })
-
-bot.on('callback_query', (ctx) => {
-  // Explicit usage
-  ctx.telegram.answerCbQuery(ctx.callbackQuery.id)
-
-  // Using context shortcut
-  ctx.answerCbQuery()
-})
-
-bot.on('inline_query', (ctx) => {
-  const result = []
-  // Explicit usage
-  ctx.telegram.answerInlineQuery(ctx.inlineQuery.id, result)
-
-  // Using context shortcut
-  ctx.answerInlineQuery(result)
-})
-
-bot.launch()
-
-// Enable graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'))
-process.once('SIGTERM', () => bot.stop('SIGTERM'))
