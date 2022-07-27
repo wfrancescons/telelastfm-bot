@@ -41,7 +41,7 @@ const getRecentTracks = async (username, limit = 1) => {
     }
 }
 
-const getListeningNow = async (username) => {
+const getMusicListeningNow = async (username) => {
     try {
         const lastTrack = await getRecentTracks(username)
         const { track, album, artist, isNowPlaying, image } = lastTrack[0]
@@ -57,8 +57,6 @@ const getListeningNow = async (username) => {
                 format: 'json'
             }
         })
-
-        console.log(data)
 
         const listening = {
             track,
@@ -81,5 +79,5 @@ const getListeningNow = async (username) => {
 
 module.exports = {
     getRecentTracks,
-    getListeningNow,
+    getMusicListeningNow,
 }

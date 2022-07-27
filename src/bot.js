@@ -13,17 +13,17 @@ const bot = new Telegraf(token)
 // Set the bot response
 bot.command('ln', async (ctx) => {
   ctx.replyWithChatAction('typing')
-  
+
   const listeningNow = await ln(ctx.update.message.from.username, ctx)
 
-  ctx.replyWithMarkdownV2(listeningNow)
+  ctx.replyWithHTML(listeningNow)
 })
 
 const secretPath = `/telegraf/${bot.secretPathComponent()}`
 
 // Set telegram webhook
 // npm install -g localtunnel && lt --port 3000
-//bot.telegram.setWebhook(`https://d218-2804-14c-878d-9d59-9927-c332-c0-a398.ngrok.io${secretPath}`)
+//bot.telegram.setWebhook(`https://b2a4-2804-14c-878d-9d59-5086-4d3b-4cdf-b1a0.ngrok.io${secretPath}`)
 
 const app = express()
 
