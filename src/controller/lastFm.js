@@ -75,9 +75,40 @@ const getMusicListeningNow = async (username) => {
     }
 }
 
-//getListeningNow('wfrancescons').then(x => console.log(x))
+const getAlbumListeningNow = async (username) => {
+    try {
+        const lastTrack = await getRecentTracks(username)
+        const { album, artist, isNowPlaying, image } = lastTrack[0]
+
+        const { data } = await axios.get(LASTFM_URL_API, {
+            params: {
+                method: 'album.getInfo',
+                username,
+                api_key: LASTFM_TOKEN_API,
+                album,
+                artist,
+                autocorrect: 1,
+                format: 'json'
+            }
+        })
+
+        const listening = {
+            artist,
+            album,
+            image,
+            userplaycount: Number(data.track?.userplaycount) || 0,
+            isNowPlaying
+        }
+
+        return listening
+
+    } catch (error) {
+        console.log('ERRO', error)
+    }
+}
 
 module.exports = {
     getRecentTracks,
     getMusicListeningNow,
+    getAlbumListeningNow
 }

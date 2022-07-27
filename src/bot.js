@@ -1,6 +1,8 @@
 const { Telegraf } = require('telegraf')
 const express = require('express')
-const { ln } = require('./commands')
+
+//Commands
+const { ln, alb } = require('./commands')
 
 
 const token = '5028529308:AAE_Y6ZE8vKRVi6b8o5lFEI4ulRMb5JvSxc'
@@ -15,6 +17,14 @@ bot.command('ln', async (ctx) => {
   ctx.replyWithChatAction('typing')
 
   const listeningNow = await ln(ctx.update.message.from.username, ctx)
+
+  ctx.replyWithHTML(listeningNow)
+})
+
+bot.command('alb', async (ctx) => {
+  ctx.replyWithChatAction('typing')
+
+  const listeningNow = await alb(ctx.update.message.from.username, ctx)
 
   ctx.replyWithHTML(listeningNow)
 })
