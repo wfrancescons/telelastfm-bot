@@ -1,5 +1,5 @@
 const { Telegraf } = require('telegraf')
-const express = require('express')
+//const express = require('express')
 
 //Commands
 const { ln, alb, art } = require('./commands')
@@ -37,18 +37,20 @@ bot.command('art', async (ctx) => {
   ctx.replyWithHTML(listeningNow)
 })
 
-const secretPath = `/telegraf/${bot.secretPathComponent()}`
+bot.launch()
+
+//const secretPath = `/telegraf/${bot.secretPathComponent()}`
 
 // Set telegram webhook
-bot.telegram.setWebhook(`https://telelastfm-bot.herokuapp.com${secretPath}`)
+//bot.telegram.setWebhook(`https://telelastfm-bot.herokuapp.com${secretPath}`)
 
-const app = express()
+//const app = express()
 
-app.get('/', (req, res) => res.send('TelelastFm API'))
+//app.get('/', (req, res) => res.send('TelelastFm API'))
 
 // Set the bot API endpoint
-app.use(bot.webhookCallback(secretPath))
+//app.use(bot.webhookCallback(secretPath))
 
-app.listen(3000, () => {
-  console.log('Example app listening on port 3000!')
-})
+//app.listen(3000, () => {
+//  console.log('Example app listening on port 3000!')
+//})
