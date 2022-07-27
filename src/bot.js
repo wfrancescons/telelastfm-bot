@@ -2,12 +2,12 @@ const { Telegraf } = require('telegraf')
 const express = require('express')
 
 //Commands
-const { ln, alb } = require('./commands')
+const { ln, alb, art } = require('./commands')
 
 
-const token = '5028529308:AAE_Y6ZE8vKRVi6b8o5lFEI4ulRMb5JvSxc'
+const token = process.env.TELEGRAM_BOT_TOKEN
 if (token === undefined) {
-  throw new Error('BOT_TOKEN must be provided!')
+  throw new Error('TELEGRAM_BOT_TOKEN must be provided!')
 }
 
 const bot = new Telegraf(token)
@@ -29,15 +29,22 @@ bot.command('alb', async (ctx) => {
   ctx.replyWithHTML(listeningNow)
 })
 
+bot.command('art', async (ctx) => {
+  ctx.replyWithChatAction('typing')
+
+  const listeningNow = await art(ctx.update.message.from.username, ctx)
+
+  ctx.replyWithHTML(listeningNow)
+})
+
 const secretPath = `/telegraf/${bot.secretPathComponent()}`
 
 // Set telegram webhook
-// npm install -g localtunnel && lt --port 3000
-//bot.telegram.setWebhook(`https://b2a4-2804-14c-878d-9d59-5086-4d3b-4cdf-b1a0.ngrok.io${secretPath}`)
+bot.telegram.setWebhook(`https://telelastfm-bot.herokuapp.com${secretPath}`)
 
 const app = express()
 
-app.get('/', (req, res) => res.send('Hello World!'))
+app.get('/', (req, res) => res.send('TelelastFm API'))
 
 // Set the bot API endpoint
 app.use(bot.webhookCallback(secretPath))

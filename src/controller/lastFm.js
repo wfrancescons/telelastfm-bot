@@ -1,7 +1,7 @@
 const axios = require('axios')
 
-const LASTFM_URL_API = 'https://ws.audioscrobbler.com/2.0/'
-const LASTFM_TOKEN_API = '1604ac31e033845e2433d302147d7125'
+const LASTFM_URL_API = process.env.LASTFM_URL_API
+const LASTFM_TOKEN_API = process.env.LASTFM_TOKEN_API
 
 const getRecentTracks = async (username, limit = 1) => {
     try {
@@ -96,7 +96,37 @@ const getAlbumListeningNow = async (username) => {
             artist,
             album,
             image,
-            userplaycount: Number(data.track?.userplaycount) || 0,
+            userplaycount: Number(data.album?.userplaycount) || 0,
+            isNowPlaying
+        }
+
+        return listening
+
+    } catch (error) {
+        console.log('ERRO', error)
+    }
+}
+
+const getArtistListeningNow = async (username) => {
+    try {
+        const lastTrack = await getRecentTracks(username)
+        const { artist, isNowPlaying, image } = lastTrack[0]
+
+        const { data } = await axios.get(LASTFM_URL_API, {
+            params: {
+                method: 'artist.getInfo',
+                username,
+                api_key: LASTFM_TOKEN_API,
+                artist,
+                autocorrect: 1,
+                format: 'json'
+            }
+        })
+
+        const listening = {
+            artist,
+            image,
+            userplaycount: Number(data.artist.stats?.userplaycount) || 0,
             isNowPlaying
         }
 
@@ -110,5 +140,6 @@ const getAlbumListeningNow = async (username) => {
 module.exports = {
     getRecentTracks,
     getMusicListeningNow,
-    getAlbumListeningNow
+    getAlbumListeningNow,
+    getArtistListeningNow
 }
