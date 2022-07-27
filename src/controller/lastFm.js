@@ -44,7 +44,7 @@ const getRecentTracks = async (username, limit = 1) => {
 const getListeningNow = async (username) => {
     try {
         const lastTrack = await getRecentTracks(username)
-        const { track, artist, isNowPlaying, image } = lastTrack[0]
+        const { track, album, artist, isNowPlaying, image } = lastTrack[0]
 
         const { data } = await axios.get(LASTFM_URL_API, {
             params: {
@@ -58,13 +58,15 @@ const getListeningNow = async (username) => {
             }
         })
 
+        console.log(data)
+
         const listening = {
-            track: data.track.name,
-            duration: data.track.duration,
-            artist: data.track.artist.name,
-            album: data.track.album?.title || '',
+            track,
+            artist,
+            album,
             image,
             userplaycount: Number(data.track?.userplaycount) || 0,
+            duration: data.track.duration,
             isNowPlaying
         }
 
