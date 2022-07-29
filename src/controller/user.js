@@ -59,12 +59,26 @@ const updateUser = (ctx, arg) => {
             const isLastfmUser = await isValidUser(lastfmUsername)
 
             if (isLastfmUser) {
-                data.lastfm_username = lastfmUsername
+                if (!data) {
+                    const newUser = new User({
+                        telegram_id: telegramId,
+                        lastfm_username: lastfmUsername
+                    })
 
-                return data.save((err, data) => {
-                    if (err) return reject({ status: 'erro', err })
-                    return resolve({ status: 'user', data })
-                })
+                    newUser.save((err, data) => {
+                        if (err) return reject({ status: 'erro', err })
+                        return resolve({ status: 'user', data })
+                    })
+                } else {
+                    data.lastfm_username = lastfmUsername
+
+                    return data.save((err, data) => {
+                        if (err) return reject({ status: 'erro', err })
+                        return resolve({ status: 'user', data })
+                    })
+                }
+
+
             }
 
             return resolve({ status: 'not user' })
