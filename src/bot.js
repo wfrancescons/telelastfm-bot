@@ -35,7 +35,7 @@ bot.command('ln', async (ctx) => {
     ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
 
   } else {
-    ctx.reply('Ops! Tive um problema 🥴 \n Tente novamente mais tarde.')
+    ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
   }
 })
 
@@ -50,7 +50,7 @@ bot.command('alb', async (ctx) => {
   } else if (user.status === 'not user') {
     ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
   } else {
-    ctx.reply('Ops! Tive um problema 🥴 \n Tente novamente mais tarde.')
+    ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
   }
 })
 
@@ -65,7 +65,7 @@ bot.command('art', async (ctx) => {
   } else if (user.status === 'not user') {
     ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
   } else {
-    ctx.reply('Ops! Tive um problema 🥴 \n Tente novamente mais tarde.')
+    ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
   }
 })
 
@@ -81,13 +81,13 @@ bot.command('reg', async (ctx) => {
     if (user.status === 'user') {
       ctx.reply(`'${arg}' salvo como seu usuário do LastFM`)
     } else if (user.status === 'not user') {
-      ctx.reply(`'${arg}' não parece ser um usuário do LastFM. \n Tente novamente.`)
+      ctx.reply(`'${arg}' não parece ser um usuário do LastFM. \nTente novamente.`)
     } else {
-      ctx.reply('Ops! Tive um problema 🥴 \n Tente novamente mais tarde.')
+      ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
     }
 
   } else {
-    ctx.reply('Utilize o comando \'/reg usuariolastfm\' \n Tente novamente.')
+    ctx.reply('Utilize o comando \'/reg usuariolastfm\' \nTente novamente.')
   }
 
   
