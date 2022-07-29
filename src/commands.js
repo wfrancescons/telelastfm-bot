@@ -1,5 +1,5 @@
 const {
-    getMusicListeningNow,
+    getTrackListeningNow,
     getAlbumListeningNow,
     getArtistListeningNow
 } = require('./controller/lastFm')
@@ -13,17 +13,34 @@ const ln = async (username, ctx) => {
             image,
             userplaycount,
             isNowPlaying
-        } = await getMusicListeningNow(username)
+        } = await getTrackListeningNow(username)
 
         const { first_name } = ctx.update.message.from
 
-        const html = `<b>${first_name}</b> ${isNowPlaying ? 'is now' : 'was'} listening to:` +
-        `\n🎵 <b>${track}</b>` +
+        const text = `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
+        `\n🎵 ${track}` +
         `\n💽 ${album}` +
         `\n🧑‍🎤 ${artist} \n` +
-        `\n<a href='${image}'>📊</a> ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
+        `\n📊 ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
         
-        return html
+        const entities = [{
+            offset: text.indexOf(first_name),
+            length: first_name.length,
+            type: 'bold',
+        },
+        {
+            offset: text.indexOf(track),
+            length: track.length,
+            type: 'bold',
+        },
+        {
+            offset: text.indexOf('📊'),
+            length: '📊'.length,
+            type: 'text_link',
+            url: image
+        }]
+
+        return { text, entities }
 
     } catch (error) {
 
@@ -33,7 +50,6 @@ const ln = async (username, ctx) => {
 const alb = async (username, ctx) => {
     try {
         const {
-            track,
             album,
             artist,
             image,
@@ -43,12 +59,29 @@ const alb = async (username, ctx) => {
 
         const { first_name } = ctx.update.message.from
 
-        const html = `<b>${first_name}</b> ${isNowPlaying ? 'is now' : 'was'} listening to:` +
-        `\n💽 <b>${album}</b>` +
+        const text = `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
+        `\n💽 ${album}` +
         `\n🧑‍🎤 ${artist} \n` +
-        `\n<a href='${image}'>📊</a> ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
+        `\n📊 ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
         
-        return html
+        const entities = [{
+            offset: text.indexOf(first_name),
+            length: first_name.length,
+            type: 'bold',
+        },
+        {
+            offset: text.indexOf(album),
+            length: album.length,
+            type: 'bold',
+        },
+        {
+            offset: text.indexOf('📊'),
+            length: '📊'.length,
+            type: 'text_link',
+            url: image
+        }]
+
+        return { text, entities }
 
     } catch (error) {
 
@@ -66,11 +99,28 @@ const art = async (username, ctx) => {
 
         const { first_name } = ctx.update.message.from
 
-        const html = `<b>${first_name}</b> ${isNowPlaying ? 'is now' : 'was'} listening to:` +
-        `\n🧑‍🎤 <b>${artist}</b> \n` +
-        `\n<a href='${image}'>📊</a> ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
+        const text = `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
+        `\n🧑‍🎤 ${artist} \n` +
+        `\n📊 ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
         
-        return html
+        const entities = [{
+            offset: text.indexOf(first_name),
+            length: first_name.length,
+            type: 'bold',
+        },
+        {
+            offset: text.indexOf(artist),
+            length: artist.length,
+            type: 'bold',
+        },
+        {
+            offset: text.indexOf('📊'),
+            length: '📊'.length,
+            type: 'text_link',
+            url: image
+        }]
+
+        return { text, entities }
 
     } catch (error) {
 

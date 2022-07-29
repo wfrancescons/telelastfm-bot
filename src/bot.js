@@ -1,9 +1,15 @@
+const environment = process.env.NODE_ENV || 'development'
+
+if (environment === 'development') {
+  console.log(environment)
+  require('dotenv').config()
+}
+
 const { Telegraf } = require('telegraf')
-//const express = require('express')
+const { getUser, updateUser } = require('./controller/user')
 
-//Commands
+// Commands
 const { ln, alb, art } = require('./commands')
-
 
 const token = process.env.TELEGRAM_BOT_TOKEN
 if (token === undefined) {
@@ -12,45 +18,78 @@ if (token === undefined) {
 
 const bot = new Telegraf(token)
 
+// Run DB
+require('./database/')
+
 // Set the bot response
 bot.command('ln', async (ctx) => {
   ctx.replyWithChatAction('typing')
 
-  const listeningNow = await ln(ctx.update.message.from.username, ctx)
+  const user = await getUser(ctx)
 
-  ctx.replyWithHTML(listeningNow)
+  if (user.status === 'user') {
+    const { text, entities } = await ln(user.data.lastfm_username, ctx)
+    ctx.reply(text, { entities })
+
+  } else if (user.status === 'not user') {
+    ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
+
+  } else {
+    ctx.reply('Ops! Tive um problema 🥴 \n Tente novamente mais tarde.')
+  }
 })
 
 bot.command('alb', async (ctx) => {
   ctx.replyWithChatAction('typing')
 
-  const listeningNow = await alb(ctx.update.message.from.username, ctx)
+  const user = await getUser(ctx)
 
-  ctx.replyWithHTML(listeningNow)
+  if (user.status === 'user') {
+    const { text, entities } = await alb(user.data.lastfm_username, ctx)
+    ctx.reply(text, { entities })
+  } else if (user.status === 'not user') {
+    ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
+  } else {
+    ctx.reply('Ops! Tive um problema 🥴 \n Tente novamente mais tarde.')
+  }
 })
 
 bot.command('art', async (ctx) => {
   ctx.replyWithChatAction('typing')
 
-  const listeningNow = await art(ctx.update.message.from.username, ctx)
+  const user = await getUser(ctx)
 
-  ctx.replyWithHTML(listeningNow)
+  if (user.status === 'user') {
+    const { text, entities } = await art(user.data.lastfm_username, ctx)
+    ctx.reply(text, { entities })
+  } else if (user.status === 'not user') {
+    ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
+  } else {
+    ctx.reply('Ops! Tive um problema 🥴 \n Tente novamente mais tarde.')
+  }
 })
 
+bot.command('reg', async (ctx) => {
+  ctx.replyWithChatAction('typing')
+
+  const text = ctx.update.message.text.split(' ')
+  const [command, arg] = text
+
+  const user = await updateUser(ctx, arg)
+
+  if (user.status === 'user') {
+    ctx.reply(`'${arg}' salvo como seu usuário do LastFM`)
+  } else if (user.status === 'not user') {
+    ctx.reply(`'${arg}' não parece ser um usuário do LastFM. \n Tente novamente.`)
+  } else {
+    ctx.reply('Ops! Tive um problema 🥴 \n Tente novamente mais tarde.')
+  }
+})
+
+if (environment === 'development') {
+  require('http')
+  .createServer(bot.webhookCallback('/secret-path'))
+  .listen(3000)
+}
+
 bot.launch()
-
-//const secretPath = `/telegraf/${bot.secretPathComponent()}`
-
-// Set telegram webhook
-//bot.telegram.setWebhook(`https://telelastfm-bot.herokuapp.com${secretPath}`)
-
-//const app = express()
-
-//app.get('/', (req, res) => res.send('TelelastFm API'))
-
-// Set the bot API endpoint
-//app.use(bot.webhookCallback(secretPath))
-
-//app.listen(3000, () => {
-//  console.log('Example app listening on port 3000!')
-//})

@@ -1,15 +1,15 @@
 const axios = require('axios')
 
-const LASTFM_URL_API = process.env.LASTFM_URL_API
-const LASTFM_TOKEN_API = process.env.LASTFM_TOKEN_API
+const lastfmURL = process.env.LASTFM_URL_API
+const lastfmToken = process.env.LASTFM_TOKEN_API
 
 const getRecentTracks = async (username, limit = 1) => {
     try {
-        const { data } = await axios.get(LASTFM_URL_API, {
+        const { data } = await axios.get(lastfmURL, {
             params: {
                 method: 'user.getRecentTracks',
                 format: 'json',
-                api_key: LASTFM_TOKEN_API,
+                api_key: lastfmToken,
                 username,
                 limit
             }
@@ -41,16 +41,16 @@ const getRecentTracks = async (username, limit = 1) => {
     }
 }
 
-const getMusicListeningNow = async (username) => {
+const getTrackListeningNow = async (username) => {
     try {
         const lastTrack = await getRecentTracks(username)
         const { track, album, artist, isNowPlaying, image } = lastTrack[0]
 
-        const { data } = await axios.get(LASTFM_URL_API, {
+        const { data } = await axios.get(lastfmURL, {
             params: {
                 method: 'track.getInfo',
                 username,
-                api_key: LASTFM_TOKEN_API,
+                api_key: lastfmToken,
                 track,
                 artist,
                 autocorrect: 1,
@@ -80,11 +80,11 @@ const getAlbumListeningNow = async (username) => {
         const lastTrack = await getRecentTracks(username)
         const { album, artist, isNowPlaying, image } = lastTrack[0]
 
-        const { data } = await axios.get(LASTFM_URL_API, {
+        const { data } = await axios.get(lastfmURL, {
             params: {
                 method: 'album.getInfo',
                 username,
-                api_key: LASTFM_TOKEN_API,
+                api_key: lastfmToken,
                 album,
                 artist,
                 autocorrect: 1,
@@ -112,11 +112,11 @@ const getArtistListeningNow = async (username) => {
         const lastTrack = await getRecentTracks(username)
         const { artist, isNowPlaying, image } = lastTrack[0]
 
-        const { data } = await axios.get(LASTFM_URL_API, {
+        const { data } = await axios.get(lastfmURL, {
             params: {
                 method: 'artist.getInfo',
                 username,
-                api_key: LASTFM_TOKEN_API,
+                api_key: lastfmToken,
                 artist,
                 autocorrect: 1,
                 format: 'json'
@@ -137,9 +137,31 @@ const getArtistListeningNow = async (username) => {
     }
 }
 
+const isValidUser = async (username) => {
+    try {
+        const { status } = await axios.get(lastfmURL, {
+            params: {
+                method: 'user.getInfo',
+                user: username,
+                api_key: lastfmToken,
+                format: 'json'
+            }
+        })
+    
+        return true
+
+    } catch (error) {
+        if (error.response.status === 404) {
+            return false
+        }
+    }
+    
+}
+
 module.exports = {
     getRecentTracks,
-    getMusicListeningNow,
+    getTrackListeningNow,
     getAlbumListeningNow,
-    getArtistListeningNow
+    getArtistListeningNow,
+    isValidUser
 }
