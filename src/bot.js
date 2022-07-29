@@ -75,15 +75,22 @@ bot.command('reg', async (ctx) => {
   const text = ctx.update.message.text.split(' ')
   const [command, arg] = text
 
-  const user = await updateUser(ctx, arg)
+  if (arg) {
+    const user = await updateUser(ctx, arg)
 
-  if (user.status === 'user') {
-    ctx.reply(`'${arg}' salvo como seu usuário do LastFM`)
-  } else if (user.status === 'not user') {
-    ctx.reply(`'${arg}' não parece ser um usuário do LastFM. \n Tente novamente.`)
+    if (user.status === 'user') {
+      ctx.reply(`'${arg}' salvo como seu usuário do LastFM`)
+    } else if (user.status === 'not user') {
+      ctx.reply(`'${arg}' não parece ser um usuário do LastFM. \n Tente novamente.`)
+    } else {
+      ctx.reply('Ops! Tive um problema 🥴 \n Tente novamente mais tarde.')
+    }
+
   } else {
-    ctx.reply('Ops! Tive um problema 🥴 \n Tente novamente mais tarde.')
+    ctx.reply('Utilize o comando \'/reg usuariolastfm\' \n Tente novamente.')
   }
+
+  
 })
 
 if (environment === 'development') {
