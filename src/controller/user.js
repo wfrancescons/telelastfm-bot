@@ -1,4 +1,4 @@
-const { getUserInfo } = require('./lastfm.js')
+const { getUserInfo } = require('../lastfm.js')
 const User = require('../models/user')
 
 const createUser = (telegram_id, lastfm_username) => {
