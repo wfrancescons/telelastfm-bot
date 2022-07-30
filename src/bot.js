@@ -1,8 +1,8 @@
-if (process.env.NODE_ENV !== 'production') require('dotenv').config()
-const environment = process.env.NODE_ENV
+//if (process.env.NODE_ENV !== 'production') require('dotenv').config()
+//const environment = process.env.NODE_ENV
 const token = process.env.TELEGRAM_BOT_TOKEN
 const { Telegraf } = require('telegraf')
-const commands = require('./commands/commands')
+const commands = require('./commands/')
 
 if (token === undefined) {
   throw new Error('TELEGRAM_BOT_TOKEN must be provided!')
@@ -19,15 +19,15 @@ bot.command('alb', (ctx) => commands.alb(ctx))
 bot.command('art', (ctx) => commands.art(ctx))
 bot.command('reg', (ctx) => commands.reg(ctx))
 
-if (environment === 'development') {
-  require('http')
-    .createServer(bot.webhookCallback('/secret-path'))
-    .listen(3000)
-}
+//if (environment === 'development') {
+//  require('http')
+//    .createServer(bot.webhookCallback('/secret-path'))
+//    .listen(3000)
+//}
 
 bot.launch()
 
-console.log(`Running in ${environment} environment`)
+//console.log(`Running in ${environment} environment`)
 
 process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
