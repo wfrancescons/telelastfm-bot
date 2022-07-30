@@ -1,4 +1,4 @@
-//require('dotenv').config()
+if (process.env.NODE_ENV !== 'production') require('dotenv').config()
 const environment = process.env.NODE_ENV
 const token = process.env.TELEGRAM_BOT_TOKEN
 const { Telegraf } = require('telegraf')
