@@ -1,7 +1,7 @@
 const axios = require('axios')
 
-const lastfmURL = process.env.LASTFM_URL_API || 'https://ws.audioscrobbler.com/2.0/'
-const lastfmToken = process.env.LASTFM_TOKEN_API || '1604ac31e033845e2433d302147d7125'
+const lastfmURL = process.env.LASTFM_URL_API
+const lastfmToken = process.env.LASTFM_TOKEN_API
 
 const getRecentTracks = (username, limit = 1) => {
     return new Promise((resolve, reject) => {
