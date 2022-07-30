@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "./src/bot.js",
+  "engines": {
+    "node": "16.5",
+    "npm": "8.10"
+  },
   "scripts": {
     "start": "node ./src/bot.js",
     "test": "jest"
