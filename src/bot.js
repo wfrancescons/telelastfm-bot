@@ -1,102 +1,30 @@
-const environment = process.env.NODE_ENV || 'development'
-
-if (environment === 'development') {
-  console.log(environment)
-  require('dotenv').config()
-}
-
-const { Telegraf } = require('telegraf')
-const { getUser, updateUser } = require('./controller/user')
-
-// Commands
-const { ln, alb, art } = require('./commands')
-
+require('dotenv').config()
+const environment = process.env.NODE_ENV
 const token = process.env.TELEGRAM_BOT_TOKEN
+const { Telegraf } = require('telegraf')
+const commands = require('./commands')
+
 if (token === undefined) {
   throw new Error('TELEGRAM_BOT_TOKEN must be provided!')
 }
 
-const bot = new Telegraf(token)
-
 // Run DB
 require('./database/')
 
-// Set the bot response
-bot.command('ln', async (ctx) => {
-  ctx.replyWithChatAction('typing')
+const bot = new Telegraf(token)
 
-  const user = await getUser(ctx)
-
-  if (user.status === 'user') {
-    const { text, entities } = await ln(user.data.lastfm_username, ctx)
-    ctx.reply(text, { entities })
-
-  } else if (user.status === 'not user') {
-    ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
-
-  } else {
-    ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
-  }
-})
-
-bot.command('alb', async (ctx) => {
-  ctx.replyWithChatAction('typing')
-
-  const user = await getUser(ctx)
-
-  if (user.status === 'user') {
-    const { text, entities } = await alb(user.data.lastfm_username, ctx)
-    ctx.reply(text, { entities })
-  } else if (user.status === 'not user') {
-    ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
-  } else {
-    ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
-  }
-})
-
-bot.command('art', async (ctx) => {
-  ctx.replyWithChatAction('typing')
-
-  const user = await getUser(ctx)
-
-  if (user.status === 'user') {
-    const { text, entities } = await art(user.data.lastfm_username, ctx)
-    ctx.reply(text, { entities })
-  } else if (user.status === 'not user') {
-    ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
-  } else {
-    ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
-  }
-})
-
-bot.command('reg', async (ctx) => {
-  ctx.replyWithChatAction('typing')
-
-  const text = ctx.update.message.text.split(' ')
-  const [command, arg] = text
-
-  if (arg) {
-    const user = await updateUser(ctx, arg)
-
-    if (user.status === 'user') {
-      ctx.reply(`'${arg}' salvo como seu usuário do LastFM`)
-    } else if (user.status === 'not user') {
-      ctx.reply(`'${arg}' não parece ser um usuário do LastFM. \nTente novamente.`)
-    } else {
-      ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
-    }
-
-  } else {
-    ctx.reply('Utilize o comando \'/reg usuariolastfm\' \nTente novamente.')
-  }
-
-  
-})
+// Set bot response
+bot.command('ln', (ctx) => commands.ln(ctx))
+bot.command('alb', (ctx) => commands.alb(ctx))
+bot.command('art', (ctx) => commands.art(ctx))
+bot.command('reg', (ctx) => commands.reg(ctx))
 
 if (environment === 'development') {
   require('http')
-  .createServer(bot.webhookCallback('/secret-path'))
-  .listen(3000)
+    .createServer(bot.webhookCallback('/secret-path'))
+    .listen(3000)
 }
+
+console.log(`Running in ${environment} environment`)
 
 bot.launch()

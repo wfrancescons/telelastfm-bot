@@ -1,11 +1,11 @@
 const axios = require('axios')
 
-const lastfmURL = process.env.LASTFM_URL_API
-const lastfmToken = process.env.LASTFM_TOKEN_API
+const lastfmURL = process.env.LASTFM_URL_API || 'https://ws.audioscrobbler.com/2.0/'
+const lastfmToken = process.env.LASTFM_TOKEN_API || '1604ac31e033845e2433d302147d7125'
 
-const getRecentTracks = async (username, limit = 1) => {
-    try {
-        const { data } = await axios.get(lastfmURL, {
+const getRecentTracks = (username, limit = 1) => {
+    return new Promise((resolve, reject) => {
+        axios.get(lastfmURL, {
             params: {
                 method: 'user.getRecentTracks',
                 format: 'json',
@@ -14,132 +14,130 @@ const getRecentTracks = async (username, limit = 1) => {
                 limit
             }
         })
+            .then(response => {
+                const tracks = response.data.recenttracks.track.map(track => {
+                    const isNowPlaying = track['@attr']?.nowplaying ? true : false
+                    let image = track.image.pop()['#text']
 
-        const tracks = data.recenttracks.track.map(track => {
+                    if (image === '') {
+                        image = 'https://www.last.fm/static/images/lastfm_avatar_twitter.52a5d69a85ac.png'
+                    }
 
-            //verifica se a música está sendo reproduzida no momento (? = Optional Chaining)
-            const isNowPlaying = track['@attr']?.nowplaying || false
-            let image = track.image.pop()['#text']
+                    return {
+                        track: track.name,
+                        artist: track.artist['#text'],
+                        album: track.album['#text'],
+                        image,
+                        isNowPlaying
+                    }
+                })
 
-            if (image === '') {
-                image = 'https://www.last.fm/static/images/lastfm_avatar_twitter.52a5d69a85ac.png'
-            }
+                resolve(tracks)
 
-            return {
-                track: track.name,
-                artist: track.artist['#text'],
-                album: track.album['#text'],
-                image,
-                isNowPlaying
-            }
-        })
-
-        return tracks
-
-    } catch (error) {
-        console.log('ERRO', error)
-    }
+            })
+            .catch(erro => reject(erro))
+    })
 }
 
-const getTrackListeningNow = async (username) => {
-    try {
-        const lastTrack = await getRecentTracks(username)
-        const { track, album, artist, isNowPlaying, image } = lastTrack[0]
+const getTrackListeningNow = (username) => {
+    return new Promise((resolve, reject) => {
+        getRecentTracks(username)
+            .then(lastTrack => {
+                const { track, album, artist, isNowPlaying, image } = lastTrack[0]
 
-        const { data } = await axios.get(lastfmURL, {
-            params: {
-                method: 'track.getInfo',
-                username,
-                api_key: lastfmToken,
-                track,
-                artist,
-                autocorrect: 1,
-                format: 'json'
-            }
-        })
+                axios.get(lastfmURL, {
+                    params: {
+                        method: 'track.getInfo',
+                        username,
+                        api_key: lastfmToken,
+                        track,
+                        artist,
+                        autocorrect: 1,
+                        format: 'json'
+                    }
+                })
+                    .then(response => {
+                        resolve({
+                            track,
+                            artist,
+                            album,
+                            image,
+                            userplaycount: Number(response.data.track?.userplaycount) || 0,
+                            duration: response.data.track.duration,
+                            isNowPlaying
+                        })
+                    })
+                    .catch(erro => reject(erro))
 
-        const listening = {
-            track,
-            artist,
-            album,
-            image,
-            userplaycount: Number(data.track?.userplaycount) || 0,
-            duration: data.track.duration,
-            isNowPlaying
-        }
-
-        return listening
-
-    } catch (error) {
-        console.log('ERRO', error)
-    }
+            })
+    })
 }
 
-const getAlbumListeningNow = async (username) => {
-    try {
-        const lastTrack = await getRecentTracks(username)
-        const { album, artist, isNowPlaying, image } = lastTrack[0]
+const getAlbumListeningNow = (username) => {
+    return new Promise((resolve, reject) => {
+        getRecentTracks(username)
+            .then(lastTrack => {
+                const { album, artist, isNowPlaying, image } = lastTrack[0]
 
-        const { data } = await axios.get(lastfmURL, {
-            params: {
-                method: 'album.getInfo',
-                username,
-                api_key: lastfmToken,
-                album,
-                artist,
-                autocorrect: 1,
-                format: 'json'
-            }
-        })
+                axios.get(lastfmURL, {
+                    params: {
+                        method: 'album.getInfo',
+                        username,
+                        api_key: lastfmToken,
+                        album,
+                        artist,
+                        autocorrect: 1,
+                        format: 'json'
+                    }
+                })
+                    .then(response => {
+                        resolve({
+                            artist,
+                            album,
+                            image,
+                            userplaycount: Number(response.data.album?.userplaycount) || 0,
+                            isNowPlaying
+                        })
+                    })
+                    .catch(erro => reject(erro))
 
-        const listening = {
-            artist,
-            album,
-            image,
-            userplaycount: Number(data.album?.userplaycount) || 0,
-            isNowPlaying
-        }
-
-        return listening
-
-    } catch (error) {
-        console.log('ERRO', error)
-    }
+            })
+    })
 }
 
-const getArtistListeningNow = async (username) => {
-    try {
-        const lastTrack = await getRecentTracks(username)
-        const { artist, isNowPlaying, image } = lastTrack[0]
+const getArtistListeningNow = (username) => {
+    return new Promise((resolve, reject) => {
+        getRecentTracks(username)
+            .then(lastTrack => {
+                const { artist, isNowPlaying, image } = lastTrack[0]
 
-        const { data } = await axios.get(lastfmURL, {
-            params: {
-                method: 'artist.getInfo',
-                username,
-                api_key: lastfmToken,
-                artist,
-                autocorrect: 1,
-                format: 'json'
-            }
-        })
+                axios.get(lastfmURL, {
+                    params: {
+                        method: 'artist.getInfo',
+                        username,
+                        api_key: lastfmToken,
+                        artist,
+                        autocorrect: 1,
+                        format: 'json'
+                    }
+                })
+                    .then(response => {
+                        resolve({
+                            artist,
+                            image,
+                            userplaycount: Number(response.data.artist.stats?.userplaycount) || 0,
+                            isNowPlaying
+                        })
+                    })
+                    .catch(erro => reject(erro))
 
-        const listening = {
-            artist,
-            image,
-            userplaycount: Number(data.artist.stats?.userplaycount) || 0,
-            isNowPlaying
-        }
-
-        return listening
-
-    } catch (error) {
-        console.log('ERRO', error)
-    }
+            })
+    })
 }
 
-const isValidUser = async (username) => {
-    try {
-        const { status } = await axios.get(lastfmURL, {
+const getUserInfo = (username) => {
+    return new Promise((resolve, reject) => {
+        axios.get(lastfmURL, {
             params: {
                 method: 'user.getInfo',
                 user: username,
@@ -147,15 +145,13 @@ const isValidUser = async (username) => {
                 format: 'json'
             }
         })
-    
-        return true
-
-    } catch (error) {
-        if (error.response.status === 404) {
-            return false
-        }
-    }
-    
+            .then(response => {
+                resolve(response.data)
+            })
+            .catch(erro => {
+                erro.response.status === 404 ? resolve({ user: 'not found' }) : reject(erro)
+            })
+    })
 }
 
 module.exports = {
@@ -163,5 +159,5 @@ module.exports = {
     getTrackListeningNow,
     getAlbumListeningNow,
     getArtistListeningNow,
-    isValidUser
+    getUserInfo
 }
