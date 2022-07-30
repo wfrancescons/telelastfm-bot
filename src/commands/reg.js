@@ -1,4 +1,4 @@
-const { setLastfmUser } = require('../controller/user')
+const { setLastfmUser } = require('../controller/User')
 
 const reg = (ctx) => {
     ctx.replyWithChatAction('typing')

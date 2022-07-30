@@ -1,5 +1,5 @@
-const { getLastfmUser } = require('../controller/user')
-const { getTrackListeningNow } = require('../controller/lastfm')
+const { getLastfmUser } = require('../controller/User')
+const { getTrackListeningNow } = require('../controller/Lastfm')
 
 const ln = async (ctx) => {
     ctx.replyWithChatAction('typing')

@@ -1,5 +1,5 @@
+const { getUserInfo } = require('./Lastfm.js')
 const User = require('../models/user')
-const { getUserInfo } = require('./lastfm')
 
 const createUser = (telegram_id, lastfm_username) => {
     return new Promise((resolve, reject) => {
