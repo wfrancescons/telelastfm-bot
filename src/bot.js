@@ -5,7 +5,7 @@ const { Telegraf } = require('telegraf')
 //const commands = require('./commands')
 
 const commands = {
-  ln: require('./commands/ln'),
+  ln: require('./commands/listen'),
   alb: require('./commands/alb'),
   art: require('./commands/art'),
   reg: require('./commands/reg')
