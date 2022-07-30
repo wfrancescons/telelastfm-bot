@@ -2,14 +2,7 @@ if (process.env.NODE_ENV !== 'production') require('dotenv').config()
 const environment = process.env.NODE_ENV
 const token = process.env.TELEGRAM_BOT_TOKEN
 const { Telegraf } = require('telegraf')
-//const commands = require('./commands')
-
-const commands = {
-  ln: require('./commands/listen'),
-  alb: require('./commands/alb'),
-  art: require('./commands/art'),
-  reg: require('./commands/reg')
-}
+const commands = require('./commands')
 
 if (token === undefined) {
   throw new Error('TELEGRAM_BOT_TOKEN must be provided!')
