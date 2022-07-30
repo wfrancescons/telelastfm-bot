@@ -1,4 +1,4 @@
-const { getAlbumListeningNow } = require('../lastfm')
+const { getAlbumListeningNow } = require('../controller/lastfm')
 const { getLastfmUser } = require('../controller/user')
 
 const alb = async (ctx) => {
