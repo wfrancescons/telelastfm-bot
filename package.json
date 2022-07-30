@@ -2,9 +2,9 @@
   "name": "telegram-lastfm-bot",
   "version": "1.0.0",
   "description": "",
-  "main": "src/bot.js",
+  "main": "./src/bot.js",
   "scripts": {
-    "start": "node src/bot.js",
+    "start": "node ./src/bot.js",
     "test": "jest"
   },
   "keywords": [],
