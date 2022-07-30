@@ -1,5 +1,5 @@
 const User = require('../models/user')
-const { getUserInfo } = require('./lastfm')
+const Lastfm = require('./lastfm')
 
 const createUser = (telegram_id, lastfm_username) => {
     return new Promise((resolve, reject) => {
@@ -41,7 +41,7 @@ const getLastfmUser = (ctx) => {
 
             if (!user) {
                 if (telegram_username) {
-                    const userInfo = await getUserInfo(telegram_username)
+                    const userInfo = await Lastfm.getUserInfo(telegram_username)
 
                     if (userInfo.user === 'not found') {
                         resolve()
@@ -83,7 +83,7 @@ const setLastfmUser = (telegram_id, lastfm_username) => {
                 }
 
             } else {
-                const userInfo = await getUserInfo(lastfm_username)
+                const userInfo = await Lastfm.getUserInfo(lastfm_username)
 
                 if (userInfo.user === 'not found') {
                     resolve()
