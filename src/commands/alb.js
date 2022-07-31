@@ -21,11 +21,13 @@ const alb = async (ctx) => {
 
         const { first_name } = ctx.update.message.from
 
-        let artistNick =''
+        let artistNick = ''
         const allChatNicks = await getNicks(chat_id)
-        const index = allChatNicks.findIndex(nick => nick.artist_name === artist.toLowerCase())
-        if (index !== -1) {
-            artistNick = allChatNicks[index].artist_nick
+        if (allChatNicks) {
+            const index = allChatNicks.findIndex(nick => nick.artist_name === artist.toLowerCase())
+            if (index !== -1) {
+                artistNick = allChatNicks[index].artist_nick
+            }
         }
 
         const text = `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
