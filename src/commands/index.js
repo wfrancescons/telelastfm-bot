@@ -2,5 +2,6 @@ module.exports = {
     ln: require('./ln'),
     alb: require('./alb'),
     art: require('./art'),
-    reg: require('./reg')
+    reg: require('./reg'),
+    addn: require('./addn')
 }

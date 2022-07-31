@@ -1,8 +1,10 @@
 const { getAlbumListeningNow } = require('../controller/lastfm')
 const { getLastfmUser } = require('../controller/user')
+const { getNicks } = require('../controller/artist')
 
 const alb = async (ctx) => {
     ctx.replyWithChatAction('typing')
+    const chat_id = ctx.message.chat.id
 
     try {
         const lastfmUser = await getLastfmUser(ctx)
@@ -19,9 +21,16 @@ const alb = async (ctx) => {
 
         const { first_name } = ctx.update.message.from
 
+        let artistNick =''
+        const allChatNicks = await getNicks(chat_id)
+        const index = allChatNicks.findIndex(nick => nick.artist_name === artist.toLowerCase())
+        if (index !== -1) {
+            artistNick = allChatNicks[index].artist_nick
+        }
+
         const text = `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
         `\n💽 ${album}` +
-        `\n🧑‍🎤 ${artist} \n` +
+        `\n🧑‍🎤 ${artistNick ? artistNick : artist} \n` +
         `\n📊 ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
         
         const entities = [{

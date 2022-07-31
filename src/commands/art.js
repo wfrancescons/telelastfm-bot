@@ -1,8 +1,10 @@
 const { getArtistListeningNow } = require('../controller/lastfm')
 const { getLastfmUser } = require('../controller/user')
+const { getNicks } = require('../controller/artist')
 
 const art = async (ctx) => {
     ctx.replyWithChatAction('typing')
+    const chat_id = ctx.message.chat.id
 
     try {
         const lastfmUser = await getLastfmUser(ctx)
@@ -18,8 +20,15 @@ const art = async (ctx) => {
 
         const { first_name } = ctx.update.message.from
 
+        let artistNick =''
+        const allChatNicks = await getNicks(chat_id)
+        const index = allChatNicks.findIndex(nick => nick.artist_name === artist.toLowerCase())
+        if (index !== -1) {
+            artistNick = allChatNicks[index].artist_nick
+        }
+
         const text = `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
-        `\n🧑‍🎤 ${artist} \n` +
+        `\n🧑‍🎤 ${artistNick ? artistNick : artist} \n` +
         `\n📊 ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
         
         const entities = [{
@@ -28,8 +37,8 @@ const art = async (ctx) => {
             type: 'bold',
         },
         {
-            offset: text.indexOf(artist),
-            length: artist.length,
+            offset: text.indexOf(artistNick ? artistNick : artist),
+            length: (artistNick ? artistNick : artist).length,
             type: 'bold',
         },
         {
