@@ -101,7 +101,7 @@ const newNick = (chat_id, artistNick) => {
 
                 if (artist) {
                     const nick = await createNick(chat_id, artistNick)
-                    resolve(nick.artists[(nick.length - 1)])
+                    resolve(nick)
                 } else reject()
 
             } else {
