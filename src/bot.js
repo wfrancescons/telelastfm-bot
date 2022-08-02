@@ -19,6 +19,7 @@ bot.command('alb', (ctx) => commands.alb(ctx))
 bot.command('art', (ctx) => commands.art(ctx))
 bot.command('reg', (ctx) => commands.reg(ctx))
 bot.command('addn', (ctx) => commands.addn(ctx))
+bot.command('rmvn', (ctx) => commands.rmvn(ctx))
 
 if (environment === 'development') {
   require('http')

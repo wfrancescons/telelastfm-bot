@@ -32,7 +32,7 @@ const getNicks = (chat_id) => {
     })
 }
 
-const updateArtist = (chat_id, artistNick) => {
+const updateNick = (chat_id, artistNick) => {
 
     const { artist_name } = artistNick
 
@@ -61,34 +61,6 @@ const updateArtist = (chat_id, artistNick) => {
     })
 }
 
-const deleteArtist = (chat_id, artistNick) => {
-
-    const { artist_name } = artistNick
-
-    return new Promise((resolve, reject) => {
-        Artist.findOne({ chat_id }, (erro, data) => {
-            if (data) {
-                const index = data.artists.findIndex(artist => {
-                    artist.artist_name === artist_name
-                })
-
-                if (index !== -1) {
-                    data.artists.splice(index, 1)
-
-                    data.save(erro => reject(erro))
-                    resolve(data)
-
-                } else {
-                    resolve()
-                }
-
-            } else {
-                reject(erro)
-            }
-        })
-    })
-}
-
 const newNick = (chat_id, artistNick) => {
     const { artist_name } = artistNick
 
@@ -108,7 +80,7 @@ const newNick = (chat_id, artistNick) => {
                 const index = nicks.findIndex(artist => artist.artist_name === artist_name)
 
                 if (index !== -1) {
-                    const updatedArtist = await updateArtist(chat_id, artistNick)
+                    const updatedArtist = await updateNick(chat_id, artistNick)
                     resolve(updatedArtist)
 
                 } else if (index === -1) {
@@ -125,7 +97,34 @@ const newNick = (chat_id, artistNick) => {
     })
 }
 
+const deleteNick = (chat_id, artistNick) => {
+
+    return new Promise((resolve, reject) => {
+        Artist.findOne({ chat_id }, (erro, data) => {
+            if (data) {
+                const index = data.artists.findIndex(artist => artist.artist_name === artistNick)
+
+                if (index !== -1) {
+                    data.artists.splice(index, 1)
+                    data.save(erro => reject(erro))
+                    
+                    resolve(data)
+
+                } else if (index === -1) {
+                    resolve()
+                } else {
+                    reject(erro)
+                }
+
+            } else {
+                reject(erro)
+            }
+        })
+    })
+}
+
 module.exports = {
     newNick,
-    getNicks
+    getNicks,
+    deleteNick
 }
