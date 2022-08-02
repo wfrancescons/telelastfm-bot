@@ -4,7 +4,9 @@ const { getNicks } = require('../controller/artist')
 
 const art = async (ctx) => {
     ctx.replyWithChatAction('typing')
+
     const chat_id = ctx.message.chat.id
+    const { first_name } = ctx.update.message.from
 
     try {
         const lastfmUser = await getLastfmUser(ctx)
@@ -18,8 +20,6 @@ const art = async (ctx) => {
             isNowPlaying
         } = await getArtistListeningNow(lastfmUser)
 
-        const { first_name } = ctx.update.message.from
-
         let artistNick = ''
         const allChatNicks = await getNicks(chat_id)
         if (allChatNicks) {
@@ -30,9 +30,9 @@ const art = async (ctx) => {
         }
 
         const text = `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
-        `\n🧑‍🎤 ${artistNick ? artistNick : artist} \n` +
-        `\n📊 ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
-        
+            `\n🧑‍🎤 ${artistNick ? `${artistNick} (${artist})` : artist} \n` +
+            `\n📈 ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
+
         const entities = [{
             offset: text.indexOf(first_name),
             length: first_name.length,
@@ -44,11 +44,17 @@ const art = async (ctx) => {
             type: 'bold',
         },
         {
-            offset: text.indexOf('📊'),
-            length: '📊'.length,
+            offset: text.indexOf('📈'),
+            length: '📈'.length,
             type: 'text_link',
             url: image
         }]
+
+        if (artistNick) entities.push({
+            offset: text.indexOf(artist),
+            length: artist.length,
+            type: 'italic'
+        })
 
         return ctx.reply(text, { entities })
 

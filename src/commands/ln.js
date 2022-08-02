@@ -4,11 +4,13 @@ const { getNicks } = require('../controller/artist')
 
 const ln = async (ctx) => {
     ctx.replyWithChatAction('typing')
+
     const chat_id = ctx.message.chat.id
+    const { first_name } = ctx.update.message.from
 
     try {
-        const lastfmUser = await getLastfmUser(ctx)
 
+        const lastfmUser = await getLastfmUser(ctx)
         if (!lastfmUser) return ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
 
         const {
@@ -20,8 +22,6 @@ const ln = async (ctx) => {
             isNowPlaying
         } = await getTrackListeningNow(lastfmUser)
 
-        const { first_name } = ctx.update.message.from
-
         let artistNick = ''
         const allChatNicks = await getNicks(chat_id)
         if (allChatNicks) {
@@ -32,10 +32,10 @@ const ln = async (ctx) => {
         }
 
         const text = `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
-            `\n🎵 ${track}` +
-            `\n💽 ${album}` +
-            `\n🧑‍🎤 ${artistNick ? artistNick : artist} \n` +
-            `\n📊 ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
+            `\n🎶 ${track}` +
+            `\n💿 ${album}` +
+            `\n🧑‍🎤 ${artistNick ? `${artistNick} (${artist})` : artist} \n` +
+            `\n📈 ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
 
         const entities = [{
             offset: text.indexOf(first_name),
@@ -48,11 +48,17 @@ const ln = async (ctx) => {
             type: 'bold',
         },
         {
-            offset: text.indexOf('📊'),
-            length: '📊'.length,
+            offset: text.indexOf('📈'),
+            length: '📈'.length,
             type: 'text_link',
             url: image
         }]
+
+        if(artistNick) entities.push({
+            offset: text.indexOf(artist),
+            length: artist.length,
+            type: 'italic'
+        })
 
         return ctx.reply(text, { entities })
 
