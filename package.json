@@ -5,7 +5,7 @@
   "main": "./src/bot.js",
   "scripts": {
     "start": "node ./src/bot.js",
-    "test": "jest"
+    "test": "jest "
   },
   "keywords": [],
   "author": "",
