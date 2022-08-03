@@ -63,7 +63,6 @@ const getTrackListeningNow = (username) => {
                             album,
                             image,
                             userplaycount: Number(response.data.track?.userplaycount) || 0,
-                            duration: response.data.track.duration,
                             isNowPlaying
                         })
                     })
