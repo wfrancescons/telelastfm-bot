@@ -2,35 +2,37 @@ const { getArtistListeningNow } = require('../controller/lastfm')
 const { getLastfmUser } = require('../controller/user')
 const { getNicks } = require('../controller/artist')
 
+// Artist: what artist is scrobbling
 const art = async (ctx) => {
+
     ctx.replyWithChatAction('typing')
 
     const chat_id = ctx.message.chat.id
     const { first_name } = ctx.update.message.from
 
     try {
-        const lastfmUser = await getLastfmUser(ctx)
+        const lastfm_user = await getLastfmUser(ctx)
 
-        if (!lastfmUser) return ctx.reply('Utilize o comando \'/reg usuariolastfm\' para se registrar')
+        if (!lastfm_user) return ctx.replyWithMarkdown('Type `/reg lastfmusername` to set your Lastfm\'s username')
 
         const {
             artist,
             image,
             userplaycount,
             isNowPlaying
-        } = await getArtistListeningNow(lastfmUser)
+        } = await getArtistListeningNow(lastfm_user)
 
-        let artistNick = ''
+        let artist_nick = ''
         const allChatNicks = await getNicks(chat_id)
         if (allChatNicks) {
             const index = allChatNicks.findIndex(nick => nick.artist_name === artist.toLowerCase())
             if (index !== -1) {
-                artistNick = allChatNicks[index].artist_nick
+                artist_nick = allChatNicks[index].artist_nick
             }
         }
 
         const text = `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
-            `\n🧑‍🎤 ${artistNick ? `${artistNick} (${artist})` : artist} \n` +
+            `\n🧑‍🎤 ${artist_nick ? `${artist_nick} (${artist})` : artist} \n` +
             `\n📈 ${userplaycount + 1} ${userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`
 
         const entities = [{
@@ -39,8 +41,8 @@ const art = async (ctx) => {
             type: 'bold',
         },
         {
-            offset: text.indexOf(artistNick ? artistNick : artist),
-            length: (artistNick ? artistNick : artist).length,
+            offset: text.indexOf(artist_nick ? artist_nick : artist),
+            length: (artist_nick ? artist_nick : artist).length,
             type: 'bold',
         },
         {
@@ -50,7 +52,7 @@ const art = async (ctx) => {
             url: image
         }]
 
-        if (artistNick) entities.push({
+        if (artist_nick) entities.push({
             offset: text.indexOf(artist),
             length: artist.length,
             type: 'italic'
@@ -60,7 +62,7 @@ const art = async (ctx) => {
 
     } catch (erro) {
         console.log(erro)
-        ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
+        ctx.reply('Something went wrong 🥴 \nBut don\'t fret, let\'s give it another shot in a couple of minutes.')
     }
 }
 

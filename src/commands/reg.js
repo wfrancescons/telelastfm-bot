@@ -7,16 +7,16 @@ const reg = (ctx) => {
     const text = ctx.update.message.text.split(' ')
     const [command, arg] = text
 
-    if (!arg) return ctx.reply('Utilize o comando com seu nome de usuário do LastFM \nExemplo: \'/reg usuariolastfm\' \nTente novamente, por favor.')
+    if (!arg) return ctx.replyWithMarkdown('Type /reg with with your Lastfm\'s username. \nExample: `/reg lastfmusername` \nPlease, try again 🙂')
 
     setLastfmUser(telegram_id, arg)
         .then(user => {
-            if (!user) return ctx.reply(`'${arg}' não parece ser um usuário do LastFM. \nTente novamente.`)
-            return ctx.reply(`'${arg}' salvo como seu usuário do LastFM`)
+            if (!user) return ctx.reply(`'${arg}' doesn't seem to be a valid Lastfm's username 🤔 \nPlease, try again`)
+            return ctx.reply(`'${arg}' set as your Lastfm's username ☑️`)
         })
         .catch(erro => {
             console.log(erro)
-            ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
+            ctx.reply('Something went wrong 🥴 \nBut don\'t fret, let\'s give it another shot in a couple of minutes.')
         })
 }
 
