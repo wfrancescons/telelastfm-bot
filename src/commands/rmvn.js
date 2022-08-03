@@ -6,17 +6,19 @@ const rmvn = (ctx) => {
     const chat_id = ctx.message.chat.id
     const text = ctx.update.message.text
 
-    const [ command, artistNick ] = text.split(' ')
-    if (!artistNick) return ctx.reply('Utilize o comando /rmvn passando o nome do artista. \nExemplo: \'/rmvn Taylor Swift\' \nTente novamente, por favor.')
+    const [ command ] = text.split(' ')
+    const artist_nick = text.replace(command, '').trim().toLowerCase()
 
-    deleteNick(chat_id, artistNick.toLowerCase())
+    if (!artist_nick) return ctx.replyWithMarkdown('Type /rmvn with artist\'s name to remove artist\'s nick. \nExample: `/rmvn Taylor Swift` \nPlease, try again 🙂')
+
+    deleteNick(chat_id, artist_nick)
         .then(data => {
-            if (!data) return ctx.reply('Não encontrei ninguém com esse nome nos meus registros 🤔 \nTente novamente.')
-            return ctx.reply(`OK! 📝 \nRemovi o nome personalizado 🙂`)
+            if (!data) return ctx.reply('Didn\'t find anyone with that name in my records 🤔 \nPlease, try again.')
+            return ctx.reply(`OK! 📝 \nArtist's nick removed 🙂`)
         })
         .catch(erro => {
             console.log(erro)
-            ctx.reply('Ops! Tive um problema 🥴 \nTente novamente mais tarde.')
+            ctx.reply('Something went wrong 🥴 \nBut don\'t fret, let\'s give it another shot in a couple of minutes.')
         })
 }
 
