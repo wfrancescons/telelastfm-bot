@@ -1,4 +1,6 @@
 module.exports = {
+    start: require('./start'),
+    help: require('./help'),
     ln: require('./ln'),
     alb: require('./alb'),
     art: require('./art'),

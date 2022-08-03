@@ -1,8 +1,7 @@
 if (process.env.NODE_ENV !== 'production') require('dotenv').config()
-const environment = process.env.NODE_ENV
-const token = process.env.TELEGRAM_BOT_TOKEN
+const { NODE_ENV: environment, TELEGRAM_BOT_TOKEN: token } = process.env
 const { Telegraf } = require('telegraf')
-const commands = require('./commands')
+const Commands = require('./commands')
 
 if (token === undefined) {
   throw new Error('TELEGRAM_BOT_TOKEN must be provided!')
@@ -14,13 +13,16 @@ require('./database/')
 const bot = new Telegraf(token)
 
 // Set bot response
-bot.command('ln', (ctx) => commands.ln(ctx))
-bot.command('alb', (ctx) => commands.alb(ctx))
-bot.command('art', (ctx) => commands.art(ctx))
-bot.command('reg', (ctx) => commands.reg(ctx))
-bot.command('addn', (ctx) => commands.addn(ctx))
-bot.command('rmvn', (ctx) => commands.rmvn(ctx))
+bot.start((ctx) => Commands.start(ctx))
+bot.help((ctx) => Commands.help(ctx))
+bot.command('ln', (ctx) => Commands.ln(ctx))
+bot.command('alb', (ctx) => Commands.alb(ctx))
+bot.command('art', (ctx) => Commands.art(ctx))
+bot.command('reg', (ctx) => Commands.reg(ctx))
+bot.command('addn', (ctx) => Commands.addn(ctx))
+bot.command('rmvn', (ctx) => Commands.rmvn(ctx))
 
+// Set development webhook
 if (environment === 'development') {
   require('http')
     .createServer(bot.webhookCallback('/secret-path'))
