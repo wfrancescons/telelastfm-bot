@@ -24,9 +24,9 @@ const story = async (ctx) => {
         ctx.replyWithChatAction('typing')
         const invalidArgummentsText = 'Invalid argumments 🤔\n'+
                                       'Type `/story mediatype period` to generate your collage.\n'+
-                                      'Example: `/story tracks 7days`\n\n'+
-                                      'Valid MediaTypes: `tracks`, `albums`, `artists`\n'+
-                                      'Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`'
+                                      '➡️ Example: `/story tracks 7day`\n\n'+
+                                      '✅ Valid MediaTypes: `tracks`, `albums`, `artists`\n'+
+                                      '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`'
 
         return ctx.replyWithMarkdown(invalidArgummentsText)
     }
