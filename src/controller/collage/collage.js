@@ -15,8 +15,9 @@ const makeItem = async (data) => {
   const { data: imageBuffer } = await axios.get(image, { responseType: 'arraybuffer' })
   const buffer = Buffer.from(imageBuffer).toString('base64')
 
-  if (text.length > 22) {
-    text = text.substring(0, 22) + '...'
+  text = text.trim()
+  if (text.length > 25) {
+    text = text.substring(0, 25) + '...'
   }
 
   const html = `
@@ -24,17 +25,17 @@ const makeItem = async (data) => {
         <td>
           <div style="width: 100%; top: ${top}px; position: absolute;">
             <div
-              style="text-align: center; font-family: 'Open Sans'; font-size: 96px; font-weight: 700; text-transform: uppercase; color: #fff; float: left; padding-left: 100px;">
+              style="text-align: center; font-family: 'Open Sans'; font-size: 96px; font-weight: 700; text-transform: uppercase; color: #fff; float: left; padding-left: 100px; padding-top: 20px;">
               #${rank}</div>
             <div><img src="${makeDataURI(buffer)}" alt=""
                 style="width: 180px; height: 180px; float: left; padding-left: 50px;"></div>
             <div style="float: left; padding-left: 50px;">
               <div
-                style="width: 500px; text-align: left; font-family: 'Open Sans'; font-size: 56px; font-weight: 700; text-transform: uppercase; color: #fff; hyphens: auto">
+                style="width: 500px; text-align: left; font-family: 'Open Sans'; font-size: 48px; font-weight: 700; text-transform: uppercase; color: #fff; justify-content: center">
                 ${text}</div>
               <div
                 style="text-align: left; font-family: 'Open Sans'; font-size: 42px; font-weight: 500; text-transform: uppercase; color: #fff;">
-                ${scrobbles} ${scrobbles == 1 ? 'scrobble' : 'scrobbles'}</div>
+                ${Number(scrobbles).toLocaleString('pt-BR')} ${scrobbles == 1 ? 'scrobble' : 'scrobbles'}</div>
             </div>
           </div>
         </td>
