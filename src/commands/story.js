@@ -13,7 +13,7 @@ const story = async (ctx) => {
 
         if (!lastfm_user) return ctx.replyWithMarkdown('Type `/reg lastfmusername` to set your Lastfm\'s username')
 
-        const albuns = await getUserTopAlbuns(lastfm_user)
+        const albuns = await getUserTopAlbuns(lastfm_user, '7day')
 
         const req = {
             period: 'last 7 days',
