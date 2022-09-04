@@ -190,6 +190,34 @@ const getUserTopAlbuns = (username, period) => {
         .catch(erro => reject(console.log(erro)))
 }
 
+const getUserTopArtists = (username, period) => {
+    return new Promise((resolve, reject) => {
+        axios.get(lastfmURL, {
+            params: {
+                method: 'user.getTopArtists',
+                format: 'json',
+                api_key: lastfmToken,
+                username,
+                period,
+                limit: 5
+            }
+        })
+            .then(response => {
+                const array = response.data.topartists.artist.map(item => {
+                    return {
+                        rank: item['@attr'].rank,
+                        image: item.image.pop()['#text'],
+                        text: item.name,
+                        scrobbles: item.playcount
+                    }
+                })
+                resolve(array)
+            })
+
+    })
+        .catch(erro => reject(console.log(erro)))
+}
+
 const getUserInfo = (username) => {
     return new Promise((resolve, reject) => {
         axios.get(lastfmURL, {
@@ -216,5 +244,6 @@ module.exports = {
     getArtistListeningNow,
     getUserTopAlbuns,
     getUserTopTracks,
+    getUserTopArtists,
     getUserInfo
 }
