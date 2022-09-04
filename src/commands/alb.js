@@ -64,7 +64,7 @@ const alb = async (ctx) => {
 
     } catch (erro) {
         console.log(erro)
-        ctx.reply('Something went wrong 🥴 \nBut don\'t fret, let\'s give it another shot in a couple of minutes.')
+        return ctx.reply('Something went wrong 🥴 \nBut don\'t fret, let\'s give it another shot in a couple of minutes.')
     }
 }
 
