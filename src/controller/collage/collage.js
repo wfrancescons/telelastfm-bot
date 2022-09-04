@@ -84,26 +84,14 @@ const makeStory = async (lastfmData) => {
   top = 390
 
   const background = await makeBackground(lastfmData.data[0].image)
-  Buffer.from(imageBuffer).toString('base64')
+
+  const font = Buffer.from('./fonts/open-sans.ttf').toString()
+
   const html = `
   <head>
-  <style>
-    @font-face {
-      font-family: 'Open Sans';
-      src: url(data:font/truetype;charset=utf-8;base64,${Buffer.from(join(__dirname, `/fonts/700.ttf`)).toString('base64')}) format('truetype');
-      font-weight: 700;
-    }
-    @font-face {
-      font-family: 'Open Sans';
-      src: url(data:font/truetype;charset=utf-8;base64,${Buffer.from(join(__dirname, `/fonts/500.ttf`)).toString('base64')}) format('truetype');
-      font-weight: 500;
-    }
-    @font-face {
-      font-family: 'Open Sans';
-      src: url(data:font/truetype;charset=utf-8;base64,${Buffer.from(join(__dirname, `/fonts/400.ttf`)).toString('base64')}) format('truetype');
-      font-weight: 400;
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   </head>
   <body style="width: 1080px; height: 1920px; background-image: url(${makeDataURI(background.toString('base64'))}); background-repeat: no-repeat; background-size: auto; margin: 0; padding: 0">
     <div style="position: relative">
@@ -129,7 +117,7 @@ const makeStory = async (lastfmData) => {
         </tr>
       </table>
     </div>
-  </body>w
+  </body>
   `
   const story = await nodeHtmlToImage({ html, puppeteerArgs: { args: ['--no-sandbox', '--disable-setuid-sandbox'] } })
 
