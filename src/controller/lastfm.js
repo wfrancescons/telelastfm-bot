@@ -134,6 +134,62 @@ const getArtistListeningNow = (username) => {
     })
 }
 
+const getUserTopTracks = (username, period) => {
+    return new Promise((resolve, reject) => {
+        axios.get(lastfmURL, {
+            params: {
+                method: 'user.getTopTracks',
+                format: 'json',
+                api_key: lastfmToken,
+                username,
+                period,
+                limit: 5
+            }
+        })
+            .then(response => {
+                const array = response.data.toptracks.track.map(item => {
+                    return {
+                        rank: item['@attr'].rank,
+                        image: item.image.pop()['#text'],
+                        text: item.name,
+                        scrobbles: item.playcount
+                    }
+                })
+                resolve(array)
+            })
+
+    })
+        .catch(erro => reject(console.log(erro)))
+}
+
+const getUserTopAlbuns = (username, period) => {
+    return new Promise((resolve, reject) => {
+        axios.get(lastfmURL, {
+            params: {
+                method: 'user.getTopAlbums',
+                format: 'json',
+                api_key: lastfmToken,
+                username,
+                period,
+                limit: 5
+            }
+        })
+            .then(response => {
+                const array = response.data.topalbums.album.map(item => {
+                    return {
+                        rank: item['@attr'].rank,
+                        image: item.image.pop()['#text'],
+                        text: item.name,
+                        scrobbles: item.playcount
+                    }
+                })
+                resolve(array)
+            })
+
+    })
+        .catch(erro => reject(console.log(erro)))
+}
+
 const getUserInfo = (username) => {
     return new Promise((resolve, reject) => {
         axios.get(lastfmURL, {
@@ -158,5 +214,7 @@ module.exports = {
     getTrackListeningNow,
     getAlbumListeningNow,
     getArtistListeningNow,
+    getUserTopAlbuns,
+    getUserTopTracks,
     getUserInfo
 }

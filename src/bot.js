@@ -21,6 +21,8 @@ bot.command('art', (ctx) => Commands.art(ctx))
 bot.command('reg', (ctx) => Commands.reg(ctx))
 bot.command('addn', (ctx) => Commands.addn(ctx))
 bot.command('rmvn', (ctx) => Commands.rmvn(ctx))
+bot.command('story', (ctx) => Commands.story(ctx))
+bot.command('collage', (ctx) => ctx.replyWithMarkdown('Please, use `/story` command to make collages\nExample: `/story tracks overall`'))
 
 // Set development webhook
 if (environment === 'development') {
