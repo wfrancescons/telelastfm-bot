@@ -15,7 +15,7 @@ const getRecentTracks = (username, limit = 1) => {
             }
         })
             .then(response => {
-                console.log(response)
+                if (response.data.recenttracks.track.length === 0) reject(new Error('LastFm scrobbles is equal to zero')) 
                 const tracks = response.data.recenttracks.track.map(track => {
                     const isNowPlaying = track['@attr']?.nowplaying ? true : false
                     let image = track.image.pop()['#text']
