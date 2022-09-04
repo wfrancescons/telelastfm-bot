@@ -113,7 +113,7 @@ const makeStory = async (lastfmData) => {
     </div>
   </body>
   `
-  const story = await nodeHtmlToImage({ html })
+  const story = await nodeHtmlToImage({ html, puppeteerArgs: { args: ['--no-sandbox'] }})
 
   return story
 }
