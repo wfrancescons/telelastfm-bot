@@ -111,9 +111,9 @@ const makeStory = async (lastfmData) => {
         </tr>
       </table>
     </div>
-  </body>
+  </body>w
   `
-  const story = await nodeHtmlToImage({ html, puppeteerArgs: { args: ['--no-sandbox'] }})
+  const story = await nodeHtmlToImage({ html, puppeteerArgs: { args: ['--no-sandbox', '--disable-setuid-sandbox'] }})
 
   return story
 }
