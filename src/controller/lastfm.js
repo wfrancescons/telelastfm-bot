@@ -15,6 +15,7 @@ const getRecentTracks = (username, limit = 1) => {
             }
         })
             .then(response => {
+                console.log(response)
                 const tracks = response.data.recenttracks.track.map(track => {
                     const isNowPlaying = track['@attr']?.nowplaying ? true : false
                     let image = track.image.pop()['#text']
@@ -41,6 +42,7 @@ const getRecentTracks = (username, limit = 1) => {
 
 const getTrackListeningNow = (username) => {
     return new Promise((resolve, reject) => {
+        console.log(username)
         getRecentTracks(username)
             .then(lastTrack => {
                 console.log(lastTrack)
