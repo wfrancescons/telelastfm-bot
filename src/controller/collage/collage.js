@@ -86,8 +86,6 @@ const makeStory = async (lastfmData) => {
 
   const background = await makeBackground(lastfmData.data[0].image)
 
-  const font = Buffer.from('./fonts/open-sans.ttf').toString()
-
   const html = `
   <head>
   <link rel="preconnect" href="https://fonts.googleapis.com">
