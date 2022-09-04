@@ -9,7 +9,8 @@ const help = (ctx) => {
     `\n/art - Artist you're scrobbling`+
     `\n\`/reg lastfmuser\` - Set your LastFm's username`+
     `\n\`/addn artist-nick\` - Set artist's nick for a chat`+
-    `\n\`/rmvn artist\` - Remove artist's nick for a chat`)
+    `\n\`/rmvn artist\` - Remove artist's nick for a chat`+
+    `\n\`/story mediatype period\` - Generate top scrobbles collage`)
 
 }
 
