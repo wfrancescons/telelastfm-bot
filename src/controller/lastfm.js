@@ -43,6 +43,7 @@ const getTrackListeningNow = (username) => {
     return new Promise((resolve, reject) => {
         getRecentTracks(username)
             .then(lastTrack => {
+                console.log(lastTrack)
                 const { track, album, artist, isNowPlaying, image } = lastTrack[0]
 
                 axios.get(lastfmURL, {
