@@ -106,6 +106,7 @@ const getAlbumListeningNow = (username) => {
                     .catch(erro => reject(erro))
 
             })
+            .catch(erro => reject(erro))
     })
 }
 
@@ -136,6 +137,7 @@ const getArtistListeningNow = (username) => {
                     .catch(erro => reject(erro))
 
             })
+            .catch(erro => reject(erro))
     })
 }
 
@@ -152,22 +154,26 @@ const getUserTopTracks = (username, period) => {
             }
         })
             .then(response => {
-                const array = response.data.toptracks.track.map(item => {
-                    return {
-                        rank: item['@attr'].rank,
-                        image: item.image.pop()['#text'],
-                        text: item.name,
-                        scrobbles: item.playcount
-                    }
-                })
-                resolve(array)
+                if (response.data.toptracks.track.length === 0) {
+                    reject('LastFm scrobbles is equal to zero')
+                } else {
+                    const array = response.data.toptracks.track.map(item => {
+                        return {
+                            rank: item['@attr'].rank,
+                            image: item.image.pop()['#text'],
+                            text: item.name,
+                            scrobbles: item.playcount
+                        }
+                    })
+                    resolve(array)
+                }
             })
+            .catch(erro => reject(erro))
 
     })
-        .catch(erro => reject(console.log(erro)))
 }
 
-const getUserTopAlbuns = (username, period) => {
+const getUserTopAlbums = (username, period) => {
     return new Promise((resolve, reject) => {
         axios.get(lastfmURL, {
             params: {
@@ -180,19 +186,23 @@ const getUserTopAlbuns = (username, period) => {
             }
         })
             .then(response => {
-                const array = response.data.topalbums.album.map(item => {
-                    return {
-                        rank: item['@attr'].rank,
-                        image: item.image.pop()['#text'],
-                        text: item.name,
-                        scrobbles: item.playcount
-                    }
-                })
-                resolve(array)
+                if (response.data.topalbums.album.length === 0) {
+                    reject('LastFm scrobbles is equal to zero')
+                } else {
+                    const array = response.data.topalbums.album.map(item => {
+                        return {
+                            rank: item['@attr'].rank,
+                            image: item.image.pop()['#text'],
+                            text: item.name,
+                            scrobbles: item.playcount
+                        }
+                    })
+                    resolve(array)
+                }
             })
+            .catch(erro => reject(erro))
 
     })
-        .catch(erro => reject(console.log(erro)))
 }
 
 const getUserTopArtists = (username, period) => {
@@ -208,19 +218,23 @@ const getUserTopArtists = (username, period) => {
             }
         })
             .then(response => {
-                const array = response.data.topartists.artist.map(item => {
-                    return {
-                        rank: item['@attr'].rank,
-                        image: item.image.pop()['#text'],
-                        text: item.name,
-                        scrobbles: item.playcount
-                    }
-                })
-                resolve(array)
+                if (response.data.topartists.artist.length === 0) {
+                    reject('LastFm scrobbles is equal to zero')
+                } else {
+                    const array = response.data.topartists.artist.map(item => {
+                        return {
+                            rank: item['@attr'].rank,
+                            image: item.image.pop()['#text'],
+                            text: item.name,
+                            scrobbles: item.playcount
+                        }
+                    })
+                    resolve(array)
+                }
+                
             })
-
+            .catch(erro => reject(erro))
     })
-        .catch(erro => reject(console.log(erro)))
 }
 
 const getUserInfo = (username) => {
@@ -247,7 +261,7 @@ module.exports = {
     getTrackListeningNow,
     getAlbumListeningNow,
     getArtistListeningNow,
-    getUserTopAlbuns,
+    getUserTopAlbums,
     getUserTopTracks,
     getUserTopArtists,
     getUserInfo
