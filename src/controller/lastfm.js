@@ -15,26 +15,29 @@ const getRecentTracks = (username, limit = 1) => {
             }
         })
             .then(response => {
-                if (response.data.recenttracks.track.length === 0) reject(new Error('LastFm scrobbles is equal to zero')) 
-                const tracks = response.data.recenttracks.track.map(track => {
-                    const isNowPlaying = track['@attr']?.nowplaying ? true : false
-                    let image = track.image.pop()['#text']
-
-                    if (image === '') {
-                        image = 'https://www.last.fm/static/images/lastfm_avatar_twitter.52a5d69a85ac.png'
-                    }
-
-                    return {
-                        track: track.name,
-                        artist: track.artist['#text'],
-                        album: track.album['#text'],
-                        image,
-                        isNowPlaying
-                    }
-                })
-
-                resolve(tracks)
-
+                if (response.data.recenttracks.track.length === 0) {
+                    reject('LastFm scrobbles is equal to zero')
+                } else {
+                    const tracks = response.data.recenttracks.track.map(track => {
+                        const isNowPlaying = track['@attr']?.nowplaying ? true : false
+                        let image = track.image.pop()['#text']
+    
+                        if (image === '') {
+                            image = 'https://www.last.fm/static/images/lastfm_avatar_twitter.52a5d69a85ac.png'
+                        }
+    
+                        return {
+                            track: track.name,
+                            artist: track.artist['#text'],
+                            album: track.album['#text'],
+                            image,
+                            isNowPlaying
+                        }
+                    })
+    
+                    resolve(tracks)
+                }
+                
             })
             .catch(erro => reject(erro))
     })
@@ -42,10 +45,8 @@ const getRecentTracks = (username, limit = 1) => {
 
 const getTrackListeningNow = (username) => {
     return new Promise((resolve, reject) => {
-        console.log(username)
         getRecentTracks(username)
             .then(lastTrack => {
-                console.log(lastTrack)
                 const { track, album, artist, isNowPlaying, image } = lastTrack[0]
 
                 axios.get(lastfmURL, {
@@ -72,6 +73,7 @@ const getTrackListeningNow = (username) => {
                     .catch(erro => reject(erro))
 
             })
+            .catch(erro => reject(erro))
     })
 }
 
