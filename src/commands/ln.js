@@ -66,6 +66,7 @@ const ln = async (ctx) => {
 
     } catch (erro) {
         console.log(erro)
+        if (erro == "LastFm scrobbles is equal to zero") return ctx.replyWithMarkdown('There aren\'t any scrobbles on your lastFM. 🙁\n\nIs your username correct? 🤔\nType `/reg lastfmusername` to set your Lastfm\'s username')
         return ctx.reply('Something went wrong 🥴 \nBut don\'t fret, let\'s give it another shot in a couple of minutes.')
     }
 }
