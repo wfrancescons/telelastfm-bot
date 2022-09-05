@@ -21,11 +21,11 @@ const getRecentTracks = (username, limit = 1) => {
                     const tracks = response.data.recenttracks.track.map(track => {
                         const isNowPlaying = track['@attr']?.nowplaying ? true : false
                         let image = track.image.pop()['#text']
-    
+
                         if (image === '') {
                             image = 'https://www.last.fm/static/images/lastfm_avatar_twitter.52a5d69a85ac.png'
                         }
-    
+
                         return {
                             track: track.name,
                             artist: track.artist['#text'],
@@ -34,10 +34,10 @@ const getRecentTracks = (username, limit = 1) => {
                             isNowPlaying
                         }
                     })
-    
+
                     resolve(tracks)
                 }
-                
+
             })
             .catch(erro => reject(erro))
     })
@@ -153,18 +153,24 @@ const getUserTopTracks = (username, period) => {
                 limit: 5
             }
         })
-            .then(response => {
+            .then(async response => {
                 if (response.data.toptracks.track.length === 0) {
                     reject('LastFm scrobbles is equal to zero')
                 } else {
-                    const array = response.data.toptracks.track.map(item => {
-                        return {
+
+                    const array = []
+                    for (const item of response.data.toptracks.track) {
+                        const data = await getTrackInfo(item.name, item.artist.name)
+
+                        array.push({
                             rank: item['@attr'].rank,
-                            image: item.image.pop()['#text'],
+                            image: data.track.album?.image.pop()['#text'] || item.image.pop()['#text'],
                             text: item.name,
                             scrobbles: item.playcount
-                        }
-                    })
+                        })
+
+                    }
+
                     resolve(array)
                 }
             })
@@ -231,7 +237,7 @@ const getUserTopArtists = (username, period) => {
                     })
                     resolve(array)
                 }
-                
+
             })
             .catch(erro => reject(erro))
     })
@@ -256,6 +262,27 @@ const getUserInfo = (username) => {
     })
 }
 
+const getTrackInfo = (track, artist) => {
+    return new Promise((resolve, reject) => {
+        axios.get(lastfmURL, {
+            params: {
+                method: 'track.getInfo',
+                track,
+                artist,
+                autocorrect: 1,
+                api_key: lastfmToken,
+                format: 'json'
+            }
+        })
+            .then(response => {
+                resolve(response.data)
+            })
+            .catch(erro => {
+                erro.response.status === 404 ? resolve({ user: 'not found' }) : reject(erro)
+            })
+    })
+}
+
 module.exports = {
     getRecentTracks,
     getTrackListeningNow,
@@ -264,5 +291,6 @@ module.exports = {
     getUserTopAlbums,
     getUserTopTracks,
     getUserTopArtists,
-    getUserInfo
+    getUserInfo,
+    getTrackInfo
 }

@@ -1,3 +1,4 @@
+const { getTrackInfo } = require('../../controller/lastfm')
 const nodeHtmlToImage = require('node-html-to-image')
 const sharp = require('sharp')
 const axios = require('axios')
