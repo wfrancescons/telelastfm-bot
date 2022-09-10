@@ -1,4 +1,3 @@
-const { getTrackInfo } = require('../../controller/lastfm')
 const nodeHtmlToImage = require('node-html-to-image')
 const sharp = require('sharp')
 const axios = require('axios')
@@ -129,7 +128,8 @@ const makeStory = async (lastfmData) => {
       ],
       defaultViewport: {
         width: 1080,
-        height: 1920
+        height: 1920,
+        deviceScaleFactor: 2
       }
     }
   })
