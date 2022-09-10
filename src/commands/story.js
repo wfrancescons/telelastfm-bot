@@ -71,10 +71,8 @@ const story = async (ctx) => {
                 ctx.replyWithChatAction('upload_photo')
 
                 makeStory(model).then(imageBuffer => {
-
                     ctx.replyWithPhoto({ source: imageBuffer }, { caption: `${first_name}, your top ${media_type} of ${periodToText}` })
                     ctx.deleteMessage(message_id)
-
                 })
             })
             .catch(erro => {
