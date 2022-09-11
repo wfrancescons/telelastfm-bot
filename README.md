@@ -23,10 +23,11 @@ Available commands:
 * `/story` Generate top scrobbles collage
 
 ## Screenshots
-<img src="docs/assets/ln.jpg" alt="ln" height="300" align="left">
-<img src="docs/assets/alb.jpg" alt="alb" height="300" align="left">
-<img src="docs/assets/art.jpg" alt="art" height="300" align="left">
-<img src="docs/assets/story.jpg" alt="story" height="300" align="left">
+
+<img src="docs/assets/ln.jpg" alt="ln" height="300">  
+<img src="docs/assets/alb.jpg" alt="alb" height="300">  
+<img src="docs/assets/art.jpg" alt="art" height="300">  
+<img src="docs/assets/story.jpg" alt="story" height="300">
 
 ## Additional information
 
