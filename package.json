@@ -1,13 +1,17 @@
 {
   "name": "telegram-lastfm-bot",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.2.0",
+  "description": "Telegram bot that provides music statistics for you and your friends from LastFM",
   "main": "./src/bot.js",
   "scripts": {
     "start": "node ./src/bot.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "telegram",
+    "bot",
+    "lastfm"
+  ],
+  "author": "Wesley Francescon <wfrancescons@gmail.com>",
   "license": "ISC",
   "devDependencies": {
     "dotenv": "^16.0.1",
@@ -19,5 +23,13 @@
     "node-html-to-image": "^3.2.4",
     "sharp": "^0.30.7",
     "telegraf": "^4.8.5"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wfrancescons/telelastfm-bot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wfrancescons/telelastfm-bot/issues"
+  },
+  "homepage": "https://github.com/wfrancescons/telelastfm-bot#readme"
 }

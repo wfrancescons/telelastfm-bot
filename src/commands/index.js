@@ -7,6 +7,5 @@ module.exports = {
     reg: require('./reg'),
     addn: require('./addn'),
     rmvn: require('./rmvn'),
-    story:require('./story')
-
+    story: require('./story')
 }

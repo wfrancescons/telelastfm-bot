@@ -34,22 +34,23 @@ const story = async (ctx) => {
 
     const { first_name } = ctx.update.message.from
     const text = ctx.update.message.text.trim().toLowerCase()
-    const [command, media_type, period] = text.split(' ')
-
-    if (!acceptedMediaTypes.includes(media_type) || !acceptedPeriods.includes(period)) {
-
-        ctx.replyWithChatAction('typing')
-
-        const invalidArgummentsText = 'Invalid argumments 🤔\n' +
-            'Type `/story mediatype period` to generate your collage.\n' +
-            '➡️ Example: `/story tracks 7day`\n\n' +
-            '✅ Valid MediaTypes: `tracks`, `albums`, `artists`\n' +
-            '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`'
-
-        return ctx.replyWithMarkdown(invalidArgummentsText)
-    }
+    const [ command, media_type, period ] = text.split(' ')
 
     try {
+
+        if (!acceptedMediaTypes.includes(media_type) || !acceptedPeriods.includes(period)) {
+
+            ctx.replyWithChatAction('typing')
+    
+            const invalidArgummentsText = 'Invalid argumments 🤔\n' +
+                'Type `/story mediatype period` to generate your collage.\n' +
+                '➡️ Example: `/story tracks 7day`\n\n' +
+                '✅ Valid MediaTypes: `tracks`, `albums`, `artists`\n' +
+                '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`'
+    
+            return ctx.replyWithMarkdown(invalidArgummentsText)
+        }
+
         ctx.replyWithChatAction('typing')
 
         const lastfm_user = await getLastfmUser(ctx)
