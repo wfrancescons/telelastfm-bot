@@ -14,6 +14,7 @@ const launchBrowser = async () => {
     try {
 
         browser = await puppeteer.launch({
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
             defaultViewport: {
                 width: 1080,
                 height: 1920,
