@@ -1,19 +1,18 @@
-const { getAlbumListeningNow } = require('../controller/lastfm')
-const { getLastfmUser } = require('../controller/user')
-const { getNicks } = require('../controller/artist')
+import { getAlbumListeningNow } from '../controller/lastfm.js'
+import { getLastfmUser } from '../controller/user.js'
+import { getNick } from '../controller/artist.js'
 
 // Album: what album is scrobbling
 const alb = async (ctx) => {
-
-    ctx.replyWithChatAction('typing')
 
     const chat_id = ctx.message.chat.id
     const { first_name } = ctx.update.message.from
 
     try {
-        const lastfm_user = await getLastfmUser(ctx)
 
-        if (!lastfm_user) return ctx.replyWithMarkdown('Type `/reg lastfmusername` to set your Lastfm\'s username')
+        await ctx.replyWithChatAction('typing')
+
+        const lastfm_user = await getLastfmUser(ctx)
 
         const {
             album,
@@ -24,13 +23,8 @@ const alb = async (ctx) => {
         } = await getAlbumListeningNow(lastfm_user)
 
         let artist_nick = ''
-        const allChatNicks = await getNicks(chat_id)
-        if (allChatNicks) {
-            const index = allChatNicks.findIndex(nick => nick.artist_name === artist.toLowerCase())
-            if (index !== -1) {
-                artist_nick = allChatNicks[index].artist_nick
-            }
-        }
+        const hasArtistNick = await getNick(chat_id, artist.toLowerCase())
+        if (hasArtistNick) artist_nick = hasArtistNick.artists[0].artist_nick
 
         const text = `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
             `\n💿 ${album}` +
@@ -60,13 +54,17 @@ const alb = async (ctx) => {
             type: 'italic'
         })
 
-        return ctx.reply(text, { entities })
+        await ctx.reply(text, { entities })
 
-    } catch (erro) {
-        console.log(erro)
-        if (erro == "LastFm scrobbles is equal to zero") return ctx.replyWithMarkdown('There aren\'t any scrobbles on your lastFM. 🙁\n\nIs your username correct? 🤔\nType `/reg lastfmusername` to set your Lastfm\'s username')
-        return ctx.reply('Something went wrong 🥴 \nBut don\'t fret, let\'s give it another shot in a couple of minutes.')
+    } catch (error) {
+
+        if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
+        if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
+        console.error(error)
+        replyWithError(ctx, 'COMMON_ERROR')
+
     }
+
 }
 
-module.exports = alb
+export default alb

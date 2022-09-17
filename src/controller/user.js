@@ -1,105 +1,99 @@
-const { getUserInfo } = require('../controller/lastfm.js')
-const User = require('../models/user')
+import { getUserInfo } from '../controller/lastfm.js'
+import User from '../database/models/user.js'
 
 const createUser = (telegram_id, lastfm_username) => {
-    return new Promise((resolve, reject) => {
-        const newUser = new User({
-            telegram_id,
-            lastfm_username
-        })
 
-        newUser.save((erro, data) => {
-            erro ? reject(erro) : resolve(data)
-        })
-    })
+  return new Promise((resolve, reject) => {
 
+    const newUser = new User({ telegram_id, lastfm_username, })
+    newUser.save((error, data) => error ? reject(error) : resolve(data))
+
+  })
 }
 
 const getUser = (telegram_id) => {
-    return new Promise((resolve, reject) => {
-        User.findOne({ telegram_id }, (erro, data) => {
-            erro ? reject(erro) : resolve(data)
-        })
+
+  return new Promise((resolve, reject) => {
+
+    User.findOne({ telegram_id }, (erro, data) => {
+
+      //if not found, returns null as data
+      erro ? reject(erro) : resolve(data)
+
     })
+  })
 }
 
 const updateUser = (telegram_id, lastfm_username) => {
-    return new Promise((resolve, reject) => {
-        User.findOneAndUpdate({ telegram_id }, { lastfm_username }, (erro, data) => {
-            erro ? reject(erro) : resolve(data)
-        })
-    })
+
+  return new Promise((resolve, reject) => {
+
+    User.findOneAndUpdate({ telegram_id }, { lastfm_username }, (erro, data) => {
+      erro ? reject(erro) : resolve(data)
+    }
+
+    )
+  })
 }
 
 const getLastfmUser = (ctx) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const telegram_id = ctx.message.from.id
-            const telegram_username = ctx.message.from?.username
 
-            const user = await getUser(telegram_id)
+  return new Promise(async (resolve, reject) => {
 
-            if (!user) {
-                if (telegram_username) {
-                    const userInfo = await getUserInfo(telegram_username)
+    try {
 
-                    if (userInfo.user === 'not found') {
-                        resolve()
-                    } else {
-                        const newUser = await createUser(telegram_id, telegram_username)
-                        resolve(newUser.lastfm_username)
-                    }
-                } else {
-                    resolve()
-                }
+      const telegram_id = ctx.message.from.id
+      const telegram_username = ctx.message.from?.username
 
-            } else {
-                resolve(user.lastfm_username)
-            }
+      const user = await getUser(telegram_id)
 
-        } catch (erro) {
-            reject(erro)
-        }
-    })
+      if (user) {
+        resolve(user.lastfm_username)
+      } else if (!user && telegram_username) {
+
+        await getUserInfo(telegram_username)
+        const newUser = await createUser(telegram_id, telegram_username)
+
+        resolve(newUser.lastfm_username)
+
+      } else {
+        reject('USER_NOT_FOUND')
+      }
+
+    } catch (erro) {
+
+      reject(erro)
+
+    }
+  })
 }
 
 const setLastfmUser = (telegram_id, lastfm_username) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const user = await getUser(telegram_id)
 
-            if (!user) {
-                if (lastfm_username) {
-                    const userInfo = await getUserInfo(lastfm_username)
+  return new Promise(async (resolve, reject) => {
 
-                    if (userInfo.user === 'not found') {
-                        resolve()
-                    } else {
-                        const newUser = await createUser(telegram_id, lastfm_username)
-                        resolve(newUser.lastfm_username)
-                    }
-                } else {
-                    resolve()
-                }
+    try {
 
-            } else {
-                const userInfo = await getUserInfo(lastfm_username)
+      const user = await getUser(telegram_id)
+      const userInfo = await getUserInfo(lastfm_username)
 
-                if (userInfo.user === 'not found') {
-                    resolve()
-                } else {
-                    const updatedUser = await updateUser(telegram_id, lastfm_username)
-                    resolve(updatedUser.lastfm_username)
-                }
-            }
+      if (!user && userInfo) {
 
-        } catch (erro) {
-            reject(erro)
-        }
-    })
+        const newUser = await createUser(telegram_id, lastfm_username)
+        resolve(newUser.lastfm_username)
+
+      } else {
+
+        const updatedUser = await updateUser(telegram_id, lastfm_username)
+        resolve(updatedUser.lastfm_username)
+
+      }
+    } catch (erro) {
+
+      reject(erro)
+
+    }
+  })
 }
 
-module.exports = {
-    getLastfmUser,
-    setLastfmUser
-}
+export { getLastfmUser, setLastfmUser, getUser }

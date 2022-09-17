@@ -1,130 +1,145 @@
-const Artist = require('../models/artists')
+import Artist from '../database/models/artists.js'
 
 const createArtist = (chat_id) => {
-    return new Promise((resolve, reject) => {
-        const newArtist = new Artist({ chat_id })
+  return new Promise((resolve, reject) => {
+    const newArtist = new Artist({ chat_id })
 
-        newArtist.save((erro, data) => {
-            erro ? reject(erro) : resolve(data)
-        })
+    newArtist.save((erro, data) => {
+      erro ? reject(erro) : resolve(data)
     })
+  })
 }
 
 const createNick = (chat_id, artistNick) => {
-    return new Promise((resolve, reject) => {
-        Artist.findOne({ chat_id }, (erro, data) => {
-            if (data) {
-                data.artists.push(artistNick)
-                data.save(erro => reject(erro))
-                resolve(data)
-            } else {
-                reject(erro)
-            }
-        })
+  return new Promise((resolve, reject) => {
+    Artist.findOne({ chat_id }, (erro, data) => {
+      if (data) {
+        data.artists.push(artistNick)
+        data.save((erro) => reject(erro))
+        resolve(data)
+      } else {
+        reject(erro)
+      }
     })
+  })
 }
 
-const getNicks = (chat_id) => {
-    return new Promise((resolve, reject) => {
-        Artist.findOne({ chat_id }, (erro, data) => {
-            erro ? reject(erro) : resolve(data?.artists)
-        })
+const getNick = (chat_id, artist) => {
+  return new Promise((resolve, reject) => {
+    Artist.findOne({ chat_id, 'artists.artist_name': artist }, (erro, data) => {
+      erro ? reject(erro) : resolve(data)
     })
+  })
+}
+
+const getAllNicks = (chat_id) => {
+  return new Promise((resolve, reject) => {
+    Artist.findOne({ chat_id }, (erro, data) => {
+      erro ? reject(erro) : resolve(data?.artists)
+    })
+  })
 }
 
 const updateNick = (chat_id, artistNick) => {
+  const { artist_name } = artistNick
 
-    const { artist_name } = artistNick
+  return new Promise((resolve, reject) => {
+    Artist.findOne({ chat_id }, (erro, data) => {
+      if (data) {
+        const index = data.artists.findIndex(
+          (artist) => artist.artist_name === artist_name
+        )
 
-    return new Promise((resolve, reject) => {
-        Artist.findOne({ chat_id }, (erro, data) => {
-            if (data) {
-                const index = data.artists.findIndex(artist => artist.artist_name === artist_name)
+        if (index !== -1) {
+          data.artists.splice(index, 1)
+          data.artists.push(artistNick)
 
-                if (index !== -1) {
-                    data.artists.splice(index, 1)
-                    data.artists.push(artistNick)
-
-                    data.save(erro => reject(erro))
-                    resolve(data)
-
-                } else if (index === -1) {
-                    resolve()
-                } else {
-                    reject(erro)
-                }
-
-            } else {
-                reject(erro)
-            }
-        })
+          data.save((erro) => reject(erro))
+          resolve(data)
+        } else if (index === -1) {
+          resolve()
+        } else {
+          reject(erro)
+        }
+      } else {
+        reject(erro)
+      }
     })
+  })
 }
 
-const newNick = (chat_id, artistNick) => {
-    const { artist_name } = artistNick
+const newNick = (chat_id, data) => {
+  return new Promise(async (resolve, reject) => {
 
-    return new Promise(async (resolve, reject) => {
-        try {
-            let nicks = await getNicks(chat_id)
+    const { artist_name } = data
 
-            if (!nicks) {
-                const artist = await createArtist(chat_id)
+    try {
 
-                if (artist) {
-                    const nick = await createNick(chat_id, artistNick)
-                    resolve(nick)
-                } else reject()
+      let nicks = await getAllNicks(chat_id)
 
-            } else {
-                const index = nicks.findIndex(artist => artist.artist_name === artist_name)
+      if (!nicks) {
 
-                if (index !== -1) {
-                    const updatedArtist = await updateNick(chat_id, artistNick)
-                    resolve(updatedArtist)
+        const artist = await createArtist(chat_id)
 
-                } else if (index === -1) {
-                    const nick = await createNick(chat_id, artistNick)
-                    resolve(nick)
-                } else {
-                    reject(erro)
-                }
-            }
+        if (artist) {
 
-        } catch (erro) {
-            reject(erro)
+          const nick = await createNick(chat_id, data)
+          resolve(nick)
+
+        } else reject()
+
+      } else {
+
+        const index = nicks.findIndex((artist) => artist.artist_name === artist_name)
+
+        if (index !== -1) {
+
+          const updatedArtist = await updateNick(chat_id, data)
+          resolve(updatedArtist)
+
+        } else if (index === -1) {
+
+          const nick = await createNick(chat_id, data)
+          resolve(nick)
+
+        } else {
+
+          reject(erro)
+
         }
-    })
+      }
+
+    } catch (erro) {
+
+      reject(erro)
+
+    }
+  })
 }
 
 const deleteNick = (chat_id, artistNick) => {
+  return new Promise((resolve, reject) => {
+    Artist.findOne({ chat_id }, (erro, data) => {
+      if (data) {
+        const index = data.artists.findIndex(
+          (artist) => artist.artist_name === artistNick
+        )
 
-    return new Promise((resolve, reject) => {
-        Artist.findOne({ chat_id }, (erro, data) => {
-            if (data) {
-                const index = data.artists.findIndex(artist => artist.artist_name === artistNick)
+        if (index !== -1) {
+          data.artists.splice(index, 1)
+          data.save((erro) => reject(erro))
 
-                if (index !== -1) {
-                    data.artists.splice(index, 1)
-                    data.save(erro => reject(erro))
-                    
-                    resolve(data)
-
-                } else if (index === -1) {
-                    resolve()
-                } else {
-                    reject(erro)
-                }
-
-            } else {
-                reject(erro)
-            }
-        })
+          resolve(data)
+        } else if (index === -1) {
+          resolve()
+        } else {
+          reject(erro)
+        }
+      } else {
+        reject(erro)
+      }
     })
+  })
 }
 
-module.exports = {
-    newNick,
-    getNicks,
-    deleteNick
-}
+export { newNick, getAllNicks, deleteNick, getNick }

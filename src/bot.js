@@ -1,39 +1,51 @@
-if (process.env.NODE_ENV !== 'production') require('dotenv').config()
-const { NODE_ENV: environment, TELEGRAM_BOT_TOKEN: token } = process.env
-const { Telegraf } = require('telegraf')
-const Commands = require('./commands')
+import { Telegraf } from 'telegraf'
+import connectToDb from './database/connect.js'
+import config from './config.js'
+import { launchBrowser } from './handlers/collage/htmlToImage.js'
 
-if (token === undefined) {
-  throw new Error('TELEGRAM_BOT_TOKEN must be provided!')
-}
+import {
+  handleStart,
+  handleHelp,
+  handleLn,
+  handleAlb,
+  handleArt,
+  handleReg,
+  handleAddn,
+  handleRmvn,
+  handleStory,
+  handleCollage
+} from './handlers/index.js'
 
-// Run DB
-require('./database/')
+const bot = new Telegraf(config.bot_token)
 
-const bot = new Telegraf(token)
+connectToDb()
+launchBrowser()
 
 // Set bot response
-bot.start((ctx) => Commands.start(ctx))
-bot.help((ctx) => Commands.help(ctx))
-bot.command('ln', (ctx) => Commands.ln(ctx))
-bot.command('alb', (ctx) => Commands.alb(ctx))
-bot.command('art', (ctx) => Commands.art(ctx))
-bot.command('reg', (ctx) => Commands.reg(ctx))
-bot.command('addn', (ctx) => Commands.addn(ctx))
-bot.command('rmvn', (ctx) => Commands.rmvn(ctx))
-bot.command('story', (ctx) => Commands.story(ctx))
-bot.command('collage', (ctx) => ctx.replyWithMarkdown('Please, use `/story` command to make collages\nExample: `/story tracks overall`'))
+
+bot.start((ctx) => handleStart(ctx))
+bot.help((ctx) => handleHelp(ctx))
+
+bot.command('ln', (ctx) => handleLn(ctx))
+bot.command("alb", (ctx) => handleAlb(ctx))
+bot.command("art", (ctx) => handleArt(ctx))
+bot.command("reg", (ctx) => handleReg(ctx))
+bot.command("addn", (ctx) => handleAddn(ctx))
+bot.command("rmvn", (ctx) => handleRmvn(ctx))
+bot.command("story", (ctx) => handleStory(ctx))
+bot.command("collage", (ctx) => handleCollage(ctx))
+//)
 
 // Set development webhook
-if (environment === 'development') {
-  require('http')
-    .createServer(bot.webhookCallback('/secret-path'))
-    .listen(3000)
+if (config.environment === 'development') {
+  import('node:http').then((http) => {
+    http.createServer(bot.webhookCallback('/secret-path')).listen(3000)
+  })
 }
 
 bot.launch()
 
-console.log(`Running in ${environment} environment`)
+console.log(`Running in ${config.environment} environment`)
 
 process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
