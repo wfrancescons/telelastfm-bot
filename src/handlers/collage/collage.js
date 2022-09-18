@@ -2,6 +2,7 @@ import { htmlToImage } from './htmlToImage.js'
 import sharp from 'sharp'
 import axios from 'axios'
 import generateFilter from './filters.js'
+import { writeFileSync } from 'node:fs'
 
 const { get } = axios
 
@@ -22,8 +23,8 @@ const makeBackground = (imageURL) => {
         position: sharp.strategy.entropy
       })
       .greyscale()
-      .blur(20)
-      .modulate({ brightness: 0.4 })
+      .blur(25)
+      .modulate({ brightness: 0.3 })
       .composite([{ input: filter, left: 0, top: 0, blend: 'soft-light' }])
       .jpeg()
       .toBuffer()
@@ -35,44 +36,39 @@ const makeBackground = (imageURL) => {
 
 const makeItems = (lastfmData) => {
 
-  let top = 390
-  const makeItem = (item) => {
-    const { rank, image, scrobbles } = item
-    let { text } = item
+  const limitText = (text) => {
 
-    text = text.trim()
-    if (text.length > 25) {
-      text = text.substring(0, 25) + '...'
+    text.trim()
+    if (text.length > 20) {
+      text = text.substring(0, 18) + '...'
     }
+    return text
 
-    const html = `
-              <tr>
-                  <td>
-                    <div style="width: 100%; top: ${top}px; position: absolute;">
-                      <div
-                        style="text-align: center; font-family: 'Open Sans'; font-size: 96px; font-weight: 700; text-transform: uppercase; color: #fff; float: left; padding-left: 100px; padding-top: 20px;">
-                        #${rank}</div>
-                      <div><img src="${image}" alt=""
-                          style="width: 180px; height: 180px; float: left; padding-left: 50px;"></div>
-                      <div style="float: left; padding-left: 50px;">
-                        <div
-                          style="width: 500px; text-align: left; font-family: 'Open Sans'; font-size: 48px; font-weight: 700; text-transform: uppercase; color: #fff; justify-content: center">
-                          ${text}</div>
-                        <div
-                          style="text-align: left; font-family: 'Open Sans'; font-size: 42px; font-weight: 500; text-transform: uppercase; color: #fff;">
-                          ${Number(scrobbles).toLocaleString('pt-BR')} ${scrobbles == 1 ? 'scrobble' : 'scrobbles'}</div>
-                      </div>
-                    </div>
-                  </td>
-              </tr>
-              `
-    top = top + 240
-    return html
   }
 
-  const allItemsHtml = lastfmData.data.map(item => makeItem(item))
+  const makeP = (textArray) => {
+    const formatedArray = textArray.map(t => `<p>${limitText(t)}</p>`)
+    return formatedArray
+  }
 
-  top = 390
+  const makeOneItem = (item) => {
+    const { rank, image, text, scrobbles } = item
+
+    const html = `
+      <div class="container" style="width: 100%;">
+        <span class="rank align">#${rank}</span>
+        <div><img src="${image}" alt=""></div>
+        <div class="align" style="float: left; padding-left: 50px;">
+          ${makeP(text).join('')}
+          <p>${Number(scrobbles).toLocaleString('pt-BR')} ${scrobbles == 1 ? 'scrobble' : 'scrobbles'}</p>
+        </div>
+      </div>`
+
+    return html
+
+  }
+
+  const allItemsHtml = lastfmData.data.map(item => makeOneItem(item))
 
   return allItemsHtml
 
@@ -90,35 +86,34 @@ const makeStory = async (lastfmData) => {
       const itens = makeItems(lastfmData)
 
       const html = `<head>
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-      <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-      </head>
-      <body style="width: 1080px; height: 1920px; background-image: url(${'data:image/jpeg;base64,' + background.toString('base64')}); background-repeat: no-repeat; background-size: auto; margin: 0; padding: 0">
-        <div style="position: relative">
-          <table style="width: 1080px; height: 1920px;">
-            <tr>
-              <td>
-                <div
-                  style="text-align: center; font-family: 'Open Sans'; font-size: 64px; font-weight: 700; text-transform: uppercase; color: #fff; top: 150px; position: absolute; padding-left: 200px; padding-right: 200px;">
-                  Your Top ${mediaType} of ${period}
-                </div>
-              </td>
-            </tr>
-    
-            ${itens.join('')}
-    
-            <tr>
-              <td>
-                <div
-                  style="text-align: center; font-family: 'Open Sans'; font-size: 28px; font-weight: 400; text-transform: uppercase; color: #fff; top: 1600px; position:absolute; left: 354px;">
-                  Made by @telelastfmbot
-                </div>
-              </td>
-            </tr>
-          </table>
-        </div>
-      </body>`
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+          <style>
+            * { margin: 0; padding: 0 }
+            body {position: relative;width: 1080px;height: 1920px;font-family: 'Open Sans';text-transform: uppercase;color: #fff;text-align: center;}
+            img {width: 180px;height: 180px;float: left;padding-left: 50px;object-fit: cover;object-position: 20% 10%;}
+            h1 {text-align: center;font-size: 64px;font-weight: 700;padding: 150px 200px 0px 200px}
+            p {text-align: left;text-transform: uppercase;justify-content: center;}
+            p:nth-child(1) {font-size: 40px;font-weight: 700;}
+            p:nth-child(2) {font-size: 35px;font-weight: 500;}
+            p:nth-child(3) {font-size: 35px;font-weight: 500;}
+            p:nth-child(4) {font-size: 30px;font-weight: 500;}
+            .container {display: flex;padding: 80px 150px 0px 100px}
+            .rank {font-size: 96px;font-weight: 700;}
+            .align {margin-top: auto;margin-bottom: auto;}
+            #footer {position: absolute;bottom: 0;left: 0;right: 0;top: 1750px;margin-left: auto;margin-right: auto;font-size: 25px;font-weight: 400}
+          </style>
+        </head>
+        <body>
+          <div style=" background-image: url(${'data:image/jpeg;base64,' + background.toString('base64')}); background-repeat: no-repeat; width: 1080px; height: 1920px;">
+            <h1 style="">Your Top ${mediaType} of ${period}</h1>
+        
+                ${itens.join('')}
+        
+            <div id="footer">Made by @telelastfmbot</div>
+          </div>
+        </body>`
 
       const story = await htmlToImage(html)
 

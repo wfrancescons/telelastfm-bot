@@ -2,12 +2,13 @@ import sharp from 'sharp'
 
 const gradients = [
     { star: '#283c86', end: '#45a247' },
-    { star: '#db36a4', end: '#f7ff00' },
-    { star: '#780206', end: '#061161' },
-    { star: '#1dbde6', end: '#f1515e' },
-    { star: '#f3696e', end: '#f8a902' },
-    { star: '#0a33f9', end: '#f6f151' },
-    { star: '#ffce06', end: '#6c960d' },
+    { star: '#103783', end: '#9bafd9' },
+    { star: '#d3321d', end: '#ffcf67' },
+    { star: '#0b3866', end: '#95f9c3' },
+    { star: '#e60b09', end: '#e9d022' },
+    { star: '#34073d', end: '#ef745c' },
+    { star: '#392d69', end: '#b57bee' },
+    { star: '#471069', end: '#30c5d2' },
 ]
 
 const generateFilter = () => {

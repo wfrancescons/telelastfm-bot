@@ -1,5 +1,6 @@
 import axios from 'axios'
 import config from '../config.js'
+import getArtistImageMB from './musicbrainz.js'
 
 const { get } = axios
 const { lastfmURL, lastfmToken } = config
@@ -24,8 +25,7 @@ const getRecentTracks = (username, limit = 1) => {
             let image = track.image.pop()['#text']
 
             if (image === '') {
-              image =
-                'https://www.last.fm/static/images/lastfm_avatar_twitter.52a5d69a85ac.png'
+              image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
             }
 
             return {
@@ -165,7 +165,7 @@ const getUserTopTracks = (username, period) => {
               image:
                 data.track.album?.image.pop()['#text'] ||
                 item.image.pop()['#text'],
-              text: item.name,
+              text: [item.name, item.artist.name],
               scrobbles: item.playcount,
             })
           }
@@ -197,7 +197,7 @@ const getUserTopAlbums = (username, period) => {
             return {
               rank: item['@attr'].rank,
               image: item.image.pop()['#text'],
-              text: item.name,
+              text: [item.name, item.artist.name],
               scrobbles: item.playcount,
             }
           })
@@ -220,18 +220,27 @@ const getUserTopArtists = (username, period) => {
         limit: 5,
       },
     })
-      .then((response) => {
+      .then(async (response) => {
         if (response.data.topartists.artist.length === 0) {
           reject('ZERO_SCROBBLES')
         } else {
-          const array = response.data.topartists.artist.map((item) => {
-            return {
-              rank: item['@attr'].rank,
-              image: item.image.pop()['#text'],
-              text: item.name,
-              scrobbles: item.playcount,
+
+          const array = []
+          for (const item of response.data.topartists.artist) {
+
+            let image = item.image.pop()['#text']
+            if (item?.mbid) {
+              const image_url = await getArtistImageMB(item.mbid)
+              if (image_url.length > 0) image = image_url[0]
             }
-          })
+            array.push({
+              rank: item['@attr'].rank,
+              image,
+              text: [item.name],
+              scrobbles: item.playcount,
+            })
+
+          }
           resolve(array)
         }
       })
