@@ -193,10 +193,17 @@ const getUserTopAlbums = (username, period) => {
         if (response.data.topalbums.album.length === 0) {
           reject('ZERO_SCROBBLES')
         } else {
+
           const array = response.data.topalbums.album.map((item) => {
+
+            let image = item.image.pop()['#text']
+            if (image === '') {
+              image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
+            }
+
             return {
               rank: item['@attr'].rank,
-              image: item.image.pop()['#text'],
+              image,
               text: [item.name, item.artist.name],
               scrobbles: item.playcount,
             }
