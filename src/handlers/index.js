@@ -54,29 +54,6 @@ const help = async (ctx) => {
   }
 }
 
-// Collage command
-const collage = async (ctx) => {
-  try {
-    await ctx.replyWithChatAction('typing')
-
-    await ctx.replyWithMarkdown(
-      `Valid commands: 🤖\n` +
-      `\n/ln - Track you're scrobbling` +
-      `\n/alb - Album you're scrobbling` +
-      `\n/art - Artist you're scrobbling` +
-      `\n\`/reg lastfmuser\` - Set your LastFm's username` +
-      `\n\`/addn artist-nick\` - Set artist's nick for a chat` +
-      `\n\`/rmvn artist\` - Remove artist's nick for a chat` +
-      `\n\`/story mediatype period\` - Generate top scrobbles collage`
-    )
-
-  } catch (error) {
-
-    console.error(error)
-
-  }
-}
-
 export {
   start as handleStart,
   help as handleHelp,
@@ -86,6 +63,5 @@ export {
   reg as handleReg,
   addn as handleAddn,
   rmvn as handleRmvn,
-  story as handleStory,
-  collage as handleCollage
+  story as handleStory
 }

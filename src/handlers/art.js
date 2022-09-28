@@ -1,9 +1,9 @@
 import { getArtistListeningNow } from '../controller/lastfm.js'
 import { getLastfmUser } from '../controller/user.js'
 import { getNick } from '../controller/artist.js'
-import replyWithError from '../scripts/replyWithError.js'
+import replyWithError from '../scripts/replyWithError.js'
 
-// Artist: what artist is scrobbling
+//Artist: what artist is scrobbling
 const art = async (ctx) => {
 
     const chat_id = ctx.message.chat.id

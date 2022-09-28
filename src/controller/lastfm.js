@@ -1,6 +1,6 @@
 import axios from 'axios'
 import config from '../config.js'
-import getArtistImageMB from './musicbrainz.js'
+import { searchArtist as spotifySearchArtist, searchTrack as spotifySearchTrack } from './spotify.js'
 
 const { get } = axios
 const { lastfmURL, lastfmToken } = config
@@ -158,13 +158,20 @@ const getUserTopTracks = (username, period) => {
         } else {
           const array = []
           for (const item of response.data.toptracks.track) {
-            const data = await getTrackInfo(item.name, item.artist.name)
+            const data = await spotifySearchTrack(item.name, item.artist.name)
+
+            let image = item.image.pop()['#text']
+            if (image === '') {
+              image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
+            }
+            if (data.tracks.items.length !== 0) {
+              const image_url = data.tracks.items[0].album.images[0].url
+              image = image_url
+            }
 
             array.push({
               rank: item['@attr'].rank,
-              image:
-                data.track.album?.image.pop()['#text'] ||
-                item.image.pop()['#text'],
+              image,
               text: [item.name, item.artist.name],
               scrobbles: item.playcount,
             })
@@ -234,12 +241,17 @@ const getUserTopArtists = (username, period) => {
 
           const array = []
           for (const item of response.data.topartists.artist) {
+            const data = await spotifySearchArtist(item.name)
 
             let image = item.image.pop()['#text']
-            if (item?.mbid) {
-              const image_url = await getArtistImageMB(item.mbid)
-              if (image_url.length > 0) image = image_url[0]
+            if (image === '') {
+              image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
             }
+            if (data.artists.items.length !== 0) {
+              const image_url = data.artists.items[0].images[0].url
+              image = image_url
+            }
+
             array.push({
               rank: item['@attr'].rank,
               image,

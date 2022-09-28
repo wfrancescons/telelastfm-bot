@@ -12,8 +12,7 @@ import {
   handleReg,
   handleAddn,
   handleRmvn,
-  handleStory,
-  handleCollage
+  handleStory
 } from './handlers/index.js'
 
 const bot = new Telegraf(config.bot_token)
@@ -22,19 +21,16 @@ connectToDb()
 launchBrowser()
 
 // Set bot response
-
 bot.start((ctx) => handleStart(ctx))
 bot.help((ctx) => handleHelp(ctx))
 
 bot.command('ln', (ctx) => handleLn(ctx))
-bot.command("alb", (ctx) => handleAlb(ctx))
-bot.command("art", (ctx) => handleArt(ctx))
-bot.command("reg", (ctx) => handleReg(ctx))
-bot.command("addn", (ctx) => handleAddn(ctx))
-bot.command("rmvn", (ctx) => handleRmvn(ctx))
-bot.command("story", (ctx) => handleStory(ctx))
-bot.command("collage", (ctx) => handleCollage(ctx))
-//)
+bot.command('alb', (ctx) => handleAlb(ctx))
+bot.command('art', (ctx) => handleArt(ctx))
+bot.command('reg', (ctx) => handleReg(ctx))
+bot.command('addn', (ctx) => handleAddn(ctx))
+bot.command('rmvn', (ctx) => handleRmvn(ctx))
+bot.command(['story', 'collage'], (ctx) => handleStory(ctx))
 
 // Set development webhook
 if (config.environment === 'development') {
