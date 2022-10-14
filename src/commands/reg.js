@@ -1,4 +1,4 @@
-import { setLastfmUser } from '../controller/user.js'
+import { setLastfmUser } from '../database/user.js'
 import replyWithError from '../scripts/replyWithError.js'
 
 const reg = async (ctx) => {

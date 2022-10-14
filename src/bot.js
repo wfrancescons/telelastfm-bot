@@ -1,19 +1,9 @@
 import { Telegraf } from 'telegraf'
 import connectToDb from './database/connect.js'
 import config from './config.js'
-import { launchBrowser } from './handlers/collage/htmlToImage.js'
+import { launchBrowser } from './scripts/htmlToImage.js'
 
-import {
-  handleStart,
-  handleHelp,
-  handleLn,
-  handleAlb,
-  handleArt,
-  handleReg,
-  handleAddn,
-  handleRmvn,
-  handleStory
-} from './handlers/index.js'
+import * as Commands from './commands/index.js'
 
 const bot = new Telegraf(config.bot_token)
 
@@ -21,16 +11,17 @@ connectToDb()
 launchBrowser()
 
 // Set bot response
-bot.start((ctx) => handleStart(ctx))
-bot.help((ctx) => handleHelp(ctx))
+bot.start((ctx) => Commands.start(ctx))
+bot.help((ctx) => Commands.help(ctx))
 
-bot.command('ln', (ctx) => handleLn(ctx))
-bot.command('alb', (ctx) => handleAlb(ctx))
-bot.command('art', (ctx) => handleArt(ctx))
-bot.command('reg', (ctx) => handleReg(ctx))
-bot.command('addn', (ctx) => handleAddn(ctx))
-bot.command('rmvn', (ctx) => handleRmvn(ctx))
-bot.command(['story', 'collage'], (ctx) => handleStory(ctx))
+bot.command('ln', (ctx) => Commands.ln(ctx))
+bot.command('alb', (ctx) => Commands.alb(ctx))
+bot.command('art', (ctx) => Commands.art(ctx))
+bot.command('reg', (ctx) => Commands.reg(ctx))
+bot.command('addn', (ctx) => Commands.addn(ctx))
+bot.command('rmvn', (ctx) => Commands.rmvn(ctx))
+bot.command('story', (ctx) => Commands.story(ctx))
+bot.command('collage', (ctx) => Commands.collage(ctx))
 
 // Set development webhook
 if (config.environment === 'development') {

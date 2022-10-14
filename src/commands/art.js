@@ -1,6 +1,6 @@
 import { getArtistListeningNow } from '../controller/lastfm.js'
-import { getLastfmUser } from '../controller/user.js'
-import { getNick } from '../controller/artist.js'
+import { getLastfmUser } from '../database/user.js'
+import { getNick } from '../database/artist.js'
 import replyWithError from '../scripts/replyWithError.js'
 
 //Artist: what artist is scrobbling

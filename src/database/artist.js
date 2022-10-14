@@ -1,4 +1,4 @@
-import Artist from '../database/models/artists.js'
+import Artist from './models/artists.js'
 
 const createArtist = (chat_id) => {
   return new Promise((resolve, reject) => {

@@ -1,19 +1,15 @@
-import { getUserTopTracks, getUserTopAlbums, getUserTopArtists } from '../controller/lastfm.js'
-import { getLastfmUser } from '../controller/user.js'
-import makeStory from './collage/collage.js'
-import replyWithError from '../scripts/replyWithError.js'
-
-const acceptedMediaTypes = ['tracks', 'albums', 'artists']
-const acceptedPeriods = ['overall', '7day', '1month', '3month', '6month', '12month',]
-
-const periodMap = {
-  'overall': 'all time',
-  '7day': 'last 7 days',
-  '1month': 'last month',
-  '3month': 'last 3 months',
-  '6month': 'last 6 months',
-  '12month': 'last 12 months',
-}
+import { getUserTopTracks, getUserTopAlbums, getUserTopArtists } from '../../controller/lastfm.js'
+import { getLastfmUser } from '../../database/user.js'
+import makeStory from './collage.js'
+import replyWithError from '../../scripts/replyWithError.js'
+import checkSendMediaPermission from '../../scripts/checkSendMediaPermission.js'
+import {
+  acceptedMedias,
+  mediaMap,
+  acceptedPeriods,
+  periodMap,
+  periodInTextMap
+} from './storyMaps.js'
 
 const getLastfmData = (lastfm_user, media, period) => {
 
@@ -42,21 +38,26 @@ const story = async (ctx) => {
 
   const { first_name } = ctx.update.message.from
   const text = ctx.update.message.text.trim().toLowerCase()
-  const [command, media_type, period] = text.split(' ')
+  let [command, media_type, period] = text.split(' ')
 
   try {
 
     await ctx.replyWithChatAction('typing')
 
-    if (!acceptedMediaTypes.includes(media_type) || !acceptedPeriods.includes(period)) {
+    if (!acceptedMedias.includes(media_type) || !acceptedPeriods.includes(period)) {
       return replyWithError(ctx, 'STORY_INCORRECT_ARGS')
     }
 
+    const canSendPhoto = await checkSendMediaPermission(ctx)
+    if (!canSendPhoto) return replyWithError(ctx, 'CANNOT_SEND_MEDIA_MESSAGES')
+
     const lastfm_user = await getLastfmUser(ctx)
 
+    media_type = mediaMap[media_type]
+    period = periodMap[period]
+
     const lastfmData = await getLastfmData(lastfm_user, media_type, period)
-    const periodToText = periodMap[period]
-    const model = { period: periodToText, mediaType: media_type, data: lastfmData }
+    const model = { period: periodInTextMap[period], mediaType: media_type, data: lastfmData }
 
     const response = await ctx.reply('🖼️ Generating your collage...')
     const { message_id } = response
@@ -65,7 +66,7 @@ const story = async (ctx) => {
 
     makeStory(model).then(async (imageBuffer) => {
       await ctx.replyWithPhoto({ source: imageBuffer },
-        { caption: `${first_name}, your top ${media_type} of ${periodToText}` })
+        { caption: `${first_name}, your top ${media_type} of ${periodInTextMap[period]}` })
       await ctx.deleteMessage(message_id)
     })
 

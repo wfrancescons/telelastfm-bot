@@ -1,4 +1,4 @@
-import { newNick } from '../controller/artist.js'
+import { newNick } from '../database/artist.js'
 import replyWithError from '../scripts/replyWithError.js'
 
 const addn = async (ctx) => {

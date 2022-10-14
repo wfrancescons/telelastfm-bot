@@ -36,7 +36,7 @@ export default async (ctx, errorCode, info) => {
           'Invalid argumments 🤔\n' +
           'Type `/story mediatype period` to generate your collage.\n' +
           '➡️ Example: `/story tracks 7day`\n\n' +
-          '✅ Valid MediaTypes: `tracks`, `albums`, `artists`\n' +
+          '✅ Valid Media Types: `tracks`, `albums`, `artists`\n' +
           '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`'
 
         await ctx.replyWithMarkdown(text)
@@ -44,6 +44,10 @@ export default async (ctx, errorCode, info) => {
 
       case 'NOT_A_VALID_LASTFM_USER':
         await ctx.reply(`'${info}' doesn't seem to be a valid Lastfm's username 🤔 \nPlease, try again`)
+        break
+
+      case 'CANNOT_SEND_MEDIA_MESSAGES':
+        await ctx.reply(`I'm not allowed to send photos here 🚫📷 \nAn admin needs to review my permissions`)
         break
 
       default:

@@ -4,7 +4,7 @@ import art from './art.js'
 import reg from './reg.js'
 import addn from './addn.js'
 import rmvn from './rmvn.js'
-import story from './story.js'
+import story from './story/story.js'
 
 // Start command
 const start = async (ctx) => {
@@ -25,9 +25,7 @@ const start = async (ctx) => {
     )
 
   } catch (error) {
-
     console.error(error)
-
   }
 }
 
@@ -48,20 +46,30 @@ const help = async (ctx) => {
     )
 
   } catch (error) {
-
     console.error(error)
+  }
+}
 
+// Collage command
+const collage = async (ctx) => {
+  try {
+    await ctx.replyWithChatAction('typing')
+    await ctx.replyWithMarkdown(`Please, use /story to make collages 😉`)
+
+  } catch (error) {
+    console.error(error)
   }
 }
 
 export {
-  start as handleStart,
-  help as handleHelp,
-  ln as handleLn,
-  alb as handleAlb,
-  art as handleArt,
-  reg as handleReg,
-  addn as handleAddn,
-  rmvn as handleRmvn,
-  story as handleStory
+  start,
+  help,
+  ln,
+  alb,
+  art,
+  reg,
+  addn,
+  rmvn,
+  story,
+  collage,
 }

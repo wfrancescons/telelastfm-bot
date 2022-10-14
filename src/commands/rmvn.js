@@ -1,4 +1,4 @@
-import { deleteNick } from '../controller/artist.js'
+import { deleteNick } from '../database/artist.js'
 import replyWithError from '../scripts/replyWithError.js'
 
 const rmvn = async (ctx) => {

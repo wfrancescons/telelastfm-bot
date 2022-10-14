@@ -1,6 +1,6 @@
 import { getAlbumListeningNow } from '../controller/lastfm.js'
-import { getLastfmUser } from '../controller/user.js'
-import { getNick } from '../controller/artist.js'
+import { getLastfmUser } from '../database/user.js'
+import { getNick } from '../database/artist.js'
 import replyWithError from '../scripts/replyWithError.js'
 
 //Album: what album is scrobbling
