@@ -35,6 +35,23 @@ const searchArtist = (artist) => {
     })
 }
 
+const getArtist = (artistId) => {
+    return new Promise((resolve, reject) => {
+        generateAccessToken()
+            .then(token => {
+                const spotifyApi = new Spotify({ accessToken: token })
+                spotifyApi.getArtist(artistId)
+                    .then(data => {
+                        const result = data.body
+                        resolve(result)
+                    })
+                    .catch(error => reject(error))
+            }
+            )
+            .catch(error => reject(error))
+    })
+}
+
 const searchTrack = (track, artist) => {
     return new Promise((resolve, reject) => {
         generateAccessToken()
@@ -53,5 +70,6 @@ const searchTrack = (track, artist) => {
 
 export {
     searchArtist,
-    searchTrack
+    searchTrack,
+    getArtist
 }

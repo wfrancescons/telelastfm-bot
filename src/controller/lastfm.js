@@ -1,6 +1,7 @@
 import axios from 'axios'
 import config from '../config.js'
-import { searchArtist as spotifySearchArtist, searchTrack as spotifySearchTrack } from './spotify.js'
+import { getSpotifyId } from './musicbrainz.js'
+import { getArtist, searchArtist as spotifySearchArtist, searchTrack as spotifySearchTrack } from './spotify.js'
 
 const { get } = axios
 const { lastfmURL, lastfmToken } = config
@@ -22,6 +23,7 @@ const getRecentTracks = (username, limit = 1) => {
         } else {
           const tracks = response.data.recenttracks.track.map((track) => {
             const isNowPlaying = track['@attr']?.nowplaying ? true : false
+
             let image = track.image.pop()['#text']
 
             if (image === '') {
@@ -241,15 +243,31 @@ const getUserTopArtists = (username, period) => {
 
           const array = []
           for (const item of response.data.topartists.artist) {
-            const data = await spotifySearchArtist(item.name)
 
-            let image = item.image.pop()['#text']
+            let image = item?.image.pop()['#text']
             if (image === '') {
               image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
             }
-            if (data.artists.items.length !== 0) {
-              const image_url = data.artists.items[0].images[0].url
-              image = image_url
+
+            let spotifyId
+
+            if (item?.mbid) spotifyId = await getSpotifyId(item.mbid)
+
+            if (spotifyId) {
+
+              const spotifyInfo = await getArtist(spotifyId)
+              if (spotifyInfo) {
+                image = spotifyInfo.images[0].url
+              }
+
+            } else {
+
+              const spotifyInfo = await spotifySearchArtist(item.name)
+              if (spotifyInfo.artists.items.length !== 0) {
+                const image_url = spotifyInfo.artists.items[0].images[0].url
+                image = image_url
+              }
+
             }
 
             array.push({

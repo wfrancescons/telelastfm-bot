@@ -1,6 +1,6 @@
 {
   "name": "telegram-lastfm-bot",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Telegram bot that provides music statistics for you and your friends from LastFM",
   "main": "./src/bot.js",
   "type": "module",
@@ -24,6 +24,7 @@
   "dependencies": {
     "axios": "^0.27.2",
     "mongoose": "^6.5.0",
+    "musicbrainz-api": "^0.10.0",
     "node-vibrant": "^3.2.1-alpha.1",
     "puppeteer": "^17.1.3",
     "sharp": "^0.30.7",
