@@ -43,19 +43,11 @@ const getLastfmUser = (ctx) => {
     try {
 
       const telegram_id = ctx.message.from.id
-      const telegram_username = ctx.message.from?.username
 
       const user = await getUser(telegram_id)
 
       if (user) {
         resolve(user.lastfm_username)
-      } else if (!user && telegram_username) {
-
-        await getUserInfo(telegram_username)
-        const newUser = await createUser(telegram_id, telegram_username)
-
-        resolve(newUser.lastfm_username)
-
       } else {
         reject('USER_NOT_FOUND')
       }
