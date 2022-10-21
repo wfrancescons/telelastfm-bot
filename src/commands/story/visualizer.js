@@ -49,6 +49,8 @@ const generateImage = async (lastfmData) => {
         try {
             const { image, userplaycount, text } = lastfmData
 
+            const scrobbles = Number(userplaycount) + 1
+
             const background = await generateBackground(image, 25)
 
             const html = `<head>
@@ -70,7 +72,7 @@ const generateImage = async (lastfmData) => {
           </head>
           <body>
             <div style="background-image: url(${'data:image/jpeg;base64,' + background.toString('base64')}); background-repeat: no-repeat; width: 1080px; height: 1920px;">
-              <h1>${Number(userplaycount).toLocaleString('pt-BR')}</h1>
+              <h1>${scrobbles.toLocaleString('pt-BR')}</h1>
               <h2>scrobbles</h2>
           
               <div style="width: 100%;">
