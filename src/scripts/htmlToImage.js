@@ -10,48 +10,45 @@ const ssOptions = {
 let browser
 
 const launchBrowser = async () => {
-
     try {
-
         browser = await puppeteer.launch({
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         })
-
         console.log('Browser launched!')
 
     } catch (error) {
-
         console.error(error)
 
     }
-
 }
 
-const htmlToImage = async (html, path = '') => {
+const htmlToImage = (html, path = '') => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!browser) await launchBrowser()
 
-    try {
+            const page = await browser.newPage()
+            await page.setDefaultNavigationTimeout(10000)
+            await page.setViewport({
+                width: 1920,
+                height: 1080,
+                deviceScaleFactor: 2
+            })
+            await page.setContent(html, {
+                waitUntil: 'networkidle0'
+            })
 
-        if (!browser) await launchBrowser()
+            const image = await page.screenshot({ path: path, ...ssOptions })
 
-        const page = await browser.newPage()
-        await page.setViewport({
-            width: 1920,
-            height: 1080,
-            deviceScaleFactor: 2
-        })
-        await page.setContent(html, { waitUntil: "networkidle0" })
+            await page.close()
 
-        const image = await page.screenshot({ path: path, ...ssOptions })
+            resolve(image)
 
-        await page.close()
-
-        return image
-
-    } catch (error) {
-
-        console.error(error)
-
-    }
+        } catch (error) {
+            console.error(error)
+            reject(error)
+        }
+    })
 
 }
 

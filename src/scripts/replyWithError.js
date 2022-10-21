@@ -1,4 +1,5 @@
 export default async (ctx, errorCode, info) => {
+
   try {
 
     switch (errorCode) {
@@ -12,7 +13,7 @@ export default async (ctx, errorCode, info) => {
         break
 
       case 'COMMON_ERROR':
-        await ctx.reply("Something went wrong 🥴 \nBut don't fret, let's give it another shot in a couple of minutes.")
+        await ctx.reply("Something went wrong 🥴 \nBut don't fret, let's give it another shot in a couple of minutes.\nIf the issue keeps happening, contact me @telelastfmsac")
         break
 
       case 'REG_WITHOUT_ARGS':
@@ -33,11 +34,12 @@ export default async (ctx, errorCode, info) => {
 
       case 'STORY_INCORRECT_ARGS':
         const text =
-          'Invalid argumments 🤔\n' +
-          'Type `/story mediatype period` to generate your collage.\n' +
-          '➡️ Example: `/story tracks 7day`\n\n' +
+          'Invalid argumments 🤔\n\n' +
           '✅ Valid Media Types: `tracks`, `albums`, `artists`\n' +
-          '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`'
+          '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`\n\n' +
+          'Type `/story mediatype period` to generate a collage\n' +
+          'or `/story mediatype period` to generate a image of your latest scrobble.\n' +
+          '➡️ Examples: `/story album 1month` or `/story track`'
 
         await ctx.replyWithMarkdown(text)
         break
@@ -51,10 +53,7 @@ export default async (ctx, errorCode, info) => {
         break
 
       default:
-        await ctx.reply("Something went wrong 🥴 \nBut don't fret, let's give it another shot in a couple of minutes.")
-
         console.error(`Unknown error with ${ctx.from.id} user`)
-
         break
 
     }

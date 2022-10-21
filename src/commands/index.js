@@ -18,8 +18,7 @@ const start = async (ctx) => {
     await ctx.reply(
       `Hello, ${first_name} 👋\n` +
       `\nWelcome to the telelast bot 🤖🎵\n` +
-      `\nIf you have a Telegram username, I will use it as your Lastfm’s username.` +
-      `\nIf you don't or it is different from your Lastfm, you can use /reg to set your Lastfm’s username\n` +
+      `\nUse /reg to set your Lastfm’s username\n` +
       `\nType / or /help to see a list of valid commands\n` +
       `\nAccess @telelastfmnews for server status and new features 📰`
     )
@@ -42,6 +41,7 @@ const help = async (ctx) => {
       `\n\`/reg lastfmuser\` - Set your LastFm's username` +
       `\n\`/addn artist-nick\` - Set artist's nick for a chat` +
       `\n\`/rmvn artist\` - Remove artist's nick for a chat` +
+      `\n\`/story mediatype\` - Generate a image of your latest scrobble` *
       `\n\`/story mediatype period\` - Generate top scrobbles collage`
     )
 

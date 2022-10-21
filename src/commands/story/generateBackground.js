@@ -1,4 +1,7 @@
 import sharp from 'sharp'
+import axios from 'axios'
+
+const { get } = axios
 
 const gradients = [
     { start: '#283c86', end: '#45a247' },
@@ -12,10 +15,10 @@ const gradients = [
 ]
 
 const generateFilter = () => {
-
-    const random = Math.floor(Math.random() * (gradients.length))
-
     return new Promise((resolve, reject) => {
+
+        const random = Math.floor(Math.random() * (gradients.length))
+
         sharp(Buffer.from(
             `<svg height="1920" width="1080">
                 <defs>
@@ -35,4 +38,28 @@ const generateFilter = () => {
 
 }
 
-export default generateFilter
+const generateBackground = (imageURL, blur = 15) => {
+    return new Promise(async (resolve, reject) => {
+        const { data } = await get(imageURL, { responseType: 'arraybuffer' })
+        const buffer = Buffer.from(data)
+        const filter = await generateFilter()
+
+        sharp(buffer)
+            .resize({
+                width: 1080,
+                height: 1920,
+                fit: sharp.cover,
+                position: sharp.strategy.entropy
+            })
+            .greyscale()
+            .blur(blur)
+            .modulate({ brightness: 0.2 })
+            .composite([{ input: filter, left: 0, top: 0, blend: 'soft-light' }])
+            .jpeg()
+            .toBuffer()
+            .then(data => resolve(data))
+            .catch(erro => reject(erro))
+    })
+}
+
+export default generateBackground
