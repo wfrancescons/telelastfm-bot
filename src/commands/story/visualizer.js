@@ -56,13 +56,12 @@ const generateImage = async (lastfmData) => {
             const html = `<head>
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
-            <link href="https://fonts.googleapis.com/css2?family=Train+One&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700;800&&family=Train+One&display=swap" rel="stylesheet">
             <style>
               * {margin: 0; padding: 0}
               body {position: relative;width: 1080px;height: 1920px;font-family: 'Open Sans';color: #fff;text-align: center;}
               img {width: 650px;height: 650px;object-fit: cover;object-position: 20% 10%;border-radius: 25px}
-              h1 {text-align: center;font-family: 'Train One';font-size: 156px;padding: 300px 0px 0px 0px}
+              h1 {text-align: center;font-family: 'Train One';font-size: 156px;padding: 300px 0px 0px 0px;font-weight: normal;}
               h2 {text-align: center;font-weight: 700;font-size: 36px;text-transform: uppercase;padding: 0px 0px 100px 0px}
               h3 {text-align: center;font-weight: 800;font-size: 56px;padding: 50px 100px 0px 100px}
               h4 {text-align: center;font-weight: 700;font-size: 48px;padding: 10px 100px 0px 100px}
