@@ -60,8 +60,8 @@ const generateImage = async (lastfmData) => {
             <style>
               * {margin: 0; padding: 0}
               body {position: relative;width: 1080px;height: 1920px;font-family: 'Open Sans';color: #fff;text-align: center;}
-              img {width: 650px;height: 650px;object-fit: cover;object-position: 20% 10%;border-radius: 25px}
-              h1 {text-align: center;font-family: 'Train One';font-size: 156px;padding: 300px 0px 0px 0px;font-weight: normal;}
+              img {width: 600px;height: 600px;object-fit: cover;object-position: 20% 10%;border-radius: 25px}
+              h1 {text-align: center;font-family: 'Train One';font-size: 162px;padding: 250px 0px 0px 0px;font-weight: normal;}
               h2 {text-align: center;font-weight: 700;font-size: 36px;text-transform: uppercase;padding: 0px 0px 100px 0px}
               h3 {text-align: center;font-weight: 800;font-size: 56px;padding: 50px 100px 0px 100px}
               h4 {text-align: center;font-weight: 700;font-size: 48px;padding: 10px 100px 0px 100px}
@@ -72,7 +72,7 @@ const generateImage = async (lastfmData) => {
           <body>
             <div style="background-image: url(${'data:image/jpeg;base64,' + background.toString('base64')}); background-repeat: no-repeat; width: 1080px; height: 1920px;">
               <h1>${scrobbles.toLocaleString('pt-BR')}</h1>
-              <h2>scrobbles</h2>
+              <h2>${scrobbles + 1 != 1 ? 'scrobbles' : 'scrobble'}</h2>
           
               <div style="width: 100%;">
                 <div><img src="${image}" alt=""></div>
