@@ -21,6 +21,7 @@ const ln = async (ctx) => {
       artist,
       image,
       userplaycount,
+      lovedtrack,
       isNowPlaying
     } = await getTrackListeningNow(lastfm_user)
 
@@ -29,7 +30,7 @@ const ln = async (ctx) => {
     if (hasArtistNick) artist_nick = hasArtistNick.artists[0].artist_nick
 
     const text =
-      `${first_name} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
+      `${first_name}${lovedtrack ? ' loves ❤️ and' : ''} ${isNowPlaying ? 'is now' : 'was'} listening to:` +
       `\n🎶 ${track}` +
       `\n💿 ${album}` +
       `\n🧑‍🎤 ${artist_nick ? `${artist_nick} (${artist})` : artist} \n` +
@@ -69,6 +70,7 @@ const ln = async (ctx) => {
 
     if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
     if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
+    if (error === 'PRIVATE_USER') return replyWithError(ctx, 'PRIVATE_USER')
     console.error(error)
     replyWithError(ctx, 'COMMON_ERROR')
 

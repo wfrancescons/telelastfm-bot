@@ -59,6 +59,7 @@ const art = async (ctx) => {
 
         if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
         if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
+        if (error === 'PRIVATE_USER') return replyWithError(ctx, 'PRIVATE_USER')
         console.error(error)
         replyWithError(ctx, 'COMMON_ERROR')
 

@@ -52,6 +52,12 @@ export default async (ctx, errorCode, info) => {
         await ctx.reply(`I'm not allowed to send photos here 🚫📷 \nAn admin needs to review my permissions`)
         break
 
+      case 'PRIVATE_USER':
+        await ctx.reply('Can\'t get your scrobbles 🥴\n' +
+          'Your LastFM profile is private 🔒\n' +
+          'Go to last.fm/settings/privacy and uncheck “Hide recent listening information” to use this bot.')
+        break
+
       default:
         console.error(`Unknown error with ${ctx.from.id} user`)
         break

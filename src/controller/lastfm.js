@@ -42,7 +42,11 @@ const getRecentTracks = (username, limit = 1) => {
           resolve(tracks)
         }
       })
-      .catch((erro) => reject(erro))
+      .catch((error) => {
+        error.response.status === 403
+          ? reject('PRIVATE_USER')
+          : reject(error)
+      })
   })
 }
 
@@ -70,6 +74,7 @@ const getTrackListeningNow = (username) => {
               album,
               image,
               userplaycount: Number(response.data.track?.userplaycount) || 0,
+              lovedtrack: Boolean(Number(response.data.track?.userloved)),
               isNowPlaying,
             })
           })
