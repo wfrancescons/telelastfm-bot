@@ -104,11 +104,14 @@ const generateVisualizer = (ctx, lastfm_user, first_name, media_type) => {
             await ctx.replyWithChatAction('upload_photo')
 
             generateImage(lastfmData)
-                .then(async (imageBuffer) => {
-                    await ctx.replyWithPhoto({ source: imageBuffer },
-                        { caption: `${first_name}, your latest scrobble` })
-                    await ctx.deleteMessage(message_id)
-                    resolve()
+                .then((imageBuffer) => {
+                    ctx.replyWithPhoto(
+                        { source: imageBuffer },
+                        { caption: `${first_name}, your latest scrobble` }
+                    ).finally(_ => {
+                        ctx.deleteMessage(message_id)
+                        resolve()
+                    })
                 })
                 .catch(error => reject(error))
         } catch (error) {

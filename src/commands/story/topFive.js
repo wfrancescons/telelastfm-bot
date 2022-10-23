@@ -121,10 +121,14 @@ const generateStory = (ctx, lastfm_user, first_name, media_type, period) => {
 
       generateImage(model)
         .then(async (imageBuffer) => {
-          await ctx.replyWithPhoto({ source: imageBuffer },
-            { caption: `${first_name}, your top ${media_type} of ${periodInTextMap[period]}` })
-          await ctx.deleteMessage(message_id)
-          resolve()
+          ctx.replyWithPhoto(
+            { source: imageBuffer },
+            { caption: `${first_name}, your top ${media_type} of ${periodInTextMap[period]}` }
+          )
+            .finally(_ => {
+              ctx.deleteMessage(message_id)
+              resolve()
+            })
         })
         .catch(error => reject(error))
     } catch (error) {

@@ -26,24 +26,26 @@ const story = async (ctx) => {
 
     if (acceptedMedias.includes(media_type) && !period) {
       media_type = mediaMap[media_type]
-      return generateVisualizer(ctx, lastfm_user, first_name, media_type).catch(error => {
-        if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
-        if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
-        if (error === 'PRIVATE_USER') return replyWithError(ctx, 'PRIVATE_USER')
-        console.error(error)
-        replyWithError(ctx, 'COMMON_ERROR')
-      })
+      generateVisualizer(ctx, lastfm_user, first_name, media_type)
+        .catch(error => {
+          if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
+          if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
+          if (error === 'PRIVATE_USER') return replyWithError(ctx, 'PRIVATE_USER')
+          console.error(error)
+          replyWithError(ctx, 'COMMON_ERROR')
+        })
 
     } else if (acceptedMedias.includes(media_type) && acceptedPeriods.includes(period)) {
       media_type = mediaMap[media_type]
       period = periodMap[period]
-      return generateStory(ctx, lastfm_user, first_name, media_type, period).catch(error => {
-        if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
-        if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
-        if (error === 'PRIVATE_USER') return replyWithError(ctx, 'PRIVATE_USER')
-        console.error(error)
-        replyWithError(ctx, 'COMMON_ERROR')
-      })
+      generateStory(ctx, lastfm_user, first_name, media_type, period)
+        .catch(error => {
+          if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
+          if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
+          if (error === 'PRIVATE_USER') return replyWithError(ctx, 'PRIVATE_USER')
+          console.error(error)
+          replyWithError(ctx, 'COMMON_ERROR')
+        })
 
     } else {
       return replyWithError(ctx, 'STORY_INCORRECT_ARGS')
