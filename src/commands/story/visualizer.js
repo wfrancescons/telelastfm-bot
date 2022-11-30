@@ -1,4 +1,4 @@
-import { getTrackListeningNow, getAlbumListeningNow, getArtistListeningNow } from '../../controller/lastfm.js'
+import { getAlbumListeningNow, getArtistListeningNow, getTrackListeningNow } from '../../controller/lastfm.js'
 import { htmlToImage } from '../../scripts/htmlToImage.js'
 import generateBackground from './generateBackground.js'
 
@@ -72,7 +72,7 @@ const generateImage = async (lastfmData) => {
           <body>
             <div style="background-image: url(${'data:image/jpeg;base64,' + background.toString('base64')}); background-repeat: no-repeat; width: 1080px; height: 1920px;">
               <h1>${scrobbles.toLocaleString('pt-BR')}</h1>
-              <h2>${scrobbles + 1 != 1 ? 'scrobbles' : 'scrobble'}</h2>
+              <h2>${scrobbles != 1 ? 'scrobbles' : 'scrobble'}</h2>
           
               <div style="width: 100%;">
                 <div><img src="${image}" alt=""></div>

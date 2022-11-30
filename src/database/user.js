@@ -36,13 +36,11 @@ const updateUser = (telegram_id, lastfm_username) => {
   })
 }
 
-const getLastfmUser = (ctx) => {
+const getLastfmUser = (telegram_id) => {
 
   return new Promise(async (resolve, reject) => {
 
     try {
-
-      const telegram_id = ctx.message.from.id
 
       const user = await getUser(telegram_id)
 
@@ -89,3 +87,4 @@ const setLastfmUser = (telegram_id, lastfm_username) => {
 }
 
 export { getLastfmUser, setLastfmUser, getUser }
+

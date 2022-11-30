@@ -1,18 +1,15 @@
 import { getLastfmUser } from '../../database/user.js'
-import generateStory from './topFive.js'
-import replyWithError from '../../scripts/replyWithError.js'
+import errorHandler from '../../handlers/errorHandler.js'
 import checkSendMediaPermission from '../../scripts/checkSendMediaPermission.js'
 import {
-  acceptedMedias,
-  mediaMap,
-  acceptedPeriods,
-  periodMap
+  acceptedMedias, acceptedPeriods, mediaMap, periodMap
 } from './storyMaps.js'
+import generateStory from './topFive.js'
 import generateVisualizer from './visualizer.js'
 
 const story = async (ctx) => {
 
-  const { first_name } = ctx.update.message.from
+  const { first_name, id: telegram_id } = ctx.update.message.from
   const text = ctx.update.message.text.trim().toLowerCase()
   let [command, media_type, period] = text.split(' ')
 
@@ -20,19 +17,15 @@ const story = async (ctx) => {
     await ctx.replyWithChatAction('typing')
 
     const canSendPhoto = await checkSendMediaPermission(ctx)
-    if (!canSendPhoto) return replyWithError(ctx, 'CANNOT_SEND_MEDIA_MESSAGES')
+    if (!canSendPhoto) return errorHandler(ctx, 'CANNOT_SEND_MEDIA_MESSAGES')
 
-    const lastfm_user = await getLastfmUser(ctx)
+    const lastfm_user = await getLastfmUser(telegram_id)
 
     if (acceptedMedias.includes(media_type) && !period) {
       media_type = mediaMap[media_type]
       generateVisualizer(ctx, lastfm_user, first_name, media_type)
         .catch(error => {
-          if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
-          if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
-          if (error === 'PRIVATE_USER') return replyWithError(ctx, 'PRIVATE_USER')
-          console.error(error)
-          replyWithError(ctx, 'COMMON_ERROR')
+          errorHandler(ctx, error)
         })
 
     } else if (acceptedMedias.includes(media_type) && acceptedPeriods.includes(period)) {
@@ -40,23 +33,15 @@ const story = async (ctx) => {
       period = periodMap[period]
       generateStory(ctx, lastfm_user, first_name, media_type, period)
         .catch(error => {
-          if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
-          if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
-          if (error === 'PRIVATE_USER') return replyWithError(ctx, 'PRIVATE_USER')
-          console.error(error)
-          replyWithError(ctx, 'COMMON_ERROR')
+          errorHandler(ctx, error)
         })
 
     } else {
-      return replyWithError(ctx, 'STORY_INCORRECT_ARGS')
+      return errorHandler(ctx, 'STORY_INCORRECT_ARGS')
     }
 
   } catch (error) {
-    if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
-    if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
-    if (error === 'PRIVATE_USER') return replyWithError(ctx, 'PRIVATE_USER')
-    console.error(error)
-    replyWithError(ctx, 'COMMON_ERROR')
+    errorHandler(ctx, error)
   }
 }
 

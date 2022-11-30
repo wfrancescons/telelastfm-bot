@@ -1,6 +1,6 @@
 {
   "name": "telegram-lastfm-bot",
-  "version": "2.3.0",
+  "version": "2.4.1",
   "description": "Telegram bot that provides music statistics for you and your friends from LastFM",
   "main": "./src/bot.js",
   "type": "module",

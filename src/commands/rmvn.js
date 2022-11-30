@@ -1,5 +1,5 @@
 import { deleteNick } from '../database/artist.js'
-import replyWithError from '../scripts/replyWithError.js'
+import errorHandler from '../handlers/errorHandler.js'
 
 const rmvn = async (ctx) => {
 
@@ -13,19 +13,16 @@ const rmvn = async (ctx) => {
 
         await ctx.replyWithChatAction('typing')
 
-        if (!artist_nick) return replyWithError(ctx, 'RMVN_WITHOUT_ARGS')
+        if (!artist_nick) return errorHandler(ctx, 'RMVN_WITHOUT_ARGS')
 
         const deletedNick = await deleteNick(chat_id, artist_nick)
 
-        if (!deletedNick) return replyWithError(ctx, 'RMVN_NICK_NOT_FOUND')
+        if (!deletedNick) return errorHandler(ctx, 'RMVN_NICK_NOT_FOUND')
 
         await ctx.reply(`OK! 📝 \nArtist's nick removed 🙂`)
 
     } catch (error) {
-
-        console.log(error)
-        return replyWithError(ctx, 'COMMON_ERROR')
-
+        errorHandler(ctx, error)
     }
 
 }

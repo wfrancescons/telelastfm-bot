@@ -304,7 +304,7 @@ const getUserInfo = (username) => {
         resolve(response.data)
       })
       .catch((erro) => {
-        erro.response.status === 404 ? reject('USER_NOT_FOUND') : reject(erro)
+        erro.response.status === 404 ? reject('NOT_A_VALID_LASTFM_USER') : reject(erro)
       })
   })
 }
@@ -343,3 +343,4 @@ export {
   getUserInfo,
   getTrackInfo,
 }
+

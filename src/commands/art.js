@@ -1,19 +1,26 @@
 import { getArtistListeningNow } from '../controller/lastfm.js'
-import { getLastfmUser } from '../database/user.js'
 import { getNick } from '../database/artist.js'
-import replyWithError from '../scripts/replyWithError.js'
+import { getLastfmUser } from '../database/user.js'
+import errorHandler from '../handlers/errorHandler.js'
 
 //Artist: what artist is scrobbling
 const art = async (ctx) => {
 
     const chat_id = ctx.message.chat.id
-    const { first_name } = ctx.update.message.from
+    let { first_name, id: telegram_id } = ctx.update.message.from
+
+    const isReply = ctx.update.message.reply_to_message?.from.id
+
+    if (isReply) {
+        first_name = ctx.update.message.reply_to_message.from.first_name
+        telegram_id = ctx.update.message.reply_to_message.from.id
+    }
 
     try {
 
         await ctx.replyWithChatAction('typing')
 
-        const lastfm_user = await getLastfmUser(ctx)
+        const lastfm_user = await getLastfmUser(telegram_id)
 
         const {
             artist,
@@ -56,13 +63,7 @@ const art = async (ctx) => {
         await ctx.reply(text, { entities })
 
     } catch (error) {
-
-        if (error === 'USER_NOT_FOUND') return replyWithError(ctx, 'NOT_A_LASTFM_USER')
-        if (error === 'ZERO_SCROBBLES') return replyWithError(ctx, 'ZERO_SCROBBLES')
-        if (error === 'PRIVATE_USER') return replyWithError(ctx, 'PRIVATE_USER')
-        console.error(error)
-        replyWithError(ctx, 'COMMON_ERROR')
-
+        errorHandler(ctx, error)
     }
 
 }

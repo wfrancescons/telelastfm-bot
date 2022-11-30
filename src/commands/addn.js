@@ -1,5 +1,5 @@
 import { newNick } from '../database/artist.js'
-import replyWithError from '../scripts/replyWithError.js'
+import errorHandler from '../handlers/errorHandler.js'
 
 const addn = async (ctx) => {
 
@@ -15,7 +15,7 @@ const addn = async (ctx) => {
 
     await ctx.replyWithChatAction('typing')
 
-    if (!artistAndNick || !artistNick) return replyWithError(ctx, 'ADDN_INCORRECT_ARGS')
+    if (!artistAndNick || !artistNick) return errorHandler(ctx, 'ADDN_INCORRECT_ARGS')
 
     //TODO: add regex
     const artist_nick = artistNick.trim()
@@ -30,15 +30,12 @@ const addn = async (ctx) => {
       added_by: telegram_id,
     })
 
-    if (!nick) return replyWithError(ctx, 'COMMON_ERROR')
+    if (!nick) return errorHandler(ctx, 'COMMON_ERROR')
 
     await ctx.reply(`Got it! 📝 \nFrom now on I'll call ${commandAndText.replace(command, '').trim()} as ${artist_nick}`)
 
   } catch (error) {
-
-    console.log(error)
-    return replyWithError(ctx, 'COMMON_ERROR')
-
+    return errorHandler(ctx, error)
   }
 }
 

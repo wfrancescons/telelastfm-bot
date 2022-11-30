@@ -5,6 +5,12 @@ export default async (ctx, errorCode, info) => {
     switch (errorCode) {
 
       case 'NOT_A_LASTFM_USER':
+        const isReply = ctx.update.message.reply_to_message?.from.id
+        if (isReply) {
+          const { first_name } = ctx.update.message.reply_to_message.from
+          ctx.replyWithMarkdown(`${first_name} needs to type \`/reg lastfmusername\` to set a Lastfm's username`)
+          break
+        }
         await ctx.replyWithMarkdown("Type `/reg lastfmusername` to set your Lastfm's username")
         break
 
@@ -38,7 +44,7 @@ export default async (ctx, errorCode, info) => {
           '✅ Valid Media Types: `tracks`, `albums`, `artists`\n' +
           '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`\n\n' +
           'Type `/story mediatype period` to generate a collage\n' +
-          'or `/story mediatype period` to generate a image of your latest scrobble.\n' +
+          'or `/story mediatype` to generate a image of your latest scrobble.\n' +
           '➡️ Examples: `/story album 1month` or `/story track`'
 
         await ctx.replyWithMarkdown(text)
