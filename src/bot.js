@@ -1,6 +1,6 @@
 import { Telegraf } from 'telegraf'
-import connectToDb from './database/connect.js'
 import config from './config.js'
+import connectToDb from './database/connect.js'
 import { launchBrowser } from './scripts/htmlToImage.js'
 
 import * as Commands from './commands/index.js'
@@ -14,9 +14,9 @@ launchBrowser()
 bot.start((ctx) => Commands.start(ctx))
 bot.help((ctx) => Commands.help(ctx))
 
-bot.command('ln', (ctx) => Commands.ln(ctx))
-bot.command('alb', (ctx) => Commands.alb(ctx))
-bot.command('art', (ctx) => Commands.art(ctx))
+bot.command(['ln', 'lp', 'status'], (ctx) => Commands.ln(ctx))
+bot.command(['alb', 'album'], (ctx) => Commands.alb(ctx))
+bot.command(['art', 'artist'], (ctx) => Commands.art(ctx))
 bot.command('reg', (ctx) => Commands.reg(ctx))
 bot.command('addn', (ctx) => Commands.addn(ctx))
 bot.command('rmvn', (ctx) => Commands.rmvn(ctx))

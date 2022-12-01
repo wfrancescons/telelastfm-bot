@@ -1,4 +1,4 @@
-import { getUserTopTracks, getUserTopAlbums, getUserTopArtists } from '../../controller/lastfm.js'
+import { getUserTopAlbums, getUserTopArtists, getUserTopTracks } from '../../controller/lastfm.js'
 import { htmlToImage } from '../../scripts/htmlToImage.js'
 import generateBackground from './generateBackground.js'
 import { periodInTextMap } from './storyMaps.js'
@@ -114,7 +114,7 @@ const generateStory = (ctx, lastfm_user, first_name, media_type, period) => {
       const lastfmData = await getLastfmData(lastfm_user, media_type, period)
       const model = { period: periodInTextMap[period], mediaType: media_type, data: lastfmData }
 
-      const response = await ctx.reply('🖼️ Generating your collage...')
+      const response = await ctx.reply('🖌️ Generating your collage...')
       const { message_id } = response
 
       await ctx.replyWithChatAction('upload_photo')
