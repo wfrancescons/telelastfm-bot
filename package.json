@@ -3,6 +3,9 @@
   "version": "2.4.1",
   "description": "Telegram bot that provides music statistics for you and your friends from LastFM",
   "main": "./src/bot.js",
+  "engines": {
+    "node": "16.x"
+  },
   "type": "module",
   "scripts": {
     "start": "node ./src/bot.js",
