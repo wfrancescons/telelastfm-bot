@@ -11,31 +11,54 @@ export default async (ctx, error, info) => {
                     ctx.replyWithMarkdown(`${first_name} needs to type \`/reg lastfmusername\` to set a Lastfm's username`)
                     break
                 }
-                await ctx.replyWithMarkdown("Type `/reg lastfmusername` to set your Lastfm's username")
+                await ctx.replyWithMarkdown('Type `/reg lastfmusername` to set your Lastfm\'s username')
                 break
 
             case 'ZERO_SCROBBLES':
-                await ctx.replyWithMarkdown("There aren't any scrobbles on your lastFM. 🙁\n\nIs your username correct? 🤔\nType `/reg lastfmusername` to set your Lastfm's username")
+                await ctx.replyWithMarkdown(
+                    'There aren\'t any scrobbles on your Lastfm. 🙁\n\n' +
+                    'Is your username correct? 🤔\n' +
+                    'Type `/reg lastfmusername` to set your Lastfm\'s username'
+                )
                 break
 
             case 'COMMON_ERROR':
-                await ctx.reply("Something went wrong 🥴 \nBut don't fret, let's give it another shot in a couple of minutes.\nIf the issue keeps happening, contact me @telelastfmsac")
+                await ctx.reply(
+                    'Something went wrong with Lastfm 🥴 \n' +
+                    'But don\'t fret, let\'s give it another shot in a couple of minutes.\n' +
+                    'If the issue keeps happening, contact me @telelastfmsac'
+                )
                 break
 
             case 'REG_WITHOUT_ARGS':
-                await ctx.replyWithMarkdown('Type /reg with with your Lastfm\'s username. \nExample: `/reg lastfmusername` \nPlease, try again 🙂')
+                await ctx.replyWithMarkdown(
+                    'Type /reg with with your Lastfm\'s username. \n' +
+                    'Example: `/reg lastfmusername` \n' +
+                    'Please, try again 🙂'
+                )
                 break
 
             case 'ADDN_INCORRECT_ARGS':
-                await ctx.replyWithMarkdown("Type /addn with artist's name + hyphen + artist's nick. \nExample: `/addn Taylor Swift - Queen of Pop` \nPlease, try again 🙂")
+                await ctx.replyWithMarkdown(
+                    'Type /addn with artist\'s name + hyphen + artist\'s nick. \n' +
+                    'Example: `/addn Taylor Swift - Queen of Pop` \n' +
+                    'Please, try again 🙂'
+                )
                 break
 
             case 'RMVN_WITHOUT_ARGS':
-                await ctx.replyWithMarkdown('Type /rmvn with artist\'s name to remove artist\'s nick. \nExample: `/rmvn Taylor Swift` \nPlease, try again 🙂')
+                await ctx.replyWithMarkdown(
+                    'Type /rmvn with artist\'s name to remove artist\'s nick. \n' +
+                    'Example: `/rmvn Taylor Swift` \n' +
+                    'Please, try again 🙂'
+                )
                 break
 
             case 'RMVN_NICK_NOT_FOUND':
-                await ctx.reply('Didn\'t find anyone with that name in my records 🤔 \nPlease, try again.')
+                await ctx.reply(
+                    'Didn\'t find anyone with that name in my records 🤔 \n' +
+                    'Please, try again 🙂'
+                )
                 break
 
             case 'STORY_INCORRECT_ARGS':
@@ -51,27 +74,38 @@ export default async (ctx, error, info) => {
                 break
 
             case 'NOT_A_VALID_LASTFM_USER':
-                await ctx.reply(`'${info}' doesn't seem to be a valid Lastfm's username 🤔 \nPlease, try again`)
+                await ctx.reply(
+                    `'${info}' doesn't seem to be a valid Lastfm's username 🤔 \n` +
+                    `Please, try again 🙂`
+                )
                 break
 
             case 'CANNOT_SEND_MEDIA_MESSAGES':
-                await ctx.reply(`I'm not allowed to send photos here 🚫📷 \nAn admin needs to review my permissions`)
+                await ctx.reply(
+                    'I\'m not allowed to send photos here 🚫📷 \n' +
+                    'An admin needs to review my permissions'
+                )
                 break
 
             case 'PRIVATE_USER':
-                await ctx.reply('Can\'t get your scrobbles 🥴\n' +
-                    'Your LastFM profile is private 🔒\n' +
-                    'Go to last.fm/settings/privacy and uncheck “Hide recent listening information” to use this bot.')
+                await ctx.reply(
+                    'Can\'t get your scrobbles 🥴\n' +
+                    'Your Lastfm profile is private 🔒\n' +
+                    'Go to last.fm/settings/privacy and uncheck “Hide recent listening information” to use this bot.'
+                )
                 break
 
             default:
-                console.error(`Unknown error with ${ctx.from.id} user. Message: ${error}`)
+                console.error('Error:', error)
+                await ctx.reply(
+                    'Something went wrong with Lastfm 🥴 \n' +
+                    'But don\'t fret, let\'s give it another shot in a couple of minutes.\n' +
+                    'If the issue keeps happening, contact me @telelastfmsac'
+                )
                 break
 
         }
     } catch (error) {
-
-        console.log(error)
-
+        console.error(`Unknown error with ${ctx.from.id} user. Message: ${error}`)
     }
 }  
