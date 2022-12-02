@@ -4,7 +4,7 @@
 
 Telegram bot that provides music statistics for you and your friends from LastFM
 
-[![release](https://img.shields.io/badge/release-v2.4.0-green.svg?style=flat)]()
+[![release](https://img.shields.io/badge/release-v2.5.0-green.svg?style=flat)]()
 [![bot](https://img.shields.io/badge/Bot-Telegram-blue)](https://t.me/telelastfmbot)
 </header>
 

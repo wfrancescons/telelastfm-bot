@@ -46,6 +46,13 @@ export default async (ctx, error, info) => {
                 )
                 break
 
+            case 'ADDN_BADWORDS':
+                await ctx.replyWithMarkdown(
+                    'You\'re using inappropriate words 🚫\n' +
+                    'Please, be kind 😉'
+                )
+                break
+
             case 'RMVN_WITHOUT_ARGS':
                 await ctx.replyWithMarkdown(
                     'Type /rmvn with artist\'s name to remove artist\'s nick. \n' +

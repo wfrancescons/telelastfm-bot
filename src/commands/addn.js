@@ -1,5 +1,6 @@
 import { newNick } from '../database/artist.js'
 import errorHandler from '../handlers/errorHandler.js'
+import { hasBadword } from '../scripts/badwords/filter.js'
 
 const addn = async (ctx) => {
 
@@ -16,6 +17,7 @@ const addn = async (ctx) => {
     await ctx.replyWithChatAction('typing')
 
     if (!artistAndNick || !artistNick) return errorHandler(ctx, 'ADDN_INCORRECT_ARGS')
+    if (hasBadword(artistNick.trim())) return errorHandler(ctx, 'ADDN_BADWORDS')
 
     //TODO: add regex
     const artist_nick = artistNick.trim()
