@@ -1,8 +1,10 @@
-import ln from './ln.js'
+import addn from './addn.js'
 import alb from './alb.js'
 import art from './art.js'
+import inlineQuery from './inlineQuery.js'
+import ln from './ln.js'
+import rank from './rank.js'
 import reg from './reg.js'
-import addn from './addn.js'
 import rmvn from './rmvn.js'
 import story from './story/story.js'
 
@@ -72,4 +74,7 @@ export {
   rmvn,
   story,
   collage,
+  rank,
+  inlineQuery
 }
+

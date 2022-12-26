@@ -1,7 +1,11 @@
 import axios from 'axios'
 import config from '../config.js'
 import { getSpotifyId } from './musicbrainz.js'
-import { getArtist, searchArtist as spotifySearchArtist, searchTrack as spotifySearchTrack } from './spotify.js'
+import {
+  getArtist,
+  searchArtist as spotifySearchArtist,
+  searchTrack as spotifySearchTrack
+} from './spotify.js'
 
 const { get } = axios
 const { lastfmURL, lastfmToken } = config
@@ -326,8 +330,27 @@ const getTrackInfo = (track, artist) => {
       })
       .catch((erro) => {
         erro.response.status === 404
-          ? resolve({ user: 'not found' })
+          ? resolve('NOT_A_VALID_LASTFM_USER')
           : reject(erro)
+      })
+  })
+}
+
+const getWeeklyTrackChart = (username) => {
+  return new Promise((resolve, reject) => {
+    get(lastfmURL, {
+      params: {
+        method: 'user.getweeklytrackchart',
+        user: username,
+        api_key: lastfmToken,
+        format: 'json',
+      },
+    })
+      .then((response) => {
+        resolve(response.data)
+      })
+      .catch((erro) => {
+        erro.response.status === 404 ? reject('NOT_A_VALID_LASTFM_USER') : reject(erro)
       })
   })
 }
@@ -342,5 +365,6 @@ export {
   getUserTopArtists,
   getUserInfo,
   getTrackInfo,
+  getWeeklyTrackChart
 }
 

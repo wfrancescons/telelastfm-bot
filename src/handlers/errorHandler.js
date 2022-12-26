@@ -2,15 +2,34 @@ export default async (ctx, error, info) => {
 
     try {
 
+        const isInlineQuery = ctx.update?.inline_query
+        const isReply = ctx.update.message?.reply_to_message?.from.id
+
         switch (error) {
 
             case 'USER_NOT_FOUND':
-                const isReply = ctx.update.message.reply_to_message?.from.id
+
+                if (isInlineQuery) {
+                    const response = [{
+                        type: 'article',
+                        id: 1,
+                        title: '⚠️ User not found',
+                        description: 'Use /reg to set your Lastfm\'s username',
+                        input_message_content: {
+                            message_text: 'Send /reg to @telelastfmbot to set your Lastfm\'s username'
+                        }
+                    }]
+
+                    await ctx.answerInlineQuery(response)
+                    break
+                }
+
                 if (isReply) {
                     const { first_name } = ctx.update.message.reply_to_message.from
                     ctx.replyWithMarkdown(`${first_name} needs to type \`/reg lastfmusername\` to set a Lastfm's username`)
                     break
                 }
+
                 await ctx.replyWithMarkdown('Type `/reg lastfmusername` to set your Lastfm\'s username')
                 break
 

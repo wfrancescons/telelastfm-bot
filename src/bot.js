@@ -22,6 +22,9 @@ bot.command('addn', (ctx) => Commands.addn(ctx))
 bot.command('rmvn', (ctx) => Commands.rmvn(ctx))
 bot.command('story', (ctx) => Commands.story(ctx))
 bot.command('collage', (ctx) => Commands.collage(ctx))
+bot.command('rank', (ctx) => Commands.rank(ctx))
+
+bot.on('inline_query', (ctx) => Commands.inlineQuery(ctx))
 
 // Set development webhook
 if (config.environment === 'development') {
