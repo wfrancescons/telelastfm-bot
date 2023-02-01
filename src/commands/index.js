@@ -1,6 +1,7 @@
 import addn from './addn.js'
 import alb from './alb.js'
 import art from './art.js'
+import collage from './collage.js'
 import inlineQuery from './inlineQuery.js'
 import ln from './ln.js'
 import rank from './rank.js'
@@ -53,15 +54,7 @@ const help = async (ctx) => {
 }
 
 // Collage command
-const collage = async (ctx) => {
-  try {
-    await ctx.replyWithChatAction('typing')
-    await ctx.replyWithMarkdown(`Please, use /story to make collages 😉`)
 
-  } catch (error) {
-    console.error(error)
-  }
-}
 
 export {
   start,

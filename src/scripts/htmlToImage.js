@@ -22,7 +22,20 @@ const launchBrowser = async () => {
     }
 }
 
-const htmlToImage = (html, path = '') => {
+const htmlToImage = (html, ssOptions) => {
+
+    if (!ssOptions) {
+
+        ssOptions = {
+            type: 'jpeg',
+            quality: 100,
+            fullPage: false,
+            clip: { x: 0, y: 0, width: 1080, height: 1920 },
+            path: ''
+        }
+
+    }
+
     return new Promise(async (resolve, reject) => {
         try {
             if (!browser) await launchBrowser()
@@ -30,15 +43,15 @@ const htmlToImage = (html, path = '') => {
             const page = await browser.newPage()
             await page.setDefaultNavigationTimeout(10000)
             await page.setViewport({
-                width: 1920,
-                height: 1080,
+                width: ssOptions.clip.width,
+                height: ssOptions.clip.height,
                 deviceScaleFactor: 2
             })
             await page.setContent(html, {
                 waitUntil: 'networkidle0'
             })
 
-            const image = await page.screenshot({ path: path, ...ssOptions })
+            const image = await page.screenshot({ ...ssOptions })
 
             await page.close()
 
@@ -53,3 +66,4 @@ const htmlToImage = (html, path = '') => {
 }
 
 export { htmlToImage, launchBrowser }
+

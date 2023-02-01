@@ -1,5 +1,5 @@
-import sharp from 'sharp'
 import axios from 'axios'
+import sharp from 'sharp'
 
 const { get } = axios
 
@@ -62,4 +62,10 @@ const generateBackground = (imageURL, blur = 15) => {
     })
 }
 
+const getRandomColor = () => {
+    const random = Math.floor(Math.random() * (gradients.length))
+    return gradients[random].start
+}
+
 export default generateBackground
+export { getRandomColor }
