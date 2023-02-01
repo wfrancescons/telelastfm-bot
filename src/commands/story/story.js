@@ -1,6 +1,6 @@
 import { getLastfmUser } from '../../database/user.js'
 import errorHandler from '../../handlers/errorHandler.js'
-import checkSendMediaPermission from '../../scripts/checkSendMediaPermission.js'
+import checkSendMediaPermission from '../../helpers/checkSendMediaPermission.js'
 import {
   acceptedMedias, acceptedPeriods, mediaMap, periodMap
 } from './storyMaps.js'
