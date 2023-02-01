@@ -20,6 +20,7 @@ const getRecentTracks = (username, limit = 1) => {
         username,
         limit,
       },
+      timeout: 1000 * 5
     })
       .then((response) => {
         if (response.data.recenttracks.track.length === 0) {
@@ -70,6 +71,7 @@ const getTrackListeningNow = (username) => {
             autocorrect: 1,
             format: 'json',
           },
+          timeout: 1000 * 5
         })
           .then((response) => {
             resolve({
@@ -104,6 +106,7 @@ const getAlbumListeningNow = (username) => {
             autocorrect: 1,
             format: 'json',
           },
+          timeout: 1000 * 5
         })
           .then((response) => {
             resolve({
@@ -135,6 +138,7 @@ const getArtistListeningNow = (username) => {
             autocorrect: 1,
             format: 'json',
           },
+          timeout: 1000 * 5
         })
           .then((response) => {
             resolve({
@@ -162,6 +166,7 @@ const getUserTopTracks = (username, period) => {
         period,
         limit: 5,
       },
+      timeout: 1000 * 5
     })
       .then(async (response) => {
         if (response.data.toptracks.track.length === 0) {
@@ -195,7 +200,7 @@ const getUserTopTracks = (username, period) => {
   })
 }
 
-const getUserTopAlbums = (username, period) => {
+const getUserTopAlbums = (username, period, limit = 5) => {
   return new Promise((resolve, reject) => {
     get(lastfmURL, {
       params: {
@@ -204,8 +209,9 @@ const getUserTopAlbums = (username, period) => {
         api_key: lastfmToken,
         username,
         period,
-        limit: 5,
+        limit,
       },
+      timeout: 1000 * 5
     })
       .then((response) => {
         if (response.data.topalbums.album.length === 0) {
@@ -244,6 +250,7 @@ const getUserTopArtists = (username, period) => {
         period,
         limit: 5,
       },
+      timeout: 1000 * 5
     })
       .then(async (response) => {
         if (response.data.topartists.artist.length === 0) {
@@ -303,6 +310,7 @@ const getUserInfo = (username) => {
         api_key: lastfmToken,
         format: 'json',
       },
+      timeout: 1000 * 5
     })
       .then((response) => {
         resolve(response.data)
@@ -324,6 +332,7 @@ const getTrackInfo = (track, artist) => {
         api_key: lastfmToken,
         format: 'json',
       },
+      timeout: 1000 * 5
     })
       .then((response) => {
         resolve(response.data)
@@ -345,6 +354,7 @@ const getWeeklyTrackChart = (username) => {
         api_key: lastfmToken,
         format: 'json',
       },
+      timeout: 1000 * 5
     })
       .then((response) => {
         resolve(response.data)
