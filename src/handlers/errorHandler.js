@@ -34,8 +34,30 @@ export default async (ctx, error, info) => {
                 break
 
             case 'ZERO_SCROBBLES':
+
+                if (isInlineQuery) {
+                    const response = [{
+                        type: 'article',
+                        id: 1,
+                        title: '⚠️ No scrobbles found',
+                        description: 'There aren\'t any scrobbles in your Lastfm. 🙁',
+                        input_message_content: {
+                            message_text: '⚠️ No scrobbles found'
+                        }
+                    }]
+
+                    await ctx.answerInlineQuery(response)
+                    break
+                }
+
+                if (isReply) {
+                    const { first_name } = ctx.update.message.reply_to_message.from
+                    ctx.replyWithMarkdown('There aren\'t any scrobbles in your Lastfm. 🙁')
+                    break
+                }
+
                 await ctx.replyWithMarkdown(
-                    'There aren\'t any scrobbles on your Lastfm. 🙁\n\n' +
+                    'There aren\'t any scrobbles in your Lastfm. 🙁\n\n' +
                     'Is your username correct? 🤔\n' +
                     'Type `/reg lastfmusername` to set your Lastfm\'s username'
                 )
@@ -67,7 +89,7 @@ export default async (ctx, error, info) => {
 
             case 'ADDN_BADWORDS':
                 await ctx.replyWithMarkdown(
-                    'You\'re using inappropriate words 🚫\n' +
+                    'You\'re using bad words 🚫\n' +
                     'Please, be kind 😉'
                 )
                 break

@@ -56,7 +56,7 @@ const inlineQuery = async (ctx) => {
             }
         }]
 
-        await ctx.answerInlineQuery(response)
+        await ctx.answerInlineQuery(response, { is_personal: true, cache_time: 5 })
 
     } catch (error) {
         errorHandler(ctx, error)
