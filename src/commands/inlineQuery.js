@@ -77,7 +77,7 @@ const inlineQuery = async (ctx) => {
                 id: 3,
                 title: 'Artist:',
                 description:
-                    `🧑‍🎤 ${artist_nick ? `${artist_nick} (${art.artist})\n` : art.artist}\n` +
+                    `🧑‍🎤 ${artist_nick ? `${artist_nick} (${art.artist})` : art.artist}\n` +
                     `📈 ${(art.userplaycount + 1).toLocaleString('pt-BR')} ${art.userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`,
                 thumb_url: art.image,
                 input_message_content: {
