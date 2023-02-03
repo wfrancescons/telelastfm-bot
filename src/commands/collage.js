@@ -17,7 +17,23 @@ const hexToRgb = (hex) => {
 
 const generateHtml = (res, color) => {
     return new Promise(async (resolve, reject) => {
+
+        const firtItem = res.shift()
+
+        const main = `<td rowspan="2" colspan="2" style="height: 100px; width: 100px;">
+        <div style="position: relative; width: 100%; height: 100%;">
+        <div style="background: linear-gradient(rgba(${color.join(',')}, 0), rgba(${color.join(',')}, 0.9));width: 100%; height: 50%;position: absolute; bottom: 0;"></div>
+        <div class="main" style="text-align:left; position: absolute; bottom: 0; padding: 10px;">
+            <h1>${firtItem.text[0]}</h1>
+            ${firtItem.text[1] ? `<h2>${firtItem.text[1]}</h2>` : ''}
+            <h3>${Number(firtItem.scrobbles).toLocaleString('pt-BR')} ${firtItem.scrobbles == 1 ? 'scrobble' : 'scrobbles'}</h3>
+        </div>
+            <img style="width: 100%; height: 100%;" src="${firtItem.image}" alt="">
+        </div>
+        </td>`
+
         const tds = res.map(item => {
+
             const { image, text, scrobbles } = item
 
             const td = `<td style="height: 100px; width: 100px;">
@@ -25,7 +41,8 @@ const generateHtml = (res, color) => {
             <div style="background: linear-gradient(rgba(${color.join(',')}, 0), rgba(${color.join(',')}, 0.9));width: 100%; height: 50%;position: absolute; bottom: 0;"></div>
             <div style="text-align:left; position: absolute; bottom: 0; padding: 10px;">
                 <h1>${text[0]}</h1>
-                <h2>${Number(scrobbles).toLocaleString('pt-BR')} ${scrobbles == 1 ? 'scrobble' : 'scrobbles'}</h2>
+                ${text[1] ? `<h2>${text[1]}</h2>` : ''}
+                <h3>${Number(scrobbles).toLocaleString('pt-BR')} ${scrobbles == 1 ? 'scrobble' : 'scrobbles'}</h3>
             </div>
                 <img style="width: 100%; height: 100%;" src="${image}" alt="">
             </div>
@@ -34,14 +51,14 @@ const generateHtml = (res, color) => {
             return td
         })
 
-        const trs = tds.reduce((acc, val, index) => {
-            if (index % 4 === 0) {
-                acc.push([val]);
-            } else {
-                acc[acc.length - 1].push(val);
-            }
-            return acc;
-        }, [])
+        const subMains = tds.splice(0, 2)
+        const secondTr = tds.splice(0, 2)
+
+        const trs = []
+
+        for (let i = 0; i < tds.length; i += 4) {
+            trs.push(tds.slice(i, i + 4))
+        }
 
         const table = trs.map(item => {
             const res = '<tr>' + item.join('') + '</tr>'
@@ -79,24 +96,36 @@ const generateHtml = (res, color) => {
                 .main h1 {
                     text-align: left;
                     font-weight: 800;
-                    font-size: 14px;
+                    font-size: 22px;
                 }
-        
+
                 .main h2 {
                     text-align: left;
-                    font-weight: 500;
-                    font-size: 12px;
+                    font-weight: 700;
+                    font-size: 20px;
+                }
+        
+                .main h3 {
+                    text-align: left;
+                    font-weight: 400;
+                    font-size: 18px;
                 }
         
                 h1 {
                     text-align: left;
                     font-weight: 800;
-                    font-size: 21px;
+                    font-size: 18px;
                 }
-        
+
                 h2 {
                     text-align: left;
-                    font-weight: 500;
+                    font-weight: 700;
+                    font-size: 16px;
+                }
+        
+                h3 {
+                    text-align: left;
+                    font-weight: 400;
                     font-size: 16px;
                 }
             </style>
@@ -104,12 +133,16 @@ const generateHtml = (res, color) => {
         
         <body>
             <table border="0" style="border-collapse: collapse; width: 100%; height: 100%;">
+                <tr>${main}${subMains.join('')}</tr>
+                <tr>${secondTr.join('')}</tr>
                 ${table.join('')}
             </table>
         
         </body>
         
         </html>`
+
+        //console.log(html)
 
         resolve(html)
 
@@ -139,7 +172,7 @@ const generateVisualizer = (ctx, lastfm_user, first_name) => {
 
             await ctx.replyWithChatAction('upload_photo')
 
-            const res = await getUserTopAlbums(lastfm_user, '7day', 20)
+            const res = await getUserTopAlbums(lastfm_user, '7day', 13)
 
             const color = hexToRgb(getRandomColor())
 
