@@ -110,15 +110,27 @@ export default async (ctx, error, info) => {
                 break
 
             case 'STORY_INCORRECT_ARGS':
-                const text =
+                await ctx.replyWithMarkdown(
                     'Invalid argumments 🤔\n\n' +
                     '✅ Valid Media Types: `tracks`, `albums`, `artists`\n' +
                     '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`\n\n' +
                     'Type `/story mediatype period` to generate a collage\n' +
                     'or `/story mediatype` to generate a image of your latest scrobble.\n' +
                     '➡️ Examples: `/story album 1month` or `/story track`'
+                )
+                break
 
-                await ctx.replyWithMarkdown(text)
+            case 'COLLAGE_INCORRECT_ARGS':
+                await ctx.replyWithMarkdown(
+                    'Invalid argumments 🤔\n\n' +
+                    '✅ Type a columns x rows value greater than 0 and up to 10\n' +
+                    '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`\n\n' +
+                    '➡️ Examples:\n' +
+                    '`/collage 3x3`\n' +
+                    '`/collage 5x5 7day`\n' +
+                    '`/collage 4x8 1month`\n' +
+                    '`/collage 10x10 overall`'
+                )
                 break
 
             case 'NOT_A_VALID_LASTFM_USER':

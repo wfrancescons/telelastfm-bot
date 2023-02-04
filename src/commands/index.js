@@ -1,7 +1,7 @@
 import addn from './addn.js'
 import alb from './alb.js'
 import art from './art.js'
-import collage from './collage.js'
+import collage from './collage/collage.js'
 import inlineQuery from './inlineQuery.js'
 import ln from './ln.js'
 import rank from './rank.js'
@@ -23,7 +23,7 @@ const start = async (ctx) => {
       `\nWelcome to the telelast bot 🤖🎵\n` +
       `\nUse /reg to set your Lastfm’s username\n` +
       `\nType / or /help to see a list of valid commands\n` +
-      `\nAccess @telelastfmnews for server status and new features 📰`
+      `\nAccess @telelastfmnews for server status and news 📰`
     )
 
   } catch (error) {
@@ -44,8 +44,8 @@ const help = async (ctx) => {
       `\n\`/reg lastfmuser\` - Set your LastFm's username` +
       `\n\`/addn artist-nick\` - Set artist's nick for a chat` +
       `\n\`/rmvn artist\` - Remove artist's nick for a chat` +
-      `\n\`/story mediatype\` - Generate a image of your latest scrobble` *
-      `\n\`/story mediatype period\` - Generate top scrobbles collage`
+      `\n\`/story mediatype period\` - Generate top scrobbles collage` +
+      `\n\`/collage columnsxrows period\` - Generate a grid collage`
     )
 
   } catch (error) {
