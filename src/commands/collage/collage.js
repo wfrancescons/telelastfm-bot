@@ -223,7 +223,7 @@ const generateCollage = (ctx, lastfm_user, matriz, first_name, media_type, perio
             const BODY_WIDTH = Math.round(MIN_CELL_SIZE * COLUMNS)
             const BODY_HEIGHT = Math.round(MIN_CELL_SIZE * ROWS)
 
-            const res = await getUserTopAlbums(lastfm_user, '7day', COLUMNS * ROWS)
+            const res = await getUserTopAlbums(lastfm_user, period, COLUMNS * ROWS)
             const color = hexToRgb(getRandomColor())
 
             const response = await ctx.reply(
