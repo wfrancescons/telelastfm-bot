@@ -16,6 +16,14 @@ const hexToRgb = (hex) => {
     return rgb
 }
 
+const limitText = (text) => {
+    text.trim()
+    if (text.length > 30) {
+        text = text.substring(0, 28) + '...'
+    }
+    return text
+}
+
 const generateHtml = (res, color, infos) => {
 
     const {
@@ -42,8 +50,8 @@ const generateHtml = (res, color, infos) => {
             <div style="position: relative; width: 100%; height: 100%;">
             <div class="gradient"></div>
             <div class="text main">
-                <h1>${firtItem.text[0]}</h1>
-                ${firtItem.text[1] ? `<h2>${firtItem.text[1]}</h2>` : ''}
+                <h1>${limitText(firtItem.text[0])}</h1>
+                ${firtItem.text[1] ? `<h2>${limitText(firtItem.text[1])}</h2>` : ''}
                 <h3>${Number(firtItem.scrobbles).toLocaleString('pt-BR')} ${firtItem.scrobbles == 1 ? 'scrobble' : 'scrobbles'}</h3>
             </div>
                 <img style="width: 100%; height: 100%;" src="${firtItem.image}" alt="">
@@ -59,8 +67,8 @@ const generateHtml = (res, color, infos) => {
             <div style="position: relative; width: 100%; height: 100%;">
             <div class="gradient"></div>
             <div class="text">
-                <h1>${text[0]}</h1>
-                ${text[1] ? `<h2>${text[1]}</h2>` : ''}
+                <h1>${limitText(text[0])}</h1>
+                ${text[1] ? `<h2>${limitText(text[1])}</h2>` : ''}
                 <h3>${Number(scrobbles).toLocaleString('pt-BR')} ${scrobbles == 1 ? 'scrobble' : 'scrobbles'}</h3>
             </div>
                 <img src="${image}" alt="">
@@ -114,6 +122,7 @@ const generateHtml = (res, color, infos) => {
                     font-family: 'Open Sans';
                     color: #fff;
                     text-align:left;
+                    text-shadow: 1px 1px 3px black;
                 }
 
                 table {
@@ -158,7 +167,7 @@ const generateHtml = (res, color, infos) => {
         
                 .main h3 {
                     text-align: left;
-                    font-weight: 400;
+                    font-weight: 500;
                     font-size: ${FONT_BASE_SIZE + (FONT_SIZE_MULTIPLICATOR * 2)}px;
                 }
         
@@ -176,7 +185,7 @@ const generateHtml = (res, color, infos) => {
         
                 h3 {
                     text-align: left;
-                    font-weight: 400;
+                    font-weight: 500;
                     font-size: ${FONT_BASE_SIZE}px;
                 }
             </style>
