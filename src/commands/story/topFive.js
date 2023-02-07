@@ -73,7 +73,7 @@ const generateImage = async (lastfmData) => {
           <link href="https://fonts.googleapis.com/css2?family=Train+One&display=swap" rel="stylesheet">
           <style>
             * { margin: 0; padding: 0 }
-            body {position: relative;width: 1080px;height: 1920px;font-family: 'Open Sans';color: #fff;text-align: center;}
+            body {position: relative;width: 1080px;height: 1920px;font-family: 'Open Sans', arial, sans-serif;color: #fff;text-align: center;}
             img {width: 180px;height: 180px;float: left;margin-left: 50px;object-fit: cover;object-position: 20% 10%; border-radius: 15px}
             h1 {text-align: center;font-size: 64px;font-weight: 800;padding: 150px 200px 0px 200px;text-transform: uppercase}
             p {text-align: left;justify-content: center;}
