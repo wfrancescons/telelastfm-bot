@@ -7,7 +7,9 @@ const badwordsWithExactMatch = [
     'Pora',
     'Tapuru',
     'Zona',
-    'Travesti'
+    'Travesti',
+    'Incel',
+    'Femcel'
 ]
 
 const badwordsToConcat = [
@@ -21,7 +23,9 @@ const badwordsToConcat = [
     'Bosset',
     'Bost',
     'Busset',
+    'Cachorr',
     'Cadel',
+    'Chot',
     'Cuz',
     'Deposit',
     'Esporrad',
@@ -50,6 +54,7 @@ const badwordsToConcat = [
     'Rabud',
     'Tarad',
     'Travec',
+    'Tonh',
     'Vagabund',
     'Vagin',
     'Vead',
