@@ -1,4 +1,4 @@
-import { getAlbumListeningNow, getArtistListeningNow, getTrackListeningNow } from '../controller/lastfm.js'
+import { getAlbumListeningNow, getArtistListeningNow, getTrackListeningNow } from '../controllers/lastfm.js'
 import { getLastfmUser } from '../database/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { canSendMediaMessage, canSendMessage, isChannel, isChannelMsgForward } from '../helpers/chatHelper.js'

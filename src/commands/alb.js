@@ -1,4 +1,4 @@
-import { getAlbumListeningNow } from '../controller/lastfm.js'
+import { getAlbumListeningNow } from '../controllers/lastfm.js'
 import { getNick } from '../database/artist.js'
 import { getLastfmUser } from '../database/user.js'
 import errorHandler from '../handlers/errorHandler.js'

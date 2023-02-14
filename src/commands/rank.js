@@ -1,4 +1,4 @@
-import { getWeeklyTrackChart } from "../controller/lastfm.js"
+import { getWeeklyTrackChart } from "../controllers/lastfm.js"
 import { getAllRankGroups } from "../database/rank.js"
 import { getLastfmUser } from '../database/user.js'
 import errorHandler from "../handlers/errorHandler.js"

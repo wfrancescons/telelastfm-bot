@@ -1,4 +1,4 @@
-import { getUserInfo } from '../controller/lastfm.js'
+import { getUserInfo } from '../controllers/lastfm.js'
 import User from '../database/models/user.js'
 
 const createUser = (telegram_id, lastfm_username) => {
