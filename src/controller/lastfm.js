@@ -172,28 +172,33 @@ const getUserTopTracks = (username, period) => {
         if (response.data.toptracks.track.length === 0) {
           reject('ZERO_SCROBBLES')
         } else {
-          const array = []
-          for (const item of response.data.toptracks.track) {
-            const data = await spotifySearchTrack(item.name, item.artist.name)
+          const tracks = response.data.toptracks.track
+          const result = await Promise.all(
+            tracks.map(async item => {
 
-            let image = item.image.pop()['#text']
-            if (image === '') {
-              image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
-            }
-            if (data.tracks.items.length !== 0) {
-              const image_url = data.tracks.items[0].album.images[0].url
-              image = image_url
-            }
+              let image = item.image.pop()['#text']
+              if (image === '') {
+                image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
+              }
 
-            array.push({
-              rank: item['@attr'].rank,
-              image,
-              text: [item.name, item.artist.name],
-              scrobbles: item.playcount,
+              const spotify_info = await spotifySearchTrack(item.name, item.artist.name)
+
+              if (spotify_info.tracks.items.length !== 0) {
+                const image_url = spotify_info.tracks.items[0].album.images[0].url
+                image = image_url
+              }
+
+              return {
+                rank: item['@attr'].rank,
+                image,
+                text: [item.name, item.artist.name],
+                scrobbles: item.playcount,
+              }
+
             })
-          }
+          )
 
-          resolve(array)
+          resolve(result)
         }
       })
       .catch((erro) => reject(erro))
@@ -255,46 +260,48 @@ const getUserTopArtists = (username, period) => {
       .then(async (response) => {
         if (response.data.topartists.artist.length === 0) {
           reject('ZERO_SCROBBLES')
+
         } else {
+          const artists = response.data.topartists.artist
+          const result = await Promise.all(
+            artists.map(async item => {
 
-          const array = []
-          for (const item of response.data.topartists.artist) {
-
-            let image = item?.image.pop()['#text']
-            if (image === '') {
-              image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
-            }
-
-            let spotifyId
-
-            if (item?.mbid) spotifyId = await getSpotifyId(item.mbid)
-
-            if (spotifyId) {
-
-              const spotifyInfo = await getArtist(spotifyId)
-              if (spotifyInfo) {
-                image = spotifyInfo.images[0].url
+              let image = item?.image.pop()['#text']
+              if (image === '') {
+                image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
               }
 
-            } else {
+              let spotify_id
+              if (item?.mbid) spotify_id = await getSpotifyId(item.mbid)
 
-              const spotifyInfo = await spotifySearchArtist(item.name)
-              if (spotifyInfo.artists.items.length !== 0) {
-                const image_url = spotifyInfo.artists.items[0].images[0].url
-                image = image_url
+              if (spotify_id) {
+
+                const spotifyInfo = await getArtist(spotify_id)
+                if (spotifyInfo) image = spotifyInfo.images[0].url
+
+              } else {
+
+                const spotifyInfo = await spotifySearchArtist(item.name)
+                if (spotifyInfo.artists.items.length !== 0) {
+                  const image_url = spotifyInfo.artists.items[0].images[0].url
+                  image = image_url
+                }
+
               }
 
-            }
+              return {
+                rank: item['@attr'].rank,
+                image,
+                text: [item.name],
+                scrobbles: item.playcount,
+              }
 
-            array.push({
-              rank: item['@attr'].rank,
-              image,
-              text: [item.name],
-              scrobbles: item.playcount,
             })
 
-          }
-          resolve(array)
+          )
+
+          resolve(result)
+
         }
       })
       .catch((erro) => reject(erro))

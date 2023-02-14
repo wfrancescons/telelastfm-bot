@@ -1,5 +1,6 @@
 import { newNick } from '../database/artist.js'
 import errorHandler from '../handlers/errorHandler.js'
+import { canSendMessage, isChannel } from '../helpers/chatHelper.js'
 import { hasBadword } from '../scripts/badwords/filter.js'
 
 const addn = async (ctx) => {
@@ -13,6 +14,8 @@ const addn = async (ctx) => {
   const [commandAndText, artistNick] = text.split('-')
 
   try {
+
+    if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
 
     await ctx.replyWithChatAction('typing')
 

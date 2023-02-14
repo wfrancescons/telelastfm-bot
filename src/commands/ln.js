@@ -2,6 +2,7 @@ import { getTrackListeningNow } from '../controller/lastfm.js'
 import { getNick } from '../database/artist.js'
 import { getLastfmUser } from '../database/user.js'
 import errorHandler from '../handlers/errorHandler.js'
+import { canSendMessage, isChannel, isChannelMsgForward, isReplyToMsg } from '../helpers/chatHelper.js'
 import lnModel from './models/lnModel.js'
 
 // Listening now: what track is scrobbling
@@ -10,14 +11,16 @@ const ln = async (ctx) => {
   const chat_id = ctx.message.chat.id
   let { first_name, id: telegram_id } = ctx.update.message.from
 
-  const isReply = ctx.update.message.reply_to_message?.from.id
-
-  if (isReply) {
+  let msgToReplyId
+  if (isReplyToMsg(ctx) && !isChannelMsgForward(ctx)) {
     first_name = ctx.update.message.reply_to_message.from.first_name
     telegram_id = ctx.update.message.reply_to_message.from.id
+    msgToReplyId = ctx.update.message.reply_to_message.message_id
   }
 
   try {
+
+    if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
 
     await ctx.replyWithChatAction('typing')
 
@@ -50,8 +53,14 @@ const ln = async (ctx) => {
     }
 
     const message = lnModel(data)
+    const extras = {
+      entities: message.entities
+    }
 
-    await ctx.reply(message.text, { entities: message.entities })
+    if (isReplyToMsg(ctx)) extras.reply_to_message_id = msgToReplyId
+    if (isChannelMsgForward(ctx)) extras.reply_to_message_id = ctx.message.message_id
+
+    ctx.reply(message.text, extras)
 
   } catch (error) {
     errorHandler(ctx, error)
