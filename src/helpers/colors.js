@@ -7,12 +7,31 @@ const gradients = [
     { start: '#283c86', end: '#45a247' },
     { start: '#103783', end: '#9bafd9' },
     { start: '#d3321d', end: '#ffcf67' },
-    { start: '#0b3866', end: '#95f9c3' },
+    { start: '#471069', end: '#95f9c3' },
     { start: '#e60b09', end: '#e9d022' },
     { start: '#34073d', end: '#ef745c' },
     { start: '#392d69', end: '#b57bee' },
     { start: '#471069', end: '#30c5d2' },
 ]
+
+const colors = [
+    '#6e0a78',
+    '#ba2649',
+    '#1a6b54',
+    '#0F4C81',
+    '#8B0000',
+    '#DE970B'
+]
+
+const hexToRgb = (hex) => {
+    const rgbToParse = hex.match(/[^#]{1,2}/g);
+    const rgb = [
+        parseInt(rgbToParse[0], 16),
+        parseInt(rgbToParse[1], 16),
+        parseInt(rgbToParse[2], 16)
+    ]
+    return rgb
+}
 
 const generateFilter = () => {
     return new Promise((resolve, reject) => {
@@ -40,7 +59,7 @@ const generateFilter = () => {
 
 const generateBackground = (imageURL, blur = 15) => {
     return new Promise(async (resolve, reject) => {
-        const { data } = await get(imageURL, { responseType: 'arraybuffer' })
+        const { data } = await get(imageURL, { responseType: 'arraybuffer', timeout: 5 * 1000 })
         const buffer = Buffer.from(data)
         const filter = await generateFilter()
 
@@ -62,10 +81,11 @@ const generateBackground = (imageURL, blur = 15) => {
     })
 }
 
-const getRandomColor = () => {
-    const random = Math.floor(Math.random() * (gradients.length))
-    return gradients[random].start
+const getCollageColor = () => {
+    const random = Math.floor(Math.random() * (colors.length))
+    const color = colors[random]
+    return hexToRgb(color)
 }
 
-export default generateBackground
-export { getRandomColor }
+export { getCollageColor, generateBackground }
+

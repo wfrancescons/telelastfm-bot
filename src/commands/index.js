@@ -1,13 +1,17 @@
 import addn from './addn.js'
 import alb from './alb.js'
 import art from './art.js'
-import collage from './collage/collage.js'
+import collage from './collage.js'
 import inlineQuery from './inlineQuery.js'
 import ln from './ln.js'
-import rank from './rank.js'
 import reg from './reg.js'
 import rmvn from './rmvn.js'
-import story from './story/story.js'
+import story from './story.js'
+import top from './top.js'
+
+//import rank from './rank.js'
+//import rankin from './rankin.js'
+//import rankout from './rankout.js'
 
 // Start command
 const start = async (ctx) => {
@@ -44,17 +48,15 @@ const help = async (ctx) => {
       `\n\`/reg lastfmuser\` - Set your LastFm's username` +
       `\n\`/addn artist-nick\` - Set artist's nick for a chat` +
       `\n\`/rmvn artist\` - Remove artist's nick for a chat` +
-      `\n\`/story mediatype period\` - Generate top scrobbles collage` +
-      `\n\`/collage columnsxrows period\` - Generate a grid collage`
+      `\n\`/collage columnsxrows period\` - Generate a grid collage` +
+      `\n\`/top mediatype period\` - Generate a top scrobbles collage` +
+      `\n\`/story mediatype period\` - Generate a image of your latest scrobble`
     )
 
   } catch (error) {
     console.error(error)
   }
 }
-
-// Collage command
-
 
 export {
   start,
@@ -65,9 +67,12 @@ export {
   reg,
   addn,
   rmvn,
-  story,
   collage,
-  rank,
-  inlineQuery
+  inlineQuery,
+  top,
+  story,
+  //rank,
+  //rankin,
+  //rankout
 }
 

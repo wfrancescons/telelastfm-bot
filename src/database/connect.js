@@ -1,13 +1,15 @@
 import Mongoose from 'mongoose'
 import config from '../config.js'
 
-const connectToDb = async () => {
-  try {
-    await Mongoose.connect(config.mongoURI)
-    console.log('MongoDB connected!')
-  } catch (error) {
-    console.log(error)
-  }
+const connectToDb = () => {
+
+  console.log('Connecting to database...')
+
+  return Mongoose.connect(config.mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 15000
+  })
 }
 
 export default connectToDb
