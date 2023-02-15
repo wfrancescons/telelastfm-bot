@@ -155,7 +155,7 @@ const getArtistListeningNow = (username) => {
   })
 }
 
-const getUserTopTracks = (username, period) => {
+const getUserTopTracks = (username, period, limit = 5) => {
   return new Promise((resolve, reject) => {
     get(lastfmURL, {
       params: {
@@ -164,7 +164,7 @@ const getUserTopTracks = (username, period) => {
         api_key: lastfmToken,
         username,
         period,
-        limit: 5,
+        limit
       },
       timeout: 1000 * 5
     })
@@ -244,7 +244,7 @@ const getUserTopAlbums = (username, period, limit = 5) => {
   })
 }
 
-const getUserTopArtists = (username, period) => {
+const getUserTopArtists = (username, period, limit = 5) => {
   return new Promise((resolve, reject) => {
     get(lastfmURL, {
       params: {
@@ -253,7 +253,7 @@ const getUserTopArtists = (username, period) => {
         api_key: lastfmToken,
         username,
         period,
-        limit: 5,
+        limit
       },
       timeout: 1000 * 5
     })
@@ -287,6 +287,58 @@ const getUserTopArtists = (username, period) => {
                   image = image_url
                 }
 
+              }
+
+              return {
+                rank: item['@attr'].rank,
+                image,
+                text: [item.name],
+                scrobbles: item.playcount,
+              }
+
+            })
+
+          )
+
+          resolve(result)
+
+        }
+      })
+      .catch((erro) => reject(erro))
+  })
+}
+
+const getUserTopArtistsCollage = (username, period, limit = 5) => {
+  return new Promise((resolve, reject) => {
+    get(lastfmURL, {
+      params: {
+        method: 'user.getTopArtists',
+        format: 'json',
+        api_key: lastfmToken,
+        username,
+        period,
+        limit
+      },
+      timeout: 1000 * 5
+    })
+      .then(async (response) => {
+        if (response.data.topartists.artist.length === 0) {
+          reject('ZERO_SCROBBLES')
+
+        } else {
+          const artists = response.data.topartists.artist
+          const result = await Promise.all(
+            artists.map(async item => {
+
+              let image = item?.image.pop()['#text']
+              if (image === '') {
+                image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
+              }
+
+              const spotifyInfo = await spotifySearchArtist(item.name)
+              if (spotifyInfo.artists.items.length !== 0) {
+                const image_url = spotifyInfo.artists.items[0].images[0].url
+                image = image_url
               }
 
               return {
@@ -382,6 +434,7 @@ export {
   getUserTopArtists,
   getUserInfo,
   getTrackInfo,
-  getWeeklyTrackChart
+  getWeeklyTrackChart,
+  getUserTopArtistsCollage
 }
 

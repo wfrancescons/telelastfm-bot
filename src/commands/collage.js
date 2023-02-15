@@ -1,13 +1,36 @@
-import { getUserTopAlbums } from '../controllers/lastfm.js'
+import { getUserTopAlbums, getUserTopArtistsCollage, getUserTopTracks } from '../controllers/lastfm.js'
 import { getLastfmUser } from '../database/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { canSendMediaMessage, canSendMessage, isChannel, isChannelMsgForward } from '../helpers/chatHelper.js'
 import { getCollageColor } from '../helpers/colors.js'
-import { acceptedPeriods, periodInTextMap, periodMap } from '../helpers/validValuesMap.js'
+import { acceptedMedias, acceptedPeriods, mediaMap, periodInTextMap, periodMap } from '../helpers/validValuesMap.js'
 import { htmlToImage } from '../scripts/htmlToImage.js'
 import generateCollageHtml from './templates/collageTemplate.js'
 
-const createTemplate = (lastfm_user, COLUMNS, ROWS, media_type = 'albums', period) => {
+const getLastfmData = (lastfm_user, media_type, period, limit) => {
+    return new Promise((resolve, reject) => {
+        if (media_type === 'tracks') {
+            getUserTopTracks(lastfm_user, period, limit)
+                .then(data => resolve(data))
+                .catch(error => reject(error))
+        }
+
+        if (media_type === 'albums') {
+            getUserTopAlbums(lastfm_user, period, limit)
+                .then(data => resolve(data))
+                .catch(error => reject(error))
+        }
+
+        if (media_type === 'artists') {
+            getUserTopArtistsCollage(lastfm_user, period, limit)
+                .then(data => resolve(data))
+                .catch(error => reject(error))
+        }
+
+    })
+}
+
+const createTemplate = (lastfm_user, COLUMNS, ROWS, media_type, period, param) => {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -17,7 +40,7 @@ const createTemplate = (lastfm_user, COLUMNS, ROWS, media_type = 'albums', perio
             const BODY_HEIGHT = Math.round(MIN_CELL_SIZE * ROWS)
             const color = getCollageColor()
 
-            const lastfm_data = await getUserTopAlbums(lastfm_user, period, COLUMNS * ROWS)
+            const lastfm_data = await getLastfmData(lastfm_user, media_type, period, COLUMNS * ROWS)
 
             const html = generateCollageHtml({
                 COLUMNS,
@@ -28,7 +51,8 @@ const createTemplate = (lastfm_user, COLUMNS, ROWS, media_type = 'albums', perio
                 BODY_HEIGHT,
 
                 lastfm_data,
-                color
+                color,
+                param
             })
 
             const ssOptions = {
@@ -60,13 +84,21 @@ const collage = async (ctx) => {
         const grid_regex = /^(\d+)x(\d+)$/
 
         let grid = args.find(arg => arg.match(grid_regex))
+
+        let media_type = args.find(arg => acceptedMedias.includes(arg))
+        media_type = media_type ? mediaMap[media_type] : undefined
+
         let period = args.find(arg => acceptedPeriods.includes(arg))
         period = period ? periodMap[period] : undefined
 
-        if ((!grid || !period) && args.length > 2) return errorHandler(ctx, 'COLLAGE_INCORRECT_ARGS')
+        let param = args.find(arg => ['nonames', 'noplays'].includes(arg))
+
+        if ((!grid || !period || !media_type) && args.length > 3) return errorHandler(ctx, 'COLLAGE_INCORRECT_ARGS')
 
         if (!grid) grid = '4x4'
+        if (!media_type) media_type = 'albums'
         if (!period) period = '7d'
+        if (!param) param = null
 
         //verifica se 'grid' e 'period' são válidos
         const regex_result = grid.match(grid_regex)
@@ -98,17 +130,20 @@ const collage = async (ctx) => {
         await ctx.replyWithChatAction('upload_photo')
 
         period = periodMap[period]
-        const collageGenerated = await createTemplate(lastfm_user, COLUMNS, ROWS, 'album', period)
-
-        htmlToImage(...collageGenerated)
-            .then(img_buffer => {
-                extras.caption = `${first_name}, your ${grid} ${'album'} collage of ${periodInTextMap[period]}`
-                ctx.replyWithPhoto({ source: img_buffer }, extras)
-                    .finally(() => {
-                        ctx.deleteMessage(response.message_id)
+        createTemplate(lastfm_user, COLUMNS, ROWS, media_type, period, param)
+            .then(collageGenerated => {
+                htmlToImage(...collageGenerated)
+                    .then(img_buffer => {
+                        extras.caption = `${first_name}, your ${grid} ${media_type} collage of ${periodInTextMap[period]}`
+                        ctx.replyWithPhoto({ source: img_buffer }, extras)
+                            .finally(() => {
+                                ctx.deleteMessage(response.message_id)
+                            })
                     })
+                    .catch(error => errorHandler(ctx, error))
             })
             .catch(error => errorHandler(ctx, error))
+
 
     } catch (error) {
         errorHandler(ctx, error)

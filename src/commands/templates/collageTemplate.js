@@ -10,8 +10,22 @@ export default (data) => {
         BODY_WIDTH,
         BODY_HEIGHT,
         lastfm_data,
-        color
+        color,
+        param
     } = data
+
+    if (!param) {
+
+    }
+    if (param === 'nonames') {
+
+    }
+
+    if (param === 'noplays') {
+
+    }
+
+    //param = nonames || noplays
 
     const FONT_BASE_SIZE = Math.round(MIN_CELL_SIZE * 0.07)
     const FONT_SIZE_MULTIPLICATOR = Math.ceil(FONT_BASE_SIZE * 0.1)
@@ -24,7 +38,8 @@ export default (data) => {
 
         const firtItem = lastfm_data.shift()
 
-        main = `<td rowspan="2" colspan="2">
+        if (!param) {
+            main = `<td rowspan="2" colspan="2">
             <div style="position: relative; width: 100%; height: 100%;">
             <div class="gradient"></div>
             <div class="text main">
@@ -32,14 +47,38 @@ export default (data) => {
                 ${firtItem.text[1] ? `<h2>${limitText(firtItem.text[1], 30)}</h2>` : ''}
                 <h3>${Number(firtItem.scrobbles).toLocaleString('pt-BR')} ${firtItem.scrobbles == 1 ? 'scrobble' : 'scrobbles'}</h3>
             </div>
-                <img style="width: 100%; height: 100%;" src="${firtItem.image}" alt="">
+                <img style="width: ${MIN_CELL_SIZE * 2}px; height: ${MIN_CELL_SIZE * 2}px;" src="${firtItem.image}" alt="">
             </div>
             </td>`
+        }
+        if (param === 'nonames') {
+            main = `<td rowspan="2" colspan="2">
+            <div style="position: relative; width: 100%; height: 100%;">
+                <img style="width: ${MIN_CELL_SIZE * 2}px; height: ${MIN_CELL_SIZE * 2}px;" src="${firtItem.image}" alt="">
+            </div>
+            </td>`
+        }
+        if (param === 'noplays') {
+            main = `<td rowspan="2" colspan="2">
+            <div style="position: relative; width: 100%; height: 100%;">
+            <div class="gradient"></div>
+            <div class="text main">
+                <h1>${limitText(firtItem.text[0], 30)}</h1>
+                ${firtItem.text[1] ? `<h2>${limitText(firtItem.text[1], 30)}</h2>` : ''}
+            </div>
+                <img style="width: ${MIN_CELL_SIZE * 2}px; height: ${MIN_CELL_SIZE * 2}px;" src="${firtItem.image}" alt="">
+            </div>
+            </td>`
+        }
     }
 
     const tds = lastfm_data.map(item => {
         const { image, text, scrobbles } = item
-        const td = `<td>
+
+        let td
+
+        if (!param) {
+            td = `<td>
             <div style="position: relative; width: 100%; height: 100%;">
             <div class="gradient"></div>
             <div class="text">
@@ -50,6 +89,27 @@ export default (data) => {
                 <img src="${image}" alt="">
             </div>
             </td>`
+        }
+        if (param === 'nonames') {
+            td = `<td>
+            <div style="position: relative; width: 100%; height: 100%;">
+                <img src="${image}" alt="">
+            </div>
+            </td>`
+        }
+
+        if (param === 'noplays') {
+            td = `<td>
+            <div style="position: relative; width: 100%; height: 100%;">
+            <div class="gradient"></div>
+            <div class="text">
+                <h1>${limitText(text[0], 30)}</h1>
+                ${text[1] ? `<h2>${limitText(text[1], 30)}</h2>` : ''}
+            </div>
+                <img src="${image}" alt="">
+            </div>
+            </td>`
+        }
 
         return td
     })
@@ -109,8 +169,8 @@ export default (data) => {
                 }
 
                 img {
-                    width: 100%;
-                    height: 100%;
+                    width: ${MIN_CELL_SIZE}px;
+                    height: ${MIN_CELL_SIZE}px;
                 }
 
                 .gradient{
