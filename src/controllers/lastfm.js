@@ -272,7 +272,7 @@ const getUserTopArtists = (username, period, limit = 5) => {
               }
 
               let spotify_id
-              if (item?.mbid) spotify_id = await getSpotifyId(item.mbid)
+              if (item?.mbid || item.name.length <= 4) spotify_id = await getSpotifyId(item.mbid)
 
               if (spotify_id) {
 
@@ -287,58 +287,6 @@ const getUserTopArtists = (username, period, limit = 5) => {
                   image = image_url
                 }
 
-              }
-
-              return {
-                rank: item['@attr'].rank,
-                image,
-                text: [item.name],
-                scrobbles: item.playcount,
-              }
-
-            })
-
-          )
-
-          resolve(result)
-
-        }
-      })
-      .catch((erro) => reject(erro))
-  })
-}
-
-const getUserTopArtistsCollage = (username, period, limit = 5) => {
-  return new Promise((resolve, reject) => {
-    get(lastfmURL, {
-      params: {
-        method: 'user.getTopArtists',
-        format: 'json',
-        api_key: lastfmToken,
-        username,
-        period,
-        limit
-      },
-      timeout: 1000 * 5
-    })
-      .then(async (response) => {
-        if (response.data.topartists.artist.length === 0) {
-          reject('ZERO_SCROBBLES')
-
-        } else {
-          const artists = response.data.topartists.artist
-          const result = await Promise.all(
-            artists.map(async item => {
-
-              let image = item?.image.pop()['#text']
-              if (image === '') {
-                image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
-              }
-
-              const spotifyInfo = await spotifySearchArtist(item.name)
-              if (spotifyInfo.artists.items.length !== 0) {
-                const image_url = spotifyInfo.artists.items[0].images[0].url
-                image = image_url
               }
 
               return {
@@ -434,7 +382,6 @@ export {
   getUserTopArtists,
   getUserInfo,
   getTrackInfo,
-  getWeeklyTrackChart,
-  getUserTopArtistsCollage
+  getWeeklyTrackChart
 }
 

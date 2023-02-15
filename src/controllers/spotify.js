@@ -14,7 +14,7 @@ const generateAccessToken = async () => {
     spotify.setAccessToken(data.body.access_token)
     spotify.setRefreshToken(data.body.refresh_token)
 
-    console.log('APOTIFY API: New access token generated')
+    console.log('SPOTIFY API: New access token generated')
 }
 
 const initTokenRefresh = async () => {
@@ -69,3 +69,4 @@ export {
     searchTrack,
     getArtist
 }
+

@@ -1,4 +1,4 @@
-import { getUserTopAlbums, getUserTopArtistsCollage, getUserTopTracks } from '../controllers/lastfm.js'
+import { getUserTopAlbums, getUserTopArtists, getUserTopTracks } from '../controllers/lastfm.js'
 import { getLastfmUser } from '../database/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { canSendMediaMessage, canSendMessage, isChannel, isChannelMsgForward } from '../helpers/chatHelper.js'
@@ -22,7 +22,7 @@ const getLastfmData = (lastfm_user, media_type, period, limit) => {
         }
 
         if (media_type === 'artists') {
-            getUserTopArtistsCollage(lastfm_user, period, limit)
+            getUserTopArtists(lastfm_user, period, limit)
                 .then(data => resolve(data))
                 .catch(error => reject(error))
         }
