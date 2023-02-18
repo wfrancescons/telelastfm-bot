@@ -20,9 +20,7 @@ const generateAccessToken = async () => {
 const initTokenRefresh = async () => {
     await generateAccessToken()
     setInterval(async () => {
-        if (isAccessTokenExpired()) {
-            await generateAccessToken()
-        }
+       await generateAccessToken()
     }, 60 * 60 * 1000) // refresh every 1 hour
 }
 
