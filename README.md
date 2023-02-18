@@ -4,7 +4,7 @@
 
 Telegram bot that provides music statistics for you and your friends from LastFM
 
-[![release](https://img.shields.io/badge/release-v2.5.0-green.svg?style=flat)]()
+[![release](https://img.shields.io/badge/release-v3.0.0-green.svg?style=flat)]()
 [![bot](https://img.shields.io/badge/Bot-Telegram-blue)](https://t.me/telelastfmbot)
 </header>
 
@@ -20,13 +20,17 @@ Available commands:
 * `/reg`   Set your LastFm's username
 * `/addn`  Set artist's nick for a chat
 * `/rmvn`  Remove artist's nick for a chat
-* `/story` Generate top scrobbles collage
+* `/collage` Generate a grid collage
+* `/top` Generate a top scrobbles collage
+* `/story` Generate a image of your latest scrobble
 
 ## Screenshots
 
 <img src="docs/assets/ln.jpg" alt="ln" height="300">  
 <img src="docs/assets/alb.jpg" alt="alb" height="300">  
 <img src="docs/assets/art.jpg" alt="art" height="300">  
+<img src="docs/assets/collage.jpg" alt="collage" height="300">
+<img src="docs/assets/top.jpg" alt="top" height="300">
 <img src="docs/assets/story.jpg" alt="story" height="300">
 
 ## Additional information
