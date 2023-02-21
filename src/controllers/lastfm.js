@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { RateLimiter } from 'limiter'
 import config from '../config.js'
 import { getSpotifyId } from './musicbrainz.js'
 import {
@@ -9,9 +10,14 @@ import {
 
 const { get } = axios
 const { lastfmURL, lastfmToken } = config
+const TIMEOUT = 1000 * 5
+
+const limiter = new RateLimiter({ tokensPerInterval: 1, interval: 200 })
 
 const getRecentTracks = (username, limit = 1) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await limiter.removeTokens(1)
+
     get(lastfmURL, {
       params: {
         method: 'user.getRecentTracks',
@@ -20,7 +26,7 @@ const getRecentTracks = (username, limit = 1) => {
         username,
         limit,
       },
-      timeout: 1000 * 5
+      timeout: TIMEOUT
     })
       .then((response) => {
         if (response.data.recenttracks.track.length === 0) {
@@ -48,15 +54,18 @@ const getRecentTracks = (username, limit = 1) => {
         }
       })
       .catch((error) => {
-        error.response.status === 403
-          ? reject('PRIVATE_USER')
-          : reject(error)
+        const error_status = error.response?.status
+        if (error_status === 403) reject('PRIVATE_USER')
+        else if (error_status === 404) reject('USER_CHANGED_USERNAME')
+        else reject(error)
       })
   })
 }
 
 const getTrackListeningNow = (username) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await limiter.removeTokens(1)
+
     getRecentTracks(username)
       .then((lastTrack) => {
         const { track, album, artist, isNowPlaying, image } = lastTrack[0]
@@ -71,7 +80,7 @@ const getTrackListeningNow = (username) => {
             autocorrect: 1,
             format: 'json',
           },
-          timeout: 1000 * 5
+          timeout: TIMEOUT
         })
           .then((response) => {
             resolve({
@@ -91,7 +100,9 @@ const getTrackListeningNow = (username) => {
 }
 
 const getAlbumListeningNow = (username) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await limiter.removeTokens(1)
+
     getRecentTracks(username)
       .then((lastTrack) => {
         const { album, artist, isNowPlaying, image } = lastTrack[0]
@@ -106,7 +117,7 @@ const getAlbumListeningNow = (username) => {
             autocorrect: 1,
             format: 'json',
           },
-          timeout: 1000 * 5
+          timeout: TIMEOUT
         })
           .then((response) => {
             resolve({
@@ -124,7 +135,9 @@ const getAlbumListeningNow = (username) => {
 }
 
 const getArtistListeningNow = (username) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await limiter.removeTokens(1)
+
     getRecentTracks(username)
       .then((lastTrack) => {
         const { artist, isNowPlaying, image } = lastTrack[0]
@@ -138,7 +151,7 @@ const getArtistListeningNow = (username) => {
             autocorrect: 1,
             format: 'json',
           },
-          timeout: 1000 * 5
+          timeout: TIMEOUT
         })
           .then((response) => {
             resolve({
@@ -156,7 +169,9 @@ const getArtistListeningNow = (username) => {
 }
 
 const getUserTopTracks = (username, period, limit = 5) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await limiter.removeTokens(1)
+
     get(lastfmURL, {
       params: {
         method: 'user.getTopTracks',
@@ -166,7 +181,7 @@ const getUserTopTracks = (username, period, limit = 5) => {
         period,
         limit
       },
-      timeout: 1000 * 5
+      timeout: TIMEOUT
     })
       .then(async (response) => {
         if (response.data.toptracks.track.length === 0) {
@@ -201,12 +216,19 @@ const getUserTopTracks = (username, period, limit = 5) => {
           resolve(result)
         }
       })
-      .catch((erro) => reject(erro))
+      .catch((error) => {
+        const error_status = error.response?.status
+        if (error_status === 403) reject('PRIVATE_USER')
+        else if (error_status === 404) reject('USER_CHANGED_USERNAME')
+        else reject(error)
+      })
   })
 }
 
 const getUserTopAlbums = (username, period, limit = 5) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await limiter.removeTokens(1)
+
     get(lastfmURL, {
       params: {
         method: 'user.getTopAlbums',
@@ -216,7 +238,7 @@ const getUserTopAlbums = (username, period, limit = 5) => {
         period,
         limit,
       },
-      timeout: 1000 * 5
+      timeout: TIMEOUT
     })
       .then((response) => {
         if (response.data.topalbums.album.length === 0) {
@@ -240,12 +262,19 @@ const getUserTopAlbums = (username, period, limit = 5) => {
           resolve(array)
         }
       })
-      .catch((erro) => reject(erro))
+      .catch((error) => {
+        const error_status = error.response?.status
+        if (error_status === 403) reject('PRIVATE_USER')
+        else if (error_status === 404) reject('USER_CHANGED_USERNAME')
+        else reject(error)
+      })
   })
 }
 
 const getUserTopArtists = (username, period, limit = 5) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await limiter.removeTokens(1)
+
     get(lastfmURL, {
       params: {
         method: 'user.getTopArtists',
@@ -255,7 +284,7 @@ const getUserTopArtists = (username, period, limit = 5) => {
         period,
         limit
       },
-      timeout: 1000 * 5
+      timeout: TIMEOUT
     })
       .then(async (response) => {
         if (response.data.topartists.artist.length === 0) {
@@ -304,12 +333,19 @@ const getUserTopArtists = (username, period, limit = 5) => {
 
         }
       })
-      .catch((erro) => reject(erro))
+      .catch((error) => {
+        const error_status = error.response?.status
+        if (error_status === 403) reject('PRIVATE_USER')
+        else if (error_status === 404) reject('USER_CHANGED_USERNAME')
+        else reject(error)
+      })
   })
 }
 
 const getUserInfo = (username) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await limiter.removeTokens(1)
+
     get(lastfmURL, {
       params: {
         method: 'user.getInfo',
@@ -317,7 +353,7 @@ const getUserInfo = (username) => {
         api_key: lastfmToken,
         format: 'json',
       },
-      timeout: 1000 * 5
+      timeout: TIMEOUT
     })
       .then((response) => {
         resolve(response.data)
@@ -329,7 +365,9 @@ const getUserInfo = (username) => {
 }
 
 const getTrackInfo = (track, artist) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await limiter.removeTokens(1)
+
     get(lastfmURL, {
       params: {
         method: 'track.getInfo',
@@ -339,21 +377,24 @@ const getTrackInfo = (track, artist) => {
         api_key: lastfmToken,
         format: 'json',
       },
-      timeout: 1000 * 5
+      timeout: TIMEOUT
     })
       .then((response) => {
         resolve(response.data)
       })
-      .catch((erro) => {
-        erro.response.status === 404
-          ? resolve('NOT_A_VALID_LASTFM_USER')
-          : reject(erro)
+      .catch((error) => {
+        const error_status = error.response?.status
+        if (error_status === 403) reject('PRIVATE_USER')
+        else if (error_status === 404) reject('USER_CHANGED_USERNAME')
+        else reject(error)
       })
   })
 }
 
 const getWeeklyTrackChart = (username) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await limiter.removeTokens(1)
+
     get(lastfmURL, {
       params: {
         method: 'user.getweeklytrackchart',
@@ -361,13 +402,16 @@ const getWeeklyTrackChart = (username) => {
         api_key: lastfmToken,
         format: 'json',
       },
-      timeout: 1000 * 5
+      timeout: TIMEOUT
     })
       .then((response) => {
         resolve(response.data)
       })
-      .catch((erro) => {
-        erro.response.status === 404 ? reject('NOT_A_VALID_LASTFM_USER') : reject(erro)
+      .catch((error) => {
+        const error_status = error.response?.status
+        if (error_status === 403) reject('PRIVATE_USER')
+        else if (error_status === 404) reject('USER_CHANGED_USERNAME')
+        else reject(error)
       })
   })
 }
