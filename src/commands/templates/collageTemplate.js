@@ -14,24 +14,9 @@ export default (data) => {
         param
     } = data
 
-    if (!param) {
-
-    }
-    if (param === 'nonames') {
-
-    }
-
-    if (param === 'noplays') {
-
-    }
-
-    //param = nonames || noplays
-
     let FONT_BASE_SIZE = Math.round(MIN_CELL_SIZE * 0.06)
-    //if (FONT_BASE_SIZE <= 7) FONT_BASE_SIZE = 7
+    if (FONT_BASE_SIZE <= 8) FONT_BASE_SIZE = 8
     const FONT_SIZE_MULTIPLICATOR = Math.ceil(FONT_BASE_SIZE * 0.06)
-
-    console.log(`FONT_BASE_SIZE: ${FONT_BASE_SIZE}, FONT_SIZE_MULTIPLICATOR: ${FONT_SIZE_MULTIPLICATOR}`)
     const PADDING_BASE_SIZE = Math.round(MIN_CELL_SIZE * 0.05)
 
     const hasMain = (COLUMNS >= 3 && ROWS >= 2) || (COLUMNS >= 2 && ROWS >= 3)
