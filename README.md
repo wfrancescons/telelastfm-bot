@@ -31,7 +31,6 @@ Available commands:
 <img src="docs/assets/art.jpg" alt="art" height="300">  
 <img src="docs/assets/collage.jpg" alt="collage" height="300">
 <img src="docs/assets/top.jpg" alt="top" height="300">
-<img src="docs/assets/story.jpg" alt="story" height="300">
 
 ## Additional information
 
