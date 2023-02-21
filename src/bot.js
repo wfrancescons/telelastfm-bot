@@ -1,19 +1,19 @@
 import { Telegraf } from 'telegraf'
 import config from './config.js'
 import connectToDb from './database/connect.js'
-import { launchBrowser } from './scripts/htmlToImage.js'
+import { launchBrowser } from './modules/htmlToImage.js'
 
 import * as Commands from './commands/index.js'
 
 const bot = new Telegraf(config.bot_token)
 
 connectToDb()
-  .then(() => {
+  .then(async () => {
 
-    console.log('MongoDB connected!')
+    console.log('DATABASE: MongoDB connected!')
 
     //launch browser for /collage and /story
-    launchBrowser()
+    await launchBrowser()
 
     // Set bot response
     bot.start((ctx) => Commands.start(ctx))
@@ -44,9 +44,9 @@ connectToDb()
 
     bot.launch()
 
-    console.log(`Running in ${config.environment} environment`)
+    console.log(`BOT: Running in ${config.environment} environment`)
   })
-  .catch(error => console.error('Error connecting to MongoDB: ', error))
+  .catch(error => console.error('DATABASE: Error connecting to MongoDB: ', error))
 
 process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))

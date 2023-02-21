@@ -3,7 +3,7 @@ import config from '../config.js'
 
 const connectToDb = () => {
 
-  console.log('Connecting to database...')
+  console.log('DATABASE: Connecting to MongoDB...')
 
   return Mongoose.connect(config.mongoURI, {
     useNewUrlParser: true,

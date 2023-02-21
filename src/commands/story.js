@@ -4,7 +4,7 @@ import errorHandler from '../handlers/errorHandler.js'
 import { canSendMediaMessage, canSendMessage, isChannel, isChannelMsgForward } from '../helpers/chatHelper.js'
 import { generateBackground } from '../helpers/colors.js'
 import { acceptedMedias, mediaMap } from '../helpers/validValuesMap.js'
-import { htmlToImage } from '../scripts/htmlToImage.js'
+import { htmlToImage } from '../modules/htmlToImage.js'
 import generateStoryHtml from './templates/storyTemplate.js'
 
 const getLastfmData = (lastfm_user, media_type) => {

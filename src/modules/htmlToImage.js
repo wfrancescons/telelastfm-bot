@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer"
+import puppeteer from 'puppeteer'
 
 const ssOptions = {
     type: 'jpeg',
@@ -14,7 +14,7 @@ const launchBrowser = async () => {
         browser = await puppeteer.launch({
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         })
-        console.log('Browser launched!')
+        console.log('PUPPETEER: Browser launched!')
 
     } catch (error) {
         console.error(error)
@@ -58,7 +58,6 @@ const htmlToImage = (html, ssOptions) => {
             resolve(image)
 
         } catch (error) {
-            console.error(error)
             reject(error)
         }
     })

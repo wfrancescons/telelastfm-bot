@@ -4,7 +4,7 @@ import errorHandler from '../handlers/errorHandler.js'
 import { canSendMediaMessage, canSendMessage, isChannel, isChannelMsgForward } from '../helpers/chatHelper.js'
 import { getCollageColor } from '../helpers/colors.js'
 import { acceptedMedias, acceptedPeriods, mediaMap, periodInTextMap, periodMap } from '../helpers/validValuesMap.js'
-import { htmlToImage } from '../scripts/htmlToImage.js'
+import { htmlToImage } from '../modules/htmlToImage.js'
 import generateCollageHtml from './templates/collageTemplate.js'
 
 const getLastfmData = (lastfm_user, media_type, period, limit) => {
