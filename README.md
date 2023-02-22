@@ -4,7 +4,7 @@
 
 Telegram bot that provides music statistics for you and your friends from LastFM
 
-[![release](https://img.shields.io/badge/release-v3.0.0-green.svg?style=flat)]()
+[![release](https://img.shields.io/badge/release-v3.1.0-green.svg?style=flat)]()
 [![bot](https://img.shields.io/badge/Bot-Telegram-blue)](https://t.me/telelastfmbot)
 </header>
 
@@ -31,6 +31,7 @@ Available commands:
 <img src="docs/assets/art.jpg" alt="art" height="300">  
 <img src="docs/assets/collage.jpg" alt="collage" height="300">
 <img src="docs/assets/top.jpg" alt="top" height="300">
+<img src="docs/assets/story.jpg" alt="story" height="300">
 
 ## Additional information
 

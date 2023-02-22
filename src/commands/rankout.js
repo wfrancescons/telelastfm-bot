@@ -23,8 +23,17 @@ const rankout = async (ctx) => {
 
         const rankGroup = await getUsers(chat_id)
         await ctx.reply(
-            `OK, you're out of Weekly Chart Race! \n\n` +
-            `Spots left: ${MAX_SPOTS - rankGroup.length}`
+            `OK, you're out of Weekly Chart Race! 🎶🏃‍♂️ \n\n` +
+            `Spots left: ${MAX_SPOTS - rankGroup.length}`,
+            {
+                entities: [
+                    {
+                        offset: 18,
+                        length: 18,
+                        type: 'bold'
+                    }
+                ]
+            }
         )
 
     } catch (error) {

@@ -117,12 +117,20 @@ const deleteUser = (chat_id, telegram_id) => {
     })
 }
 
+const updateUsersInGroups = (chat_id, users) => {
+    return new Promise((resolve, reject) => {
+        Rank.updateOne({ chat_id }, { '$set': { users } }, (erro, data) => {
+            erro ? reject(erro) : resolve(data?.users)
+        })
+    })
+}
+
 export {
     newUser,
     getUsers,
     deleteUser,
     getUser,
     deleteRank,
-    getAllRankGroups
+    getAllRankGroups,
+    updateUsersInGroups
 }
-

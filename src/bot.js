@@ -28,10 +28,8 @@ connectToDb()
     bot.command('story', (ctx) => Commands.story(ctx))
     bot.command('collage', (ctx) => Commands.collage(ctx))
     bot.command('top', (ctx) => Commands.top(ctx))
-    //bot.command('rank', (ctx) => Commands.rank(ctx))
-    //bot.command('rankin', (ctx) => Commands.rankin(ctx))
-    //bot.command('rankout', (ctx) => Commands.rankout(ctx))
-
+    bot.command('rankin', (ctx) => Commands.rankin(ctx))
+    bot.command('rankout', (ctx) => Commands.rankout(ctx))
 
     bot.on('inline_query', (ctx) => Commands.inlineQuery(ctx))
 
@@ -43,6 +41,8 @@ connectToDb()
     }
 
     bot.launch()
+
+    import('./cron/cronjob.js').then(() => console.log('CRONJOB: task scheduled'))
 
     console.log(`BOT: Running in ${config.environment} environment`)
   })

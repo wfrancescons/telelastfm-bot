@@ -24,6 +24,18 @@ const getUser = (telegram_id) => {
   })
 }
 
+const getSpecificUsers = (telegram_ids) => {
+
+  return new Promise((resolve, reject) => {
+
+    User.find({ telegram_id: { $in: telegram_ids } }, { telegram_id: 1, lastfm_username: 1, _id: 0 },
+      (erro, data) => {
+        //if not found, returns null as data
+        erro ? reject(erro) : resolve(data)
+      })
+  })
+}
+
 const updateUser = (telegram_id, lastfm_username) => {
 
   return new Promise((resolve, reject) => {
@@ -86,5 +98,27 @@ const setLastfmUser = (telegram_id, lastfm_username) => {
   })
 }
 
-export { getLastfmUser, setLastfmUser, getUser }
+const updateUserScrobbles = (telegram_id, weekly_scrobbles_playcount) => {
+
+  return new Promise((resolve, reject) => {
+
+    User.findOneAndUpdate({ telegram_id }, { weekly_scrobbles_playcount }, (erro, data) => {
+      erro ? reject(erro) : resolve(data)
+    }
+
+    )
+  })
+}
+
+const getUsersScrobbles = (telegram_ids) => {
+  return new Promise((resolve, reject) => {
+    User.find({ telegram_id: { $in: telegram_ids } }, { telegram_id: 1, weekly_scrobbles_playcount: 1, _id: 0 },
+      (erro, data) => {
+        //if not found, returns null as data
+        erro ? reject(erro) : resolve(data)
+      })
+  })
+}
+
+export { getLastfmUser, setLastfmUser, getUser, getSpecificUsers, updateUserScrobbles, getUsersScrobbles }
 

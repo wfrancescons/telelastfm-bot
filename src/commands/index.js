@@ -4,14 +4,12 @@ import art from './art.js'
 import collage from './collage.js'
 import inlineQuery from './inlineQuery.js'
 import ln from './ln.js'
+import rankin from './rankin.js'
+import rankout from './rankout.js'
 import reg from './reg.js'
 import rmvn from './rmvn.js'
 import story from './story.js'
 import top from './top.js'
-
-//import rank from './rank.js'
-//import rankin from './rankin.js'
-//import rankout from './rankout.js'
 
 // Start command
 const start = async (ctx) => {
@@ -71,8 +69,6 @@ export {
   inlineQuery,
   top,
   story,
-  //rank,
-  //rankin,
-  //rankout
+  rankin,
+  rankout
 }
-

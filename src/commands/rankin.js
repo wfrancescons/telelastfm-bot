@@ -31,8 +31,17 @@ const rankin = async (ctx) => {
         const user = await newUser(chat_id, telegram_id)
 
         await ctx.reply(
-            `You're in the group Weekly Chart Race! 🏃‍♂️ \n\n` +
-            `Spots left: ${MAX_SPOTS - user.users_length}`
+            `You're in the group Weekly Chart Race! 🎶🏃‍♂️ \n\n` +
+            `Spots left: ${MAX_SPOTS - user.users_length}`,
+            {
+                entities: [
+                    {
+                        offset: 20,
+                        length: 18,
+                        type: 'bold'
+                    }
+                ]
+            }
         )
 
     } catch (error) {

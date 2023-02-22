@@ -4,8 +4,9 @@ const { Schema, model } = Mongoose
 const RankSchema = new Schema({
     chat_id: { type: Number, required: true },
     users: [{
-        telegram_id: { type: Number, required: true },
-        addedAt: { type: Date }
+        type: new Schema({
+            telegram_id: { type: Number, required: true }
+        }, { timestamps: true })
     }],
 }, {
     timestamps: true

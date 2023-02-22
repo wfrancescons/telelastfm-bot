@@ -80,11 +80,11 @@ const getChatMemberInfos = (chatId, userId) => {
     })
 }
 
-const canSendMessage = (chatId, userId) => {
-    if (chatId > 0) return Promise.resolve(true)
+const canSendMessage = (chat_id, user_id) => {
+    if (chat_id > 0) return Promise.resolve(true)
     return new Promise(async (resolve, reject) => {
         try {
-            const chatStatus = await getChatMemberInfos(chatId, userId)
+            const chatStatus = await getChatMemberInfos(chat_id, user_id)
             resolve((chatStatus.chat_type == 'supergroup' || chatStatus.chat_type == 'group') && chatStatus?.permissions.can_send_messages != false)
         } catch (error) {
             reject(error)
@@ -92,11 +92,11 @@ const canSendMessage = (chatId, userId) => {
     })
 }
 
-const canSendMediaMessage = (chatId, userId) => {
-    if (chatId > 0) return Promise.resolve(true)
+const canSendMediaMessage = (chat_id, user_id) => {
+    if (chat_id > 0) return Promise.resolve(true)
     return new Promise(async (resolve, reject) => {
         try {
-            const chatStatus = await getChatMemberInfos(chatId, userId)
+            const chatStatus = await getChatMemberInfos(chat_id, user_id)
             resolve((chatStatus.chat_type === 'supergroup' || chatStatus.chat_type === 'group') && chatStatus?.permissions.can_send_media_messages != false)
         } catch (error) {
             reject(error)

@@ -5,13 +5,11 @@ const UserSchema = new Schema({
   telegram_id: { type: Number, required: true },
   lastfm_username: String,
   weekly_scrobbles_playcount: {
-    current_week_playcount: Number,
-    last_week_playcount: Number,
+    scrobbles: Number,
+    tracks: Number,
     updatedAt: { type: Date }
   }
-}, {
-  timestamps: true
-})
+}, { timestamps: true })
 
 const User = model('User', UserSchema)
 
