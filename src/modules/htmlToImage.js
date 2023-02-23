@@ -13,7 +13,6 @@ const pages = []
 const launchBrowser = async () => {
     try {
         browser = await puppeteer.launch({
-            headless: false,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         })
         console.log('PUPPETEER: Browser launched!')
