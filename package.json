@@ -8,7 +8,7 @@
   },
   "type": "module",
   "scripts": {
-    "start": "node --inspect ./src/bot.js"
+    "start": "node --inspect-brk ./src/bot.js"
   },
   "keywords": [
     "telegram",
