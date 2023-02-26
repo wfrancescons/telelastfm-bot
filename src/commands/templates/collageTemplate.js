@@ -162,7 +162,7 @@ export default (data) => {
                 }
 
                 .gradient{
-                    background: linear-gradient(rgba(${color.join(',')}, 0), rgba(${color.join(',')}, 0.8));
+                    background: linear-gradient(rgba(${color.join(',')}, 0), rgba(${color.join(',')}, 0.9));
                     width: 100%;
                     height: 40%;
                     position: absolute;
