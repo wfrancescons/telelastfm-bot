@@ -1,16 +1,16 @@
-import cron from 'node-cron'
+import Cron from 'croner'
 import sendMessages from './sendMessages.js'
 import updateUserScrobbles from './updateUserScrobbles.js'
 import updateValidUsers from './updateValidUsers.js'
 
-export default cron.schedule('0 20 * * *', async () => {
+export default Cron('0 30 20 * * 0', { timezone: "America/Sao_Paulo" }, async () => {
     try {
-        console.log('CRONJOB: task started')
+        console.log('CRONJOB: Task started')
         await updateValidUsers()
         await updateUserScrobbles()
         await sendMessages()
-        console.log('CRONJOB: task finished')
+        console.log('CRONJOB: Task finished')
     } catch (error) {
         console.log(error)
     }
-}, { timezone: "America/Sao_Paulo" })
+})

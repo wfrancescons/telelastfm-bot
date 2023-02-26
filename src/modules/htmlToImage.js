@@ -8,7 +8,6 @@ const ssOptions = {
 }
 
 let browser
-const pages = []
 
 const launchBrowser = async () => {
     try {
@@ -33,22 +32,6 @@ const closeBrowser = async () => {
     }
 }
 
-const verifyIfBrowserIsInactiveAndClose = () => {
-    if (!pages.length && browser) {
-        closeBrowser()
-        console.log('PUPPETEER: Browser closed due to inactivity!')
-    }
-}
-
-const isBrowserInactive = () => {
-    verifyIfBrowserIsInactiveAndClose()
-    setInterval(() => {
-        verifyIfBrowserIsInactiveAndClose()
-    }, 60 * 60 * 1000) // every 1 hour
-}
-
-isBrowserInactive()
-
 const htmlToImage = (html, ssOptions) => {
 
     if (!ssOptions) {
@@ -64,8 +47,6 @@ const htmlToImage = (html, ssOptions) => {
     }
 
     return new Promise(async (resolve, reject) => {
-
-        pages.push(1)
 
         if (!browser) await launchBrowser()
 
@@ -93,7 +74,6 @@ const htmlToImage = (html, ssOptions) => {
         } finally {
 
             await page.close()
-            pages.pop()
 
         }
     })

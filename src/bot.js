@@ -42,7 +42,7 @@ connectToDb()
 
     bot.launch()
 
-    //import('./cron/cronjob.js').then(() => console.log('CRONJOB: task scheduled'))
+    import('./cron/cronjob.js').then(() => console.log('CRONJOB: Task scheduled'))
 
     console.log(`BOT: Running in ${config.environment} environment`)
   })
