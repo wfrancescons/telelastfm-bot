@@ -31,7 +31,7 @@ export default async () => {
                 result.sort((a, b) => b.weekly_scrobbles_playcount.scrobbles - a.weekly_scrobbles_playcount.scrobbles)
 
                 const text = [
-                    `🏆Weekly Tracks Chart 🏆\n`,
+                    `🏆 Weekly Tracks Chart 🏆\n`,
                 ]
 
                 const entities = [
