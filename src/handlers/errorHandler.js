@@ -96,6 +96,15 @@ export default async (ctx, error, info) => {
                 break
             }
 
+            case 'ADDN_MAX_STRING_LENGTH': {
+                await ctx.replyWithMarkdown(
+                    'Artist name or nickname is too long 🥴\n' +
+                    'Please, try again with ordinary names 🙂',
+                    extras
+                )
+                break
+            }
+
             case 'RMVN_WITHOUT_ARGS': {
                 await ctx.replyWithMarkdown(
                     'Type /rmvn with artist\'s name to remove artist\'s nick. \n' +
@@ -208,7 +217,8 @@ export default async (ctx, error, info) => {
 
             case 'RANK_REGISTERED_USER': {
                 await ctx.reply(
-                    `You are already participating in this group's race. To exit, use /rankout 😉\n\n` +
+                    `You are already participating in this group's race.\n` +
+                    `To exit, use /rankout 😉\n\n` +
                     `Spots left: ${info}`,
                     extras
                 )

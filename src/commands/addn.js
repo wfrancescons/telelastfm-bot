@@ -4,6 +4,8 @@ import errorHandler from '../handlers/errorHandler.js'
 import { canSendMessage, isChannel } from '../helpers/chatHelper.js'
 import { hasBadword } from '../modules/badwords/filter.js'
 
+const MAX_STRING_LENGTH = 70
+
 const addn = async (ctx) => {
 
   const telegram_id = ctx.message.from.id
@@ -23,10 +25,12 @@ const addn = async (ctx) => {
     if (!artistAndNick || !artistNick) return errorHandler(ctx, 'ADDN_INCORRECT_ARGS')
     if (hasBadword(artistNick.trim())) return errorHandler(ctx, 'ADDN_BADWORDS')
 
-    await getLastfmUser(telegram_id)
-
     const artist_nick = artistNick.trim()
     const artist_name = commandAndText.replace(command, '').trim()
+
+    if (artist_nick.length > MAX_STRING_LENGTH || artist_name.length > MAX_STRING_LENGTH) return errorHandler(ctx, 'ADDN_MAX_STRING_LENGTH')
+
+    await getLastfmUser(telegram_id)
 
     const nick = await newNick(chat_id, {
       artist_name: artist_name.toLowerCase(),
@@ -36,26 +40,30 @@ const addn = async (ctx) => {
 
     if (!nick) return errorHandler(ctx, 'COMMON_ERROR')
 
+    const response = [
+      `Got it! 📝 \n`,
+      `From now on I'll call `,
+      artist_name,
+      ` as `,
+      artist_nick
+    ]
+
     const extra = {
       entities: [
         {
-          offset: 33,
+          offset: response.slice(0, 2).join('').length,
           length: artist_name.length,
           type: 'italic',
         },
         {
-          offset: 33 + artist_name.length + 4,
+          offset: response.slice(0, 4).join('').length,
           length: artist_nick.length,
           type: 'bold',
         }
       ]
     }
 
-    await ctx.reply(
-      `Got it! 📝 \n` +
-      `From now on I'll call ${artist_name} as ${artist_nick}`,
-      extra
-    )
+    await ctx.reply(response.join(''), extra)
 
   } catch (error) {
     return errorHandler(ctx, error)
