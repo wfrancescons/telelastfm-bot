@@ -358,8 +358,8 @@ const getUserInfo = (username) => {
       .then((response) => {
         resolve(response.data)
       })
-      .catch((erro) => {
-        erro.response.status === 404 ? reject('NOT_A_VALID_LASTFM_USER') : reject(erro)
+      .catch((error) => {
+        error.response?.status === 404 ? reject('NOT_A_VALID_LASTFM_USER') : reject(erro)
       })
   })
 }

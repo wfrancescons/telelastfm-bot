@@ -12,8 +12,8 @@ connectToDb()
 
     console.log('DATABASE: MongoDB connected!')
 
-    //launch browser for /collage and /story
-    await launchBrowser()
+    //launch browser for /collage, /top and /story
+    await launchBrowser().catch(error => console.error(error))
 
     // Set bot response
     bot.start((ctx) => Commands.start(ctx))
@@ -37,12 +37,14 @@ connectToDb()
     if (config.environment === 'development') {
       import('node:http').then((http) => {
         http.createServer(bot.webhookCallback('/secret-path')).listen(3000)
-      })
+      }).catch(error => console.error(error))
     }
 
     bot.launch()
 
-    import('./cron/cronjob.js').then(() => console.log('CRONJOB: Task scheduled'))
+    import('./cron/cronjob.js')
+      .then(() => console.log('CRONJOB: Task scheduled'))
+      .catch(error => console.error(error))
 
     console.log(`BOT: Running in ${config.environment} environment`)
   })
