@@ -24,7 +24,8 @@ const rankout = async (ctx) => {
         const rankGroup = await getUsers(chat_id)
         await ctx.reply(
             `OK, you're out of Weekly Chart Race! 🎶🏃‍♂️ \n\n` +
-            `Spots left: ${MAX_SPOTS - rankGroup.length}`,
+            `Spots left: ${MAX_SPOTS - rankGroup.length} \n` +
+            `Use /rankin to join again.`,
             {
                 entities: [
                     {

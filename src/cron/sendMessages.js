@@ -1,7 +1,9 @@
 import bot from '../bot.js'
-import { getAllRankGroups } from '../database/rank.js'
+import { getAllRankGroups, getUsers } from '../database/rank.js'
 import { getUsersScrobbles } from '../database/user.js'
 import { canSendMessage } from '../helpers/chatHelper.js'
+
+const MAX_SPOTS = 20
 
 export default async () => {
     return new Promise(async (resolve, reject) => {
@@ -64,6 +66,13 @@ export default async () => {
 
                     return sum + 1
                 }, 0)
+
+                const rankGroup = await getUsers(group.chat_id)
+
+                if (rankGroup.length < 20) text.push(
+                    `\n\nSpots left: ${MAX_SPOTS - rankGroup.length} \n` +
+                    `Use /rankin to join the race.`
+                )
 
                 await bot.telegram.sendMessage(group.chat_id, text.join(''), { entities })
             }))
