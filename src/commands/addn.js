@@ -12,9 +12,16 @@ const addn = async (ctx) => {
   const chat_id = ctx.message.chat.id
   const text = ctx.update.message.text
 
-  //TODO: add regex
-  const [command, artistAndNick] = text.split(' ')
-  const [commandAndText, artistNick] = text.split('-')
+  let artist_name
+  let artist_nick
+  let args = []
+  const match = text.match(/^\/([^\s]+)\s?(.+)?/)
+
+  if (match !== null && match[2]) args = match[2].split('-')
+  if (args[0] && args[1]) {
+    artist_name = args[0].trim()
+    artist_nick = args[1].trim()
+  }
 
   try {
 
@@ -22,11 +29,8 @@ const addn = async (ctx) => {
 
     await ctx.replyWithChatAction('typing')
 
-    if (!artistAndNick || !artistNick) return errorHandler(ctx, 'ADDN_INCORRECT_ARGS')
-    if (hasBadword(artistNick.trim())) return errorHandler(ctx, 'ADDN_BADWORDS')
-
-    const artist_nick = artistNick.trim()
-    const artist_name = commandAndText.replace(command, '').trim()
+    if (!artist_name || !artist_nick) return errorHandler(ctx, 'ADDN_INCORRECT_ARGS')
+    if (hasBadword(artist_nick)) return errorHandler(ctx, 'ADDN_BADWORDS')
 
     if (artist_nick.length > MAX_STRING_LENGTH || artist_name.length > MAX_STRING_LENGTH) return errorHandler(ctx, 'ADDN_MAX_STRING_LENGTH')
 

@@ -80,7 +80,7 @@ export default async (ctx, error, info) => {
             case 'ADDN_INCORRECT_ARGS': {
                 await ctx.replyWithMarkdown(
                     'Type /addn with artist\'s name + hyphen + artist\'s nick. \n' +
-                    'Example: `/addn Taylor Swift - Queen of Pop` \n' +
+                    'Example: `/addn Jennifer Hudson - EGOT Winner` \n' +
                     'Please, try again 🙂',
                     extras
                 )
