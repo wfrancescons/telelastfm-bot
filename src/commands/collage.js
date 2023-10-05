@@ -38,9 +38,10 @@ const createTemplate = (lastfm_user, COLUMNS, ROWS, media_type, period, param) =
             const MIN_CELL_SIZE = COLUMNS > ROWS ? (1000 / COLUMNS) : (1000 / ROWS)
             const BODY_WIDTH = Math.round(MIN_CELL_SIZE * COLUMNS)
             const BODY_HEIGHT = Math.round(MIN_CELL_SIZE * ROWS)
-            const color = getCollageColor()
 
             const lastfm_data = await getLastfmData(lastfm_user, media_type, period, COLUMNS * ROWS)
+
+            const color = await getCollageColor(lastfm_data[0].image)
 
             const html = generateCollageHtml({
                 COLUMNS,

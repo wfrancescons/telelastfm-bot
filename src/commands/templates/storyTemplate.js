@@ -31,7 +31,7 @@ export default (data) => {
     <div style="width: 100%;">
       <div><img src="${image}" alt=""></div>
       ${text.map((item, index) => {
-    return `<h${index + 3}>${limitText(item, 40)}</h${index + 3}>`
+    return `<h${index + 3}>${limitText(item, 50)}</h${index + 3}>`
   }).join('')}
     </div>
 
