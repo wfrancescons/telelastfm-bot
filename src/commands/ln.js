@@ -33,7 +33,8 @@ const ln = async (ctx) => {
       image,
       userplaycount,
       lovedtrack,
-      isNowPlaying
+      isNowPlaying,
+      tags
     } = await getTrackListeningNow(lastfm_user)
 
     let artist_nick = ''
@@ -49,7 +50,8 @@ const ln = async (ctx) => {
       userplaycount,
       first_name,
       artist_nick,
-      image
+      image,
+      tags
     }
 
     const message = lnModel(data)

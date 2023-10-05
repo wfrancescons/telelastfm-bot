@@ -46,7 +46,7 @@ const getRecentTracks = (username, limit = 1) => {
               artist: track.artist['#text'],
               album: track.album['#text'],
               image,
-              isNowPlaying,
+              isNowPlaying
             }
           })
 
@@ -91,6 +91,7 @@ const getTrackListeningNow = (username) => {
               userplaycount: Number(response.data.track?.userplaycount) || 0,
               lovedtrack: Boolean(Number(response.data.track?.userloved)),
               isNowPlaying,
+              tags: response.data.track?.toptags?.tag
             })
           })
           .catch((erro) => reject(erro))
@@ -125,7 +126,7 @@ const getAlbumListeningNow = (username) => {
               album,
               image,
               userplaycount: Number(response.data.album?.userplaycount) || 0,
-              isNowPlaying,
+              isNowPlaying
             })
           })
           .catch((erro) => reject(erro))
@@ -417,15 +418,7 @@ const getWeeklyTrackChart = (username) => {
 }
 
 export {
-  getRecentTracks,
-  getTrackListeningNow,
   getAlbumListeningNow,
-  getArtistListeningNow,
-  getUserTopAlbums,
-  getUserTopTracks,
-  getUserTopArtists,
-  getUserInfo,
-  getTrackInfo,
-  getWeeklyTrackChart
+  getArtistListeningNow, getRecentTracks, getTrackInfo, getTrackListeningNow, getUserInfo, getUserTopAlbums, getUserTopArtists, getUserTopTracks, getWeeklyTrackChart
 }
 

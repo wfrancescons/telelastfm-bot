@@ -9,7 +9,8 @@ const lnModel = (data) => {
     userplaycount,
     first_name,
     artist_nick,
-    image
+    image,
+    tags
   } = data
 
   const text = [
@@ -55,6 +56,19 @@ const lnModel = (data) => {
       length: artist.length,
       type: 'italic',
     })
+  }
+
+  if (tags) {
+    const firstTags = tags.map((tag, index) => {
+      if (index < 3) {
+        return "#" + tag.name.replace(/[ |\-]/g, '').toLowerCase()
+      }
+      return null
+    })
+
+    text.push(
+      `\n`,
+      `\n${firstTags.join(' ')}`)
   }
 
   return {
