@@ -94,7 +94,7 @@ const collage = async (ctx) => {
 
         let param = args.find(arg => ['nonames', 'noplays'].includes(arg))
 
-        if ((!grid || !period || !media_type) && args.length > 3) return errorHandler(ctx, 'COLLAGE_INCORRECT_ARGS')
+        if ((!grid || !period || !media_type) && args.length > 4) return errorHandler(ctx, 'COLLAGE_INCORRECT_ARGS')
 
         if (!grid) grid = '4x4'
         if (!media_type) media_type = 'albums'
