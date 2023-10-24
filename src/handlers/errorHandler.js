@@ -1,3 +1,5 @@
+import { canSendMessage } from '../helpers/chatHelper.js'
+
 export default async (ctx, error, info) => {
 
     const extras = { reply_to_message_id: ctx.message.message_id }
@@ -276,6 +278,7 @@ export default async (ctx, error, info) => {
 
             default: {
                 console.error('Error:', error)
+                if (!await canSendMessage(ctx.message.chat.id, ctx.botInfo.id)) break;
                 await ctx.reply(
                     'Something went wrong with Lastfm 🥴 \n' +
                     'But don\'t fret, let\'s give it another shot in a couple of minutes.\n' +
