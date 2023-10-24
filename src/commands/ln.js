@@ -20,7 +20,7 @@ const ln = async (ctx) => {
 
   try {
 
-    if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
+    if (isChannel(ctx)) return;
 
     await ctx.replyWithChatAction('typing')
 
