@@ -2,7 +2,7 @@ import { getAlbumListeningNow } from '../controllers/lastfm.js'
 import { getNick } from '../database/artist.js'
 import { getLastfmUser } from '../database/user.js'
 import errorHandler from '../handlers/errorHandler.js'
-import { canSendMessage, isChannel, isChannelMsgForward, isReplyToMsg } from '../helpers/chatHelper.js'
+import { isChannel, isChannelMsgForward, isReplyToMsg } from '../helpers/chatHelper.js'
 import albModel from './models/albModel.js'
 
 //Album: what album is scrobbling
@@ -20,7 +20,7 @@ const alb = async (ctx) => {
 
     try {
 
-        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
+        if (isChannel(ctx)) return;
 
         await ctx.replyWithChatAction('typing')
 
