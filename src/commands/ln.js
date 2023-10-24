@@ -2,7 +2,7 @@ import { getTrackListeningNow } from '../controllers/lastfm.js'
 import { getNick } from '../database/artist.js'
 import { getLastfmUser } from '../database/user.js'
 import errorHandler from '../handlers/errorHandler.js'
-import { canSendMessage, isChannel, isChannelMsgForward, isReplyToMsg } from '../helpers/chatHelper.js'
+import { isChannel, isChannelMsgForward, isReplyToMsg } from '../helpers/chatHelper.js'
 import lnModel from './models/lnModel.js'
 
 // Listening now: what track is scrobbling
