@@ -51,7 +51,7 @@ export default async () => {
                     const nameIndex = text.reduce((sumIndex, current) => sumIndex + current.length, 0) + 4
 
                     text.push(
-                        `\n${medal(sum)} ${item.first_name} - ${item.weekly_scrobbles_playcount.scrobbles} ${item.weekly_scrobbles_playcount.scrobbles != 1 ? 'scrobbles' : 'scrobble'}`
+                        `\n${medal(sum)} ${item.first_name} - ${Number(item.weekly_scrobbles_playcount.scrobbles).toLocaleString('pt-BR')} ${item.weekly_scrobbles_playcount.scrobbles != 1 ? 'scrobbles' : 'scrobble'}`
                     )
 
                     entities.push({
