@@ -159,6 +159,7 @@ export default (data) => {
                 img {
                     width: ${MIN_CELL_SIZE}px;
                     height: ${MIN_CELL_SIZE}px;
+                    object-fit: cover;
                 }
 
                 .gradient{
