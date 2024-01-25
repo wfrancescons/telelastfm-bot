@@ -12,8 +12,8 @@ let browser
 const launchBrowser = async () => {
     try {
         browser = await puppeteer.launch({
-            product: 'firefox'
-            //args: ['--no-sandbox', '--disable-setuid-sandbox']
+            //product: 'firefox'
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
         })
         console.log('PUPPETEER: Browser launched!')
 
@@ -61,8 +61,8 @@ const htmlToImage = (html, ssOptions) => {
                 deviceScaleFactor: 2
             })
             await page.setContent(html, {
-                //waitUntil: 'networkidle0'
-                waitUntil: 'domcontentloaded' 
+                waitUntil: 'networkidle0'
+                //waitUntil: 'domcontentloaded' 
             })
 
             const image = await page.screenshot({ ...ssOptions })
