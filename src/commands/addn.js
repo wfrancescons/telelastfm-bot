@@ -6,7 +6,7 @@ import { hasBadword } from '../modules/badwords/filter.js'
 
 const MAX_STRING_LENGTH = 70
 
-const addn = async (ctx) => {
+async function addn(ctx) {
 
   const telegram_id = ctx.message.from.id
   const chat_id = ctx.message.chat.id
@@ -25,7 +25,7 @@ const addn = async (ctx) => {
 
   try {
 
-    if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
+    if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return
 
     await ctx.replyWithChatAction('typing')
 

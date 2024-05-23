@@ -7,7 +7,7 @@ import { acceptedMedias, mediaMap } from '../helpers/validValuesMap.js'
 import { htmlToImage } from '../modules/htmlToImage.js'
 import generateStoryHtml from './templates/storyTemplate.js'
 
-const getLastfmData = (lastfm_user, media_type) => {
+function getLastfmData(lastfm_user, media_type) {
     return new Promise((resolve, reject) => {
         if (media_type === 'tracks') {
             getTrackListeningNow(lastfm_user)
@@ -39,7 +39,7 @@ const getLastfmData = (lastfm_user, media_type) => {
     })
 }
 
-const createTemplate = (lastfm_user, media_type, period) => {
+function createTemplate(lastfm_user, media_type, period) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -67,14 +67,14 @@ const createTemplate = (lastfm_user, media_type, period) => {
     })
 }
 
-const story = async (ctx) => {
+async function story(ctx) {
 
     const chat_id = ctx.message.chat.id
     const { first_name, id: telegram_id } = ctx.update.message.from
     const args = ctx.update.message.text.trim().toLowerCase().split(' ')
 
     try {
-        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
+        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return
         await ctx.replyWithChatAction('typing')
 
         let media_type = args.find(arg => acceptedMedias.includes(arg))

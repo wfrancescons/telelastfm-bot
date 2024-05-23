@@ -5,7 +5,7 @@ import { canSendMessage, isChannel } from '../helpers/chatHelper.js'
 
 const MAX_SPOTS = 20
 
-const rankin = async (ctx) => {
+async function rankin(ctx) {
 
     const telegram_id = ctx.message.from.id
     const chat_id = ctx.message.chat.id
@@ -13,7 +13,7 @@ const rankin = async (ctx) => {
     let rankGroup
     try {
 
-        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
+        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return
 
         await ctx.replyWithChatAction('typing')
 

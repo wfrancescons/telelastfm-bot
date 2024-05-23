@@ -1,6 +1,6 @@
 import limitText from '../../helpers/limitText.js'
 
-export default (data) => {
+export default function (data) {
 
   const { lastfm_data, background_buffer } = data
   const { image, userplaycount, text } = lastfm_data

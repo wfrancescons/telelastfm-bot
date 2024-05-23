@@ -1,13 +1,10 @@
 import limitText from '../../helpers/limitText.js'
 import { mediaMap, periodInTextMap } from '../../helpers/validValuesMap.js'
 
-export default (data) => {
+export default function (data) {
 
   const {
-    lastfm_data,
-    background_buffer,
-    media_type,
-    period
+    lastfm_data, background_buffer, media_type, period
   } = data
 
   const divs = lastfm_data.map(item => {

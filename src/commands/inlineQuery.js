@@ -6,7 +6,7 @@ import albModel from './models/albModel.js'
 import artModel from './models/artModel.js'
 import lnModel from './models/lnModel.js'
 
-const inlineQuery = async (ctx) => {
+async function inlineQuery(ctx) {
 
     const telegram_id = ctx.update.inline_query.from.id
     const first_name = ctx.update.inline_query.from.first_name
@@ -50,8 +50,7 @@ const inlineQuery = async (ctx) => {
                 type: 'article',
                 id: 1,
                 title: 'Track:',
-                description:
-                    `🎶 ${ln.track}\n` +
+                description: `🎶 ${ln.track}\n` +
                     `📈 ${(ln.userplaycount + 1).toLocaleString('pt-BR')} ${ln.userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`,
                 thumb_url: ln.image,
                 input_message_content: {
@@ -63,8 +62,7 @@ const inlineQuery = async (ctx) => {
                 type: 'article',
                 id: 2,
                 title: 'Album:',
-                description:
-                    `💿 ${alb.album}\n` +
+                description: `💿 ${alb.album}\n` +
                     `📈 ${(alb.userplaycount + 1).toLocaleString('pt-BR')} ${alb.userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`,
                 thumb_url: alb.image,
                 input_message_content: {
@@ -76,8 +74,7 @@ const inlineQuery = async (ctx) => {
                 type: 'article',
                 id: 3,
                 title: 'Artist:',
-                description:
-                    `🧑‍🎤 ${artist_nick ? `${artist_nick} (${art.artist})` : art.artist}\n` +
+                description: `🧑‍🎤 ${artist_nick ? `${artist_nick} (${art.artist})` : art.artist}\n` +
                     `📈 ${(art.userplaycount + 1).toLocaleString('pt-BR')} ${art.userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`,
                 thumb_url: art.image,
                 input_message_content: {

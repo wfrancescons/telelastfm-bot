@@ -1,17 +1,9 @@
 import limitText from '../../helpers/limitText.js'
 
-export default (data) => {
+export default function (data) {
 
     const {
-        COLUMNS,
-        ROWS,
-        MAX_SUBARRAY_SIZE,
-        MIN_CELL_SIZE,
-        BODY_WIDTH,
-        BODY_HEIGHT,
-        lastfm_data,
-        color,
-        param
+        COLUMNS, ROWS, MAX_SUBARRAY_SIZE, MIN_CELL_SIZE, BODY_WIDTH, BODY_HEIGHT, lastfm_data, color, param
     } = data
 
     let FONT_BASE_SIZE = Math.round(MIN_CELL_SIZE * 0.06)

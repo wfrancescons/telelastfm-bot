@@ -1,13 +1,7 @@
-const albModel = (data) => {
+function albModel(data) {
 
     const {
-        isNowPlaying,
-        album,
-        artist,
-        userplaycount,
-        first_name,
-        artist_nick,
-        image
+        isNowPlaying, album, artist, userplaycount, first_name, artist_nick, image
     } = data
 
     const text = [
@@ -23,7 +17,6 @@ const albModel = (data) => {
     const imageIndex = slicedText.reduce((sum, current) => sum + current.length, 0) + 1
 
     const entities = [
-
         {
             offset: 0,
             length: first_name.length,
@@ -40,7 +33,6 @@ const albModel = (data) => {
             type: 'text_link',
             url: image,
         }
-
     ]
 
     if (artist_nick) {

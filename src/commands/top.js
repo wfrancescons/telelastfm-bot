@@ -7,7 +7,7 @@ import { acceptedMedias, acceptedPeriods, mediaMap, periodInTextMap, periodMap }
 import { htmlToImage } from '../modules/htmlToImage.js'
 import generateTopHtml from './templates/topTemplate.js'
 
-const getLastfmData = (lastfm_user, media, period) => {
+function getLastfmData(lastfm_user, media, period) {
 
     return new Promise((resolve, reject) => {
         if (media === 'tracks') {
@@ -31,12 +31,17 @@ const getLastfmData = (lastfm_user, media, period) => {
     })
 }
 
-const createTemplate = (lastfm_user, media_type, period) => {
+function createTemplate(lastfm_user, media_type, period) {
     return new Promise(async (resolve, reject) => {
         try {
 
+            console.time('Fetch Lastfm Data')
             const lastfm_data = await getLastfmData(lastfm_user, media_type, period)
+            console.timeEnd('Fetch Lastfm Data')
+
+            console.time('Background Blur')
             const background_buffer = await generateBackground(lastfm_data[0].image)
+            console.timeEnd('Background Blur')
 
             const html = generateTopHtml({
                 lastfm_data,
@@ -61,14 +66,15 @@ const createTemplate = (lastfm_user, media_type, period) => {
     })
 }
 
-const top = async (ctx) => {
+async function top(ctx) {
+    console.time('TOTAL TIME')
 
     const chat_id = ctx.message.chat.id
     const { first_name, id: telegram_id } = ctx.update.message.from
     const args = ctx.update.message.text.trim().toLowerCase().split(' ')
 
     try {
-        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
+        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return
         await ctx.replyWithChatAction('typing')
 
         let media_type = args.find(arg => acceptedMedias.includes(arg))
@@ -99,13 +105,19 @@ const top = async (ctx) => {
 
         await ctx.replyWithChatAction('upload_photo')
 
+
         createTemplate(lastfm_user, media_type, period)
             .then(topGenerated => {
+                console.time('Screenshot Browser')
                 htmlToImage(...topGenerated)
                     .then(img_buffer => {
+                        console.timeEnd('Screenshot Browser')
                         extras.caption = `${first_name}, your top ${media_type} of ${periodInTextMap[period]}`
+                        console.time('Telegram')
                         ctx.replyWithPhoto({ source: img_buffer }, extras)
                             .finally(() => {
+                                console.timeEnd('Telegram')
+                                console.timeEnd('TOTAL TIME')
                                 ctx.deleteMessage(response.message_id)
                             })
                     })

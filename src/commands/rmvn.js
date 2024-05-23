@@ -2,7 +2,7 @@ import { deleteNick } from '../database/artist.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { canSendMessage, isChannel } from '../helpers/chatHelper.js'
 
-const rmvn = async (ctx) => {
+async function rmvn(ctx) {
 
     const chat_id = ctx.message.chat.id
     const text = ctx.update.message.text
@@ -11,7 +11,7 @@ const rmvn = async (ctx) => {
     const artist_nick = text.replace(command, '').trim().toLowerCase()
 
     try {
-        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
+        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return
 
         await ctx.replyWithChatAction('typing')
 

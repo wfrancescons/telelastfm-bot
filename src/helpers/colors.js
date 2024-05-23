@@ -4,8 +4,8 @@ import sharp from 'sharp'
 
 const { get } = axios
 
-const hexToRgb = (hex) => {
-    const rgbToParse = hex.match(/[^#]{1,2}/g);
+function hexToRgb(hex) {
+    const rgbToParse = hex.match(/[^#]{1,2}/g)
     const rgb = [
         parseInt(rgbToParse[0], 16),
         parseInt(rgbToParse[1], 16),
@@ -21,7 +21,7 @@ async function getProminentColor(imageSource) {
     return vibrantHex
 }
 
-const generateFilter = (hex) => {
+function generateFilter(hex) {
     return new Promise((resolve, reject) => {
         sharp({
             create: {
@@ -39,7 +39,7 @@ const generateFilter = (hex) => {
 
 }
 
-const generateBackground = (imageURL, blur = 15) => {
+function generateBackground(imageURL, blur = 15) {
     return new Promise(async (resolve, reject) => {
         const { data } = await get(imageURL, { responseType: 'arraybuffer', timeout: 5 * 1000 })
         const buffer = Buffer.from(data)

@@ -1,7 +1,7 @@
 import bot from '../bot.js'
 import { getAllRankGroups, updateUsersInGroups } from '../database/rank.js'
 
-const verifyMember = async (chat_id, user) => {
+async function verifyMember(chat_id, user) {
     try {
         const validUsersStatus = ['administrator', 'member', 'creator', 'restricted']
         const member_info = await bot.telegram.getChatMember(chat_id, user.telegram_id)
@@ -14,7 +14,7 @@ const verifyMember = async (chat_id, user) => {
     }
 }
 
-export default () => {
+export default function () {
     return new Promise(async (resolve, reject) => {
         try {
             const groups = await getAllRankGroups()

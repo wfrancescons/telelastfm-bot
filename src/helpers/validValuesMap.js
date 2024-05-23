@@ -59,9 +59,5 @@ const periodInTextMap = {
 }
 
 export {
-    acceptedMedias,
-    mediaMap,
-    acceptedPeriods,
-    periodMap,
-    periodInTextMap
+    acceptedMedias, acceptedPeriods, mediaMap, periodInTextMap, periodMap
 }

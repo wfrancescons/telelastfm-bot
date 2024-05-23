@@ -12,7 +12,7 @@ import story from './story.js'
 import top from './top.js'
 
 // Start command
-const start = async (ctx) => {
+async function start(ctx) {
 
   const { first_name } = ctx.update.message.from
 
@@ -34,7 +34,7 @@ const start = async (ctx) => {
 }
 
 // Help command
-const help = async (ctx) => {
+async function help(ctx) {
   try {
     await ctx.replyWithChatAction('typing')
 
@@ -57,18 +57,8 @@ const help = async (ctx) => {
 }
 
 export {
-  start,
-  help,
-  ln,
-  alb,
-  art,
-  reg,
-  addn,
-  rmvn,
-  collage,
-  inlineQuery,
-  top,
-  story,
-  rankin,
-  rankout
+  addn, alb,
+  art, collage, help, inlineQuery, ln, rankin,
+  rankout, reg, rmvn, start, story, top
 }
+

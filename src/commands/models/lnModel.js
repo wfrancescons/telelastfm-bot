@@ -1,16 +1,7 @@
-const lnModel = (data) => {
+function lnModel(data) {
 
   const {
-    lovedtrack,
-    isNowPlaying,
-    track,
-    album,
-    artist,
-    userplaycount,
-    first_name,
-    artist_nick,
-    image,
-    tags
+    lovedtrack, isNowPlaying, track, album, artist, userplaycount, first_name, artist_nick, image, tags
   } = data
 
   const text = [
@@ -27,7 +18,6 @@ const lnModel = (data) => {
   const imageIndex = slicedText.reduce((sum, current) => sum + current.length, 0) + 1
 
   const entities = [
-
     {
       offset: 0,
       length: first_name.length,
@@ -44,7 +34,6 @@ const lnModel = (data) => {
       type: 'text_link',
       url: image,
     }
-
   ]
 
   if (artist_nick) {

@@ -14,7 +14,7 @@ const TIMEOUT = 1000 * 5
 
 const limiter = new RateLimiter({ tokensPerInterval: 1, interval: 200 })
 
-const getRecentTracks = (username, limit = 1) => {
+function getRecentTracks(username, limit = 1) {
   return new Promise(async (resolve, reject) => {
     await limiter.removeTokens(1)
 
@@ -62,7 +62,7 @@ const getRecentTracks = (username, limit = 1) => {
   })
 }
 
-const getTrackListeningNow = (username) => {
+function getTrackListeningNow(username) {
   return new Promise(async (resolve, reject) => {
     await limiter.removeTokens(1)
 
@@ -100,7 +100,7 @@ const getTrackListeningNow = (username) => {
   })
 }
 
-const getAlbumListeningNow = (username) => {
+function getAlbumListeningNow(username) {
   return new Promise(async (resolve, reject) => {
     await limiter.removeTokens(1)
 
@@ -135,7 +135,7 @@ const getAlbumListeningNow = (username) => {
   })
 }
 
-const getArtistListeningNow = (username) => {
+function getArtistListeningNow(username) {
   return new Promise(async (resolve, reject) => {
     await limiter.removeTokens(1)
 
@@ -158,8 +158,7 @@ const getArtistListeningNow = (username) => {
             resolve({
               artist,
               image,
-              userplaycount:
-                Number(response.data.artist.stats?.userplaycount) || 0,
+              userplaycount: Number(response.data.artist.stats?.userplaycount) || 0,
               isNowPlaying,
             })
           })
@@ -169,7 +168,7 @@ const getArtistListeningNow = (username) => {
   })
 }
 
-const getUserTopTracks = (username, period, limit = 5) => {
+function getUserTopTracks(username, period, limit = 5) {
   return new Promise(async (resolve, reject) => {
     await limiter.removeTokens(1)
 
@@ -190,7 +189,7 @@ const getUserTopTracks = (username, period, limit = 5) => {
         } else {
           const tracks = response.data.toptracks.track
           const result = await Promise.all(
-            tracks.map(async item => {
+            tracks.map(async (item) => {
 
               let image = item.image.pop()['#text']
               if (image === '') {
@@ -226,7 +225,7 @@ const getUserTopTracks = (username, period, limit = 5) => {
   })
 }
 
-const getUserTopAlbums = (username, period, limit = 5) => {
+function getUserTopAlbums(username, period, limit = 5) {
   return new Promise(async (resolve, reject) => {
     await limiter.removeTokens(1)
 
@@ -272,7 +271,7 @@ const getUserTopAlbums = (username, period, limit = 5) => {
   })
 }
 
-const getUserTopArtists = (username, period, limit = 5) => {
+function getUserTopArtists(username, period, limit = 5) {
   return new Promise(async (resolve, reject) => {
     await limiter.removeTokens(1)
 
@@ -294,7 +293,7 @@ const getUserTopArtists = (username, period, limit = 5) => {
         } else {
           const artists = response.data.topartists.artist
           const result = await Promise.all(
-            artists.map(async item => {
+            artists.map(async (item) => {
 
               let image = item?.image.pop()['#text']
               if (image === '') {
@@ -343,7 +342,7 @@ const getUserTopArtists = (username, period, limit = 5) => {
   })
 }
 
-const getUserInfo = (username) => {
+function getUserInfo(username) {
   return new Promise(async (resolve, reject) => {
     await limiter.removeTokens(1)
 
@@ -365,7 +364,7 @@ const getUserInfo = (username) => {
   })
 }
 
-const getTrackInfo = (track, artist) => {
+function getTrackInfo(track, artist) {
   return new Promise(async (resolve, reject) => {
     await limiter.removeTokens(1)
 
@@ -392,7 +391,7 @@ const getTrackInfo = (track, artist) => {
   })
 }
 
-const getWeeklyTrackChart = (username) => {
+function getWeeklyTrackChart(username) {
   return new Promise(async (resolve, reject) => {
     await limiter.removeTokens(1)
 

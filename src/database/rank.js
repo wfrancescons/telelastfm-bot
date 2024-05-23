@@ -1,6 +1,6 @@
 import Rank from './models/rank.js'
 
-const createRank = (chat_id) => {
+function createRank(chat_id) {
     return new Promise((resolve, reject) => {
         const newChatGroup = new Rank({ chat_id })
 
@@ -10,7 +10,7 @@ const createRank = (chat_id) => {
     })
 }
 
-const deleteRank = (chat_id) => {
+function deleteRank(chat_id) {
     return new Promise((resolve, reject) => {
         Rank.deleteOne({ chat_id }, (erro, data) => {
             if (erro) reject(erro)
@@ -23,7 +23,7 @@ const deleteRank = (chat_id) => {
     })
 }
 
-const getAllRankGroups = () => {
+function getAllRankGroups() {
     return new Promise((resolve, reject) => {
         Rank.find({ users: { $exists: true, $ne: [] } }, (erro, data) => {
             erro ? reject(erro) : resolve(data)
@@ -31,7 +31,7 @@ const getAllRankGroups = () => {
     })
 }
 
-const createUser = (chat_id, telegram_id) => {
+function createUser(chat_id, telegram_id) {
     return new Promise((resolve, reject) => {
         Rank.findOneAndUpdate(
             { chat_id },
@@ -47,7 +47,7 @@ const createUser = (chat_id, telegram_id) => {
 }
 
 //OK
-const getUser = (chat_id, telegram_id) => {
+function getUser(chat_id, telegram_id) {
     return new Promise((resolve, reject) => {
         Rank.findOne({ chat_id, 'users.telegram_id': telegram_id }, { 'users.$': 1 }, (erro, data) => {
             erro ? reject(erro) : resolve(data)
@@ -56,7 +56,7 @@ const getUser = (chat_id, telegram_id) => {
 }
 
 //OK
-const getUsers = (chat_id) => {
+function getUsers(chat_id) {
     return new Promise((resolve, reject) => {
         Rank.findOne({ chat_id }, (erro, data) => {
             erro ? reject(erro) : resolve(data?.users)
@@ -65,7 +65,7 @@ const getUsers = (chat_id) => {
 }
 
 //OK
-const newUser = (chat_id, telegram_id) => {
+function newUser(chat_id, telegram_id) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -104,7 +104,7 @@ const newUser = (chat_id, telegram_id) => {
 }
 
 //OK
-const deleteUser = (chat_id, telegram_id) => {
+function deleteUser(chat_id, telegram_id) {
     return new Promise((resolve, reject) => {
         Rank.findOneAndUpdate({ chat_id, 'users.telegram_id': telegram_id }, { $pull: { users: { telegram_id } } }, (erro, data) => {
             if (erro) reject(erro)
@@ -117,7 +117,7 @@ const deleteUser = (chat_id, telegram_id) => {
     })
 }
 
-const updateUsersInGroups = (chat_id, users) => {
+function updateUsersInGroups(chat_id, users) {
     return new Promise((resolve, reject) => {
         Rank.updateOne({ chat_id }, { '$set': { users } }, (erro, data) => {
             erro ? reject(erro) : resolve(data?.users)
@@ -126,11 +126,6 @@ const updateUsersInGroups = (chat_id, users) => {
 }
 
 export {
-    newUser,
-    getUsers,
-    deleteUser,
-    getUser,
-    deleteRank,
-    getAllRankGroups,
-    updateUsersInGroups
+    deleteRank, deleteUser, getAllRankGroups, getUser, getUsers, newUser, updateUsersInGroups
 }
+

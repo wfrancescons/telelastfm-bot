@@ -2,7 +2,7 @@ import { getWeeklyTrackChart } from '../controllers/lastfm.js'
 import { getAllRankGroups } from '../database/rank.js'
 import { getSpecificUsers, updateUserScrobbles } from '../database/user.js'
 
-const getLastfmData = async (lastfm_user) => {
+async function getLastfmData(lastfm_user) {
     try {
         const lastfm_data = await getWeeklyTrackChart(lastfm_user)
 
@@ -28,7 +28,7 @@ const getLastfmData = async (lastfm_user) => {
     }
 }
 
-const getUsers = async () => {
+async function getUsers() {
     try {
         const groups = await getAllRankGroups()
         const users = groups.flatMap(group => {
@@ -43,20 +43,20 @@ const getUsers = async () => {
     }
 }
 
-export default () => {
+export default function () {
     return new Promise(async (resolve, reject) => {
         try {
             const telegram_ids = await getUsers()
             const users_infos = await getSpecificUsers(telegram_ids)
 
             const updated_infos = await Promise.all(
-                users_infos.map(async item => {
+                users_infos.map(async (item) => {
                     const lastfm_data = await getLastfmData(item.lastfm_username)
                     return { telegram_id: item.telegram_id, lastfm_data }
                 }))
 
             await Promise.all(
-                updated_infos.map(async item => {
+                updated_infos.map(async (item) => {
                     await updateUserScrobbles(item.telegram_id, item.lastfm_data)
                 })
             )

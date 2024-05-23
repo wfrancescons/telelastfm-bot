@@ -6,7 +6,7 @@ import { isChannel, isChannelMsgForward, isReplyToMsg } from '../helpers/chatHel
 import albModel from './models/albModel.js'
 
 //Album: what album is scrobbling
-const alb = async (ctx) => {
+async function alb(ctx) {
 
     const chat_id = ctx.message.chat.id
     let { first_name, id: telegram_id } = ctx.update.message.from
@@ -20,18 +20,14 @@ const alb = async (ctx) => {
 
     try {
 
-        if (isChannel(ctx)) return;
+        if (isChannel(ctx)) return
 
         await ctx.replyWithChatAction('typing')
 
         const lastfm_user = await getLastfmUser(telegram_id)
 
         const {
-            album,
-            artist,
-            image,
-            userplaycount,
-            isNowPlaying
+            album, artist, image, userplaycount, isNowPlaying
         } = await getAlbumListeningNow(lastfm_user)
 
         let artist_nick = ''

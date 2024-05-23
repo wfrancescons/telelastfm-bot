@@ -7,7 +7,7 @@ import { acceptedMedias, acceptedPeriods, mediaMap, periodInTextMap, periodMap }
 import { htmlToImage } from '../modules/htmlToImage.js'
 import generateCollageHtml from './templates/collageTemplate.js'
 
-const getLastfmData = (lastfm_user, media_type, period, limit) => {
+function getLastfmData(lastfm_user, media_type, period, limit) {
     return new Promise((resolve, reject) => {
         if (media_type === 'tracks') {
             getUserTopTracks(lastfm_user, period, limit)
@@ -30,7 +30,7 @@ const getLastfmData = (lastfm_user, media_type, period, limit) => {
     })
 }
 
-const createTemplate = (lastfm_user, COLUMNS, ROWS, media_type, period, param) => {
+function createTemplate(lastfm_user, COLUMNS, ROWS, media_type, period, param) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -39,9 +39,13 @@ const createTemplate = (lastfm_user, COLUMNS, ROWS, media_type, period, param) =
             const BODY_WIDTH = Math.round(MIN_CELL_SIZE * COLUMNS)
             const BODY_HEIGHT = Math.round(MIN_CELL_SIZE * ROWS)
 
+            console.time('Lastfm Data')
             const lastfm_data = await getLastfmData(lastfm_user, media_type, period, COLUMNS * ROWS)
+            console.timeEnd('Lastfm Data')
 
+            console.time('Vibrant Color')
             const color = await getCollageColor(lastfm_data[0].image)
+            console.timeEnd('Vibrant Color')
 
             const html = generateCollageHtml({
                 COLUMNS,
@@ -72,14 +76,15 @@ const createTemplate = (lastfm_user, COLUMNS, ROWS, media_type, period, param) =
     })
 }
 
-const collage = async (ctx) => {
+async function collage(ctx) {
+    console.time('TOTAL TIME')
 
     const chat_id = ctx.message.chat.id
     const { first_name, id: telegram_id } = ctx.update.message.from
     const args = ctx.update.message.text.trim().toLowerCase().split(' ')
 
     try {
-        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
+        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return
         await ctx.replyWithChatAction('typing')
 
         const grid_regex = /^(\d+)x(\d+)$/
@@ -133,11 +138,16 @@ const collage = async (ctx) => {
         period = periodMap[period]
         createTemplate(lastfm_user, COLUMNS, ROWS, media_type, period, param)
             .then(collageGenerated => {
+                console.time('Screenshot Browser')
                 htmlToImage(...collageGenerated)
                     .then(img_buffer => {
+                        console.timeEnd('Screenshot Browser')
                         extras.caption = `${first_name}, your ${grid} ${media_type} collage of ${periodInTextMap[period]}`
+                        console.time('Telegram')
                         ctx.replyWithPhoto({ source: img_buffer }, extras)
                             .finally(() => {
+                                console.timeEnd('Telegram')
+                                console.timeEnd('TOTAL TIME')
                                 ctx.deleteMessage(response.message_id)
                             })
                     })

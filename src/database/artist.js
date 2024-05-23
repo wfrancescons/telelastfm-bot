@@ -1,6 +1,6 @@
 import Artist from './models/artists.js'
 
-const createArtist = (chat_id) => {
+function createArtist(chat_id) {
   return new Promise((resolve, reject) => {
     const newArtist = new Artist({ chat_id })
 
@@ -11,7 +11,7 @@ const createArtist = (chat_id) => {
 }
 
 //TODO: Refactor
-const createNick = (chat_id, artistNick) => {
+function createNick(chat_id, artistNick) {
   return new Promise((resolve, reject) => {
     Artist.findOne({ chat_id }, (erro, data) => {
       if (data) {
@@ -26,7 +26,7 @@ const createNick = (chat_id, artistNick) => {
 }
 
 //OK
-const getNick = (chat_id, artist) => {
+function getNick(chat_id, artist) {
   return new Promise((resolve, reject) => {
     Artist.findOne({ chat_id, 'artists.artist_name': artist }, { 'artists.$': 1 }, (erro, data) => {
       erro ? reject(erro) : resolve(data)
@@ -35,7 +35,7 @@ const getNick = (chat_id, artist) => {
 }
 
 //OK
-const getAllNicks = (chat_id) => {
+function getAllNicks(chat_id) {
   return new Promise((resolve, reject) => {
     Artist.findOne({ chat_id }, (erro, data) => {
       erro ? reject(erro) : resolve(data?.artists)
@@ -44,7 +44,7 @@ const getAllNicks = (chat_id) => {
 }
 
 //OK
-const updateNick = (chat_id, artistNick) => {
+function updateNick(chat_id, artistNick) {
   const { artist_name, artist_nick } = artistNick
 
   return new Promise((resolve, reject) => {
@@ -57,7 +57,7 @@ const updateNick = (chat_id, artistNick) => {
 }
 
 //TODO: Refactor
-const newNick = (chat_id, data) => {
+function newNick(chat_id, data) {
   return new Promise(async (resolve, reject) => {
 
     const { artist_name } = data
@@ -107,7 +107,7 @@ const newNick = (chat_id, data) => {
 }
 
 //OK
-const deleteNick = (chat_id, artistNick) => {
+function deleteNick(chat_id, artistNick) {
   return new Promise((resolve, reject) => {
     Artist.updateOne({ chat_id }, { $pull: { artists: { artist_name: artistNick } } }, (erro, data) => {
       if (erro) reject(erro)
@@ -120,4 +120,5 @@ const deleteNick = (chat_id, artistNick) => {
   })
 }
 
-export { newNick, getAllNicks, deleteNick, getNick }
+export { deleteNick, getAllNicks, getNick, newNick }
+

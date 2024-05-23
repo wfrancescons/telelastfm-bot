@@ -1,4 +1,4 @@
-import { MusicBrainzApi } from 'musicbrainz-api';
+import { MusicBrainzApi } from 'musicbrainz-api'
 
 const mbAPI = new MusicBrainzApi({
     appName: 'telelastfm',
@@ -6,7 +6,7 @@ const mbAPI = new MusicBrainzApi({
     appContactInfo: 'https://t.me/telelastfmbot'
 })
 
-const getArtistInfo = (mbid) => {
+function getArtistInfo(mbid) {
     return new Promise((resolve, reject) => {
         mbAPI.lookupArtist(mbid, ['url-rels'])
             .then(response => resolve(response))
@@ -14,7 +14,7 @@ const getArtistInfo = (mbid) => {
     })
 }
 
-const getSpotifyURL = (data) => {
+function getSpotifyURL(data) {
     const relations = data?.relations
 
     if (!relations) return
@@ -32,7 +32,7 @@ const getSpotifyURL = (data) => {
     return spotifyURL
 }
 
-const getSpotifyId = (mbid) => {
+function getSpotifyId(mbid) {
     return new Promise((resolve, reject) => {
         getArtistInfo(mbid)
             .then(info => {

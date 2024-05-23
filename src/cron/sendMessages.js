@@ -5,7 +5,7 @@ import { canSendMessage } from '../helpers/chatHelper.js'
 
 const MAX_SPOTS = 20
 
-export default async () => {
+export default async function () {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -13,13 +13,13 @@ export default async () => {
 
             const { id: bot_id } = await bot.telegram.getMe()
 
-            await Promise.all(groups.map(async group => {
+            await Promise.all(groups.map(async (group) => {
 
                 if (!await canSendMessage(group.chat_id, bot_id)) Promise.resolve()
 
                 const users_scrobbles_infos = await getUsersScrobbles(group.users.map(user => user.telegram_id))
 
-                const result = await Promise.all(users_scrobbles_infos.map(async item => {
+                const result = await Promise.all(users_scrobbles_infos.map(async (item) => {
                     const member_info = await bot.telegram.getChatMember(group.chat_id, item.telegram_id)
                     const member_name = member_info.user.first_name
 

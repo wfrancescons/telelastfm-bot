@@ -6,7 +6,7 @@ import { isChannel, isChannelMsgForward, isReplyToMsg } from '../helpers/chatHel
 import lnModel from './models/lnModel.js'
 
 // Listening now: what track is scrobbling
-const ln = async (ctx) => {
+async function ln(ctx) {
 
   const chat_id = ctx.message.chat.id
   let { first_name, id: telegram_id } = ctx.update.message.from
@@ -20,21 +20,14 @@ const ln = async (ctx) => {
 
   try {
 
-    if (isChannel(ctx)) return;
+    if (isChannel(ctx)) return
 
     await ctx.replyWithChatAction('typing')
 
     const lastfm_user = await getLastfmUser(telegram_id)
 
     const {
-      track,
-      album,
-      artist,
-      image,
-      userplaycount,
-      lovedtrack,
-      isNowPlaying,
-      tags
+      track, album, artist, image, userplaycount, lovedtrack, isNowPlaying, tags
     } = await getTrackListeningNow(lastfm_user)
 
     let artist_nick = ''

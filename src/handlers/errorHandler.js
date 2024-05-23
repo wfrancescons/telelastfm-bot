@@ -1,6 +1,6 @@
 import { canSendMessage } from '../helpers/chatHelper.js'
 
-export default async (ctx, error, info) => {
+export default async function (ctx, error, info) {
 
     const extras = { reply_to_message_id: ctx.message.message_id }
     const isInlineQuery = ctx.update?.inline_query
@@ -120,20 +120,6 @@ export default async (ctx, error, info) => {
                 await ctx.reply(
                     'Didn\'t find anyone with that name in my records 🤔 \n' +
                     'Please, try again 🙂',
-                    extras
-                )
-                break
-            }
-
-            case 'STORY_INCORRECT_ARGS': {
-                await ctx.replyWithMarkdown(
-                    'Invalid argumments 🤔\n\n' +
-                    '✅ Valid Media Types: `tracks`, `albums`, `artists`\n' +
-                    'Type `/story mediatype period` to generate a image of your latest scrobble.\n\n' +
-                    '➡️ Examples:\n' +
-                    '`/story track`\n' +
-                    '`/story alb`\n' +
-                    '`/story art`',
                     extras
                 )
                 break
@@ -278,7 +264,7 @@ export default async (ctx, error, info) => {
 
             default: {
                 console.error('Error:', error)
-                if (!await canSendMessage(ctx.message.chat.id, ctx.botInfo.id)) break;
+                if (!await canSendMessage(ctx.message.chat.id, ctx.botInfo.id)) break
                 await ctx.reply(
                     'Something went wrong with Lastfm 🥴 \n' +
                     'But don\'t fret, let\'s give it another shot in a couple of minutes.\n' +

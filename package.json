@@ -1,14 +1,15 @@
 {
   "name": "telegram-lastfm-bot",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "description": "Telegram bot that provides music statistics for you and your friends from LastFM",
   "main": "./src/bot.js",
   "engines": {
-    "node": "^18.x"
+    "node": ">=20"
   },
   "type": "module",
   "scripts": {
-    "start": "node ./src/bot.js"
+    "start": "node --env-file=.env ./src/bot.js",
+    "dev": "node --watch --watch-path=src --env-file=.env ./src/bot.js"
   },
   "keywords": [
     "telegram",

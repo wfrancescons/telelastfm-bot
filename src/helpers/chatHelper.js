@@ -1,6 +1,6 @@
 import bot from '../bot.js'
 
-const getChatMemberInfos = (chatId, userId) => {
+function getChatMemberInfos(chatId, userId) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -80,7 +80,7 @@ const getChatMemberInfos = (chatId, userId) => {
     })
 }
 
-const canSendMessage = (chat_id, user_id) => {
+function canSendMessage(chat_id, user_id) {
     if (chat_id > 0) return Promise.resolve(true)
     return new Promise(async (resolve, reject) => {
         try {
@@ -92,7 +92,7 @@ const canSendMessage = (chat_id, user_id) => {
     })
 }
 
-const canSendMediaMessage = (chat_id, user_id) => {
+function canSendMediaMessage(chat_id, user_id) {
     if (chat_id > 0) return Promise.resolve(true)
     return new Promise(async (resolve, reject) => {
         try {
@@ -104,11 +104,16 @@ const canSendMediaMessage = (chat_id, user_id) => {
     })
 }
 
-const isReplyToMsg = (ctx) => ctx.update.message.reply_to_message
+function isReplyToMsg(ctx) {
+    return ctx.update.message.reply_to_message
+}
 
-const isChannelMsgForward = (ctx) => ctx.update.message.reply_to_message?.is_automatic_forward
+function isChannelMsgForward(ctx) {
+    return ctx.update.message.reply_to_message?.is_automatic_forward
+}
 
-const isChannel = (ctx) => ctx.update.message.from.id === 777000
+function isChannel(ctx) {
+    return ctx.update.message.from.id === 777000
+}
 
-export { canSendMessage, canSendMediaMessage, isReplyToMsg, isChannelMsgForward, isChannel }
-
+export { canSendMediaMessage, canSendMessage, isChannel, isChannelMsgForward, isReplyToMsg }

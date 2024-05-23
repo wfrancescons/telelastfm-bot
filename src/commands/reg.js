@@ -2,7 +2,7 @@ import { setLastfmUser } from '../database/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { canSendMessage, isChannel } from '../helpers/chatHelper.js'
 
-const reg = async (ctx) => {
+async function reg(ctx) {
 
     const chat_id = ctx.message.chat.id
     const telegram_id = ctx.message.from.id
@@ -10,7 +10,7 @@ const reg = async (ctx) => {
     const [command, lastfm_user] = text
 
     try {
-        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return;
+        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return
 
         await ctx.replyWithChatAction('typing')
 

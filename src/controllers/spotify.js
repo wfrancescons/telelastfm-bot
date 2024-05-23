@@ -8,7 +8,7 @@ const spotify = new Spotify({
     clientSecret: spotifyClientSecret
 })
 
-const generateAccessToken = async () => {
+async function generateAccessToken() {
     const data = await spotify.clientCredentialsGrant()
 
     spotify.setAccessToken(data.body.access_token)
@@ -17,16 +17,16 @@ const generateAccessToken = async () => {
     console.log('SPOTIFY API: New access token generated')
 }
 
-const initTokenRefresh = async () => {
+async function initTokenRefresh() {
     await generateAccessToken()
     setInterval(async () => {
-       await generateAccessToken()
+        await generateAccessToken()
     }, 60 * 60 * 1000) // refresh every 1 hour
 }
 
 initTokenRefresh()
 
-const searchArtist = (artist) => {
+function searchArtist(artist) {
     return new Promise(async (resolve, reject) => {
         try {
             const { body } = await spotify.searchArtists(artist, { limit: 1 })
@@ -38,7 +38,7 @@ const searchArtist = (artist) => {
     })
 }
 
-const getArtist = (artistId) => {
+function getArtist(artistId) {
     return new Promise(async (resolve, reject) => {
         try {
             const { body } = await spotify.getArtist(artistId)
@@ -50,7 +50,7 @@ const getArtist = (artistId) => {
     })
 }
 
-const searchTrack = (track, artist) => {
+function searchTrack(track, artist) {
     return new Promise(async (resolve, reject) => {
         try {
             const { body } = await spotify.searchTracks(`track:${track} artist:${artist}`, { limit: 1 })
@@ -63,8 +63,6 @@ const searchTrack = (track, artist) => {
 }
 
 export {
-    searchArtist,
-    searchTrack,
-    getArtist
+    getArtist, searchArtist,
+    searchTrack
 }
-

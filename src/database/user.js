@@ -1,7 +1,7 @@
 import { getUserInfo } from '../controllers/lastfm.js'
 import User from '../database/models/user.js'
 
-const createUser = (telegram_id, lastfm_username) => {
+function createUser(telegram_id, lastfm_username) {
 
   return new Promise((resolve, reject) => {
 
@@ -11,7 +11,7 @@ const createUser = (telegram_id, lastfm_username) => {
   })
 }
 
-const getUser = (telegram_id) => {
+function getUser(telegram_id) {
 
   return new Promise((resolve, reject) => {
 
@@ -24,7 +24,7 @@ const getUser = (telegram_id) => {
   })
 }
 
-const getSpecificUsers = (telegram_ids) => {
+function getSpecificUsers(telegram_ids) {
 
   return new Promise((resolve, reject) => {
 
@@ -36,7 +36,7 @@ const getSpecificUsers = (telegram_ids) => {
   })
 }
 
-const updateUser = (telegram_id, lastfm_username) => {
+function updateUser(telegram_id, lastfm_username) {
 
   return new Promise((resolve, reject) => {
 
@@ -48,7 +48,7 @@ const updateUser = (telegram_id, lastfm_username) => {
   })
 }
 
-const getLastfmUser = (telegram_id) => {
+function getLastfmUser(telegram_id) {
 
   return new Promise(async (resolve, reject) => {
 
@@ -70,7 +70,7 @@ const getLastfmUser = (telegram_id) => {
   })
 }
 
-const setLastfmUser = (telegram_id, lastfm_username) => {
+function setLastfmUser(telegram_id, lastfm_username) {
 
   return new Promise(async (resolve, reject) => {
 
@@ -98,7 +98,7 @@ const setLastfmUser = (telegram_id, lastfm_username) => {
   })
 }
 
-const updateUserScrobbles = (telegram_id, weekly_scrobbles_playcount) => {
+function updateUserScrobbles(telegram_id, weekly_scrobbles_playcount) {
 
   return new Promise((resolve, reject) => {
 
@@ -110,7 +110,7 @@ const updateUserScrobbles = (telegram_id, weekly_scrobbles_playcount) => {
   })
 }
 
-const getUsersScrobbles = (telegram_ids) => {
+function getUsersScrobbles(telegram_ids) {
   return new Promise((resolve, reject) => {
     User.find({ telegram_id: { $in: telegram_ids } }, { telegram_id: 1, weekly_scrobbles_playcount: 1, _id: 0 },
       (erro, data) => {
@@ -120,5 +120,5 @@ const getUsersScrobbles = (telegram_ids) => {
   })
 }
 
-export { getLastfmUser, setLastfmUser, getUser, getSpecificUsers, updateUserScrobbles, getUsersScrobbles }
+export { getLastfmUser, getSpecificUsers, getUser, getUsersScrobbles, setLastfmUser, updateUserScrobbles }
 
