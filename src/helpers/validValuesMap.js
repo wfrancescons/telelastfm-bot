@@ -1,6 +1,6 @@
 // Medias
 const acceptedMedias = [
-    'tracks', 'track', 'musics', 'ln',
+    'tracks', 'track', 'musics', 'lf', 'tra',
     'albums', 'album', 'alb',
     'artists', 'artist', 'art'
 ]
@@ -8,7 +8,8 @@ const acceptedMedias = [
 const mediaMap = {
     'tracks': 'tracks',
     'track': 'tracks',
-    'ln': 'tracks',
+    'tra': 'tracks',
+    'lf': 'tracks',
     'musics': 'tracks',
     'albums': 'albums',
     'album': 'albums',

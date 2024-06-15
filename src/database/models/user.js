@@ -1,16 +1,18 @@
-import Mongoose from 'mongoose'
-const { Schema, model } = Mongoose
+import { DataTypes } from 'sequelize'
 
-const UserSchema = new Schema({
-  telegram_id: { type: Number, required: true },
-  lastfm_username: String,
-  weekly_scrobbles_playcount: {
-    scrobbles: Number,
-    tracks: Number,
-    updatedAt: { type: Date }
-  }
-}, { timestamps: true })
-
-const User = model('User', UserSchema)
+function User(sequelize) {
+    return sequelize.define('User', {
+        telegram_id: {
+            type: DataTypes.BIGINT,
+            allowNull: false,
+            unique: true,
+            primaryKey: true,
+        },
+        lastfm_username: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+    }, { timestamps: true })
+}
 
 export default User

@@ -2,7 +2,7 @@ import { canSendMessage } from '../helpers/chatHelper.js'
 
 export default async function (ctx, error, info) {
 
-    const extras = { reply_to_message_id: ctx.message.message_id }
+    const extras = { reply_to_message_id: ctx.message?.message_id }
     const isInlineQuery = ctx.update?.inline_query
     const isReply = ctx.update.message?.reply_to_message?.from.id
 
@@ -74,6 +74,22 @@ export default async function (ctx, error, info) {
                     'Type /reg with with your Lastfm\'s username. \n' +
                     'Example: `/reg lastfmusername` \n' +
                     'Please, try again 🙂',
+                    extras
+                )
+                break
+            }
+
+            case 'CUSTOM_ARTIST_NOT_FOUND': {
+                await ctx.replyWithMarkdown(
+                    'TODO: CUSTOM ERROR',
+                    extras
+                )
+                break
+            }
+
+            case 'CUSTOM_ALBUM_NOT_FOUND': {
+                await ctx.replyWithMarkdown(
+                    'TODO: CUSTOM ERROR',
                     extras
                 )
                 break

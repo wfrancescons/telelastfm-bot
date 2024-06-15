@@ -1,37 +1,103 @@
 import { Telegraf } from 'telegraf'
 import config from './config.js'
-import connectToDb from './database/connect.js'
-import { launchBrowser } from './modules/htmlToImage.js'
+import sequelize from './database/database.js'
 
-import * as Commands from './commands/index.js'
+import * as Commands from './commands/commands.js'
+import commandLogger from './middlewares/commandLogger.js'
+import ignoreChannelMessage from './middlewares/ignoreChannelMessages.js'
+import parseArgs from './middlewares/parseArgs.js'
+import throttleCommands from './middlewares/throttleCommands.js'
 
-const bot = new Telegraf(config.bot_token)
+const bot = new Telegraf(config.bot.token)
 
 try {
-  await connectToDb()
+  console.log('BOT: starting components')
 
-  console.log('DATABASE: MongoDB connected!')
+  // Try to connect to database
+  await sequelize.authenticate()
 
-  //launch browser for /collage, /top and /story
-  await launchBrowser().catch(error => console.error(error))
+  // Set bot 'Description'
+  bot.telegram.setMyDescription(
+    'Share your last.fm scrobbles with your friends 🎵\n' +
+    'Customize artists\' names with nicks 🙂'
+  )
+
+  // Set bot 'About'
+  const aboutDescription = `Share your last.fm scrobbles with your friends 🎵\n` +
+    `\n📰 News: ${config.bot.news_channel}\n` +
+    `💬 Need help? Support: ${config.bot.support_chat}`
+
+  if (aboutDescription.length <= 120) {
+    bot.telegram.setMyShortDescription(aboutDescription)
+  } else console.log(`BOT: 'About' section unchanged as string is longer than 120 characters`)
+
+  // Set command descriptions
+  bot.telegram.setMyCommands([
+    { command: 'lf', description: 'Send your last track scrobble' },
+    { command: 'alblf', description: 'Send your last album scrobble' },
+    { command: 'artlf', description: 'Send your last artist scrobble' },
+    { command: 'setlf', description: 'Set your Lastfm username' },
+    { command: 'storylf', description: 'Generate a story collage' },
+    { command: 'gridlf', description: 'Generate a grid collage' },
+    { command: 'toplf', description: 'Generate a top scrobbles collage' },
+    { command: 'help', description: 'Send a list of valid commands' }
+  ])
+
+  bot.use(throttleCommands)
+  bot.use(ignoreChannelMessage)
+  bot.use(commandLogger)
+  bot.use(parseArgs)
 
   // Set bot response
   bot.start((ctx) => Commands.start(ctx))
   bot.help((ctx) => Commands.help(ctx))
 
-  bot.command(['ln', 'lp', 'status'], (ctx) => Commands.ln(ctx))
-  bot.command(['alb', 'album'], (ctx) => Commands.alb(ctx))
-  bot.command(['art', 'artist'], (ctx) => Commands.art(ctx))
-  bot.command('reg', (ctx) => Commands.reg(ctx))
-  bot.command('addn', (ctx) => Commands.addn(ctx))
-  bot.command('rmvn', (ctx) => Commands.rmvn(ctx))
-  bot.command('story', (ctx) => Commands.story(ctx))
-  bot.command('collage', (ctx) => Commands.collage(ctx))
-  bot.command('top', (ctx) => Commands.top(ctx))
-  bot.command('rankin', (ctx) => Commands.rankin(ctx))
-  bot.command('rankout', (ctx) => Commands.rankout(ctx))
+  bot.command('collage', (ctx) => ctx.reply(`Comando alterado para /gridlf\nMais informações: ${config.bot.news_channel}`))
 
-  bot.on('inline_query', (ctx) => Commands.inlineQuery(ctx))
+  bot.command('lf', (ctx) => {
+    (async () => {
+      await Commands.lf(ctx)
+    })()
+  })
+  bot.command('alblf', (ctx) => {
+    (async () => {
+      await Commands.alblf(ctx)
+    })()
+  })
+  bot.command('artlf', (ctx) => {
+    (async () => {
+      await Commands.artlf(ctx)
+    })()
+  })
+  bot.command('setlf', (ctx) => {
+    (async () => {
+      await Commands.setlf(ctx)
+    })()
+  })
+  bot.command('storylf', (ctx) => {
+    (async () => {
+      await Commands.storylf(ctx)
+    })()
+  })
+  bot.command('gridlf', (ctx) => {
+    (async () => {
+      await Commands.gridlf(ctx)
+    })()
+  })
+  bot.command('toplf', (ctx) => {
+    (async () => {
+      await Commands.toplf(ctx)
+    })()
+  })
+
+  //bot.command('rankin', (ctx) => Commands.rankin(ctx))
+  //bot.command('rankout', (ctx) => Commands.rankout(ctx))
+
+  bot.on('inline_query', (ctx) => {
+    (async () => {
+      Commands.inlineQuery(ctx)
+    })()
+  })
 
   // Set development webhook
   if (config.environment === 'development') {
@@ -42,15 +108,12 @@ try {
 
   bot.launch()
 
-  import('./cron/cronjob.js')
-    .then(() => console.log('CRONJOB: Task scheduled'))
-    .catch(error => console.error(error))
-
-  console.log(`BOT: Running in ${config.environment} environment`)
-
-
+  console.log(`BOT: running in ${config.environment} environment`)
 } catch (error) {
-  console.error('DATABASE: Error connecting to MongoDB: ', error)
+  console.error('BOT: error when starting - ', error)
 }
+
+process.once('SIGINT', () => bot.stop('SIGINT'))
+process.once('SIGTERM', () => bot.stop('SIGTERM'))
 
 export default bot
