@@ -7,10 +7,6 @@ const config = {
     news_channel: process.env.TELEGRAM_NEWS_CHANNEL,
     support_chat: process.env.TELEGRAM_SUPPORT_CHAT
   },
-  spotify: {
-    client_id: process.env.SPOTIFY_CLIENT_ID,
-    client_secret: process.env.SPOTIFY_CLIENT_SECRET
-  },
   sequelize: {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
