@@ -43,10 +43,10 @@ try {
     { command: 'help', description: 'Send a list of valid commands' }
   ])
 
-  bot.use(throttleCommands)
   bot.use(ignoreChannelMessage)
-  bot.use(commandLogger)
+  bot.use(throttleCommands)
   bot.use(parseArgs)
+  bot.use(commandLogger)
 
   // Set bot response
   bot.start((ctx) => Commands.start(ctx))

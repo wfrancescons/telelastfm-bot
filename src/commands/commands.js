@@ -1,6 +1,4 @@
 import config from '../config.js'
-
-import { logCommand } from '../database/services/commandUsageLog.js'
 import { sendTextMessage } from '../utils/messageSender.js'
 
 import alblf from './alblf.js'
@@ -19,14 +17,10 @@ import storylf from './storylf.js'
 
 async function start(ctx) {
 
-  const telegram_id = ctx.message.from.id
-  const chat_id = ctx.message.chat.id
   const first_name = ctx.update.message.from.first_name
 
-  logCommand('start', telegram_id, chat_id)
-
   try {
-    await ctx.replyWithChatAction('typing')
+    ctx.replyWithChatAction('typing').cacth()
 
     const extra = {
       reply_to_message_id: ctx.message?.message_id,
@@ -54,25 +48,14 @@ async function start(ctx) {
 // Help command
 async function help(ctx) {
 
-  const telegram_id = ctx.message.from.id
-  const chat_id = ctx.message.chat.id
-
-  logCommand('help', telegram_id, chat_id)
-
   try {
-    await ctx.replyWithChatAction('typing')
-
-    await ctx.replyWithMarkdown(
-
-    )
+    ctx.replyWithChatAction('typing').cacth()
 
     const message = `Valid commands: 🤖\n` +
       `\n/lf - Track you're scrobbling` +
       `\n/alblf - Album you're scrobbling` +
       `\n/artlf - Artist you're scrobbling` +
       `\n\`/setlf your_username\` - Set your LastFm's username` +
-      //`\n\`/addn artist-nick\` - Set artist's nick for a chat` +
-      //`\n\`/rmvn artist\` - Remove artist's nick for a chat` +
       `\n\`/gridlf columnsxrows period\` - Generate a grid collage` +
       `\n\`/toplf mediatype period\` - Generate a top scrobbles collage` +
       `\n\`/storylf mediatype period\` - Generate a image of your latest scrobble`
@@ -88,4 +71,3 @@ export {
   alblf, artlf, gridlf, help, inlineQuery, lf,
   setlf, start, storylf
 }
-

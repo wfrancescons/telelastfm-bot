@@ -1,6 +1,6 @@
 const REQUEST_TIMEOUT = 3000
 
-async function request(url, options = {}, retries = 3, timeout = REQUEST_TIMEOUT) {
+async function request({ url, options = {}, retries = 3, timeout = REQUEST_TIMEOUT }) {
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
             const controller = new AbortController()

@@ -1,31 +1,28 @@
 import createEntity from '../../utils/createEntity.js'
 
-function formatTrackDetails(infos) {
-    const {
-        isNowPlaying, album, artist, userplaycount, first_name, formatted_tags
-    } = infos
+function formatTrackDetails(data_to_format) {
 
     const textArray = []
 
-    if (infos.isCustom) {
+    if (data_to_format.isCustom) {
         textArray.push(
-            `${first_name} listened to:`,
-            `\n💿 ${album}`,
-            `\n🧑‍🎤 ${artist}\n`,
-            `\n📈 ${(userplaycount).toLocaleString('pt-BR')} ${userplaycount > 1 ? 'scrobbles so far' : 'scrobble so far'}`
+            `${data_to_format.first_name} listened to:`,
+            `\n💿 ${data_to_format.album}`,
+            `\n🧑‍🎤 ${data_to_format.artist}\n`,
+            `\n📈 ${(data_to_format.userplaycount).toLocaleString('pt-BR')} ${data_to_format.userplaycount > 1 ? 'scrobbles so far' : 'scrobble so far'}`
         )
 
     } else {
-        const status = isNowPlaying ? 'is now' : 'was'
+        const status = data_to_format.isNowPlaying ? 'is now' : 'was'
         textArray.push(
-            `${first_name} ${status} listening to:`,
-            `\n💿 ${album}`,
-            `\n🧑‍🎤 ${artist}\n`,
-            `\n📈 ${(userplaycount + 1).toLocaleString('pt-BR')} ${userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}`
+            `${data_to_format.first_name} ${status} listening to:`,
+            `\n💿 ${data_to_format.album}`,
+            `\n🧑‍🎤 ${data_to_format.artist}\n`,
+            `\n📈 ${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}`
         )
     }
 
-    if (formatted_tags) textArray.push(`\n\n🔖 ${formatted_tags}`)
+    if (data_to_format.formatted_tags) textArray.push(`\n\n🔖 ${data_to_format.formatted_tags}`)
 
     return textArray
 }
@@ -42,11 +39,11 @@ function calculateIndexes(textArray) {
     return { albumIndex, imageIndex }
 }
 
-function createEntities(first_name, album, indexes, imageUrl, formatted_tags) {
+function createEntities({ first_name, album, indexes, image_url, formatted_tags }) {
     const entities = [
         createEntity(0, first_name.length, 'bold'),
         createEntity(indexes.albumIndex, album.length, 'bold'),
-        createEntity(indexes.imageIndex, '📈'.length, 'text_link', imageUrl)
+        createEntity(indexes.imageIndex, '📈'.length, 'text_link', image_url)
     ]
 
     if (indexes.tagsIndex) {
@@ -70,7 +67,7 @@ function alblfFormatter(data_to_format) {
     const textArray = formatTrackDetails({ ...data_to_format, formatted_tags })
     const indexes = calculateIndexes(textArray)
 
-    const entities = createEntities(first_name, album, indexes, image.medium, formatted_tags)
+    const entities = createEntities({ first_name, album, indexes, image_url: image.large, formatted_tags })
 
     return {
         text: textArray.join(''),

@@ -21,7 +21,7 @@ function buildUrl(params) {
 const makeRequest = limiter.wrap(async function makeRequest(params) {
   const url = buildUrl(params)
   console.log(url)
-  const response = await request(url)
+  const response = await request({ url })
 
   if (!response.ok) {
     throw response
@@ -40,43 +40,50 @@ function extractImage(images) {
   const originalImageCropRegex = /\/\d+x\d+\//
 
   return {
-    small: image,
-    medium: image.replace(originalImageCropRegex, '/500x500/'),
-    large: image.replace(originalImageCropRegex, '/770x0/')
+    small: image.replace(originalImageCropRegex, '/34s/'),
+    medium: image,
+    large: image.replace(originalImageCropRegex, '/500x500/'),
+    extralarge: image.replace(originalImageCropRegex, '/770x0/'),
   }
 }
 
 async function getOgImage(url) {
   try {
-    const html = await request(url)
+    const html = await request({ url })
     const $ = cheerio.load(await html.text())
-    const ogImage = $('meta[property="og:image"]').attr('content')
+    const ogImage = $('meta[property="og:image"]').attr('content').replace('ar0', '300x300')
     return ogImage
   } catch (error) {
     console.error(error)
-    return ''
+    return null
   }
 }
 
 async function getRecentTracks(username, limit = 1) {
   try {
-    const data = await makeRequest({
+    const lastfm_data = await makeRequest({
       method: 'user.getRecentTracks',
       username,
       limit
     })
 
-    if (data.recenttracks.track.length === 0) {
-      throw new Error('ZERO_SCROBBLES')
+    const recent_tracks = lastfm_data.recenttracks?.track
+
+    if (!Array.isArray(recent_tracks)) throw 'COMMON_ERROR'
+    if (recent_tracks.length === 0) throw 'ZERO_SCROBBLES'
+
+    const data = []
+    for (const track of recent_tracks) {
+      data.push({
+        track: track.name,
+        artist: track.artist['#text'],
+        album: track.album['#text'],
+        image: extractImage(track.image),
+        isNowPlaying: track['@attr']?.nowplaying ? true : false
+      })
     }
 
-    return data.recenttracks.track.map(track => ({
-      track: track.name,
-      artist: track.artist['#text'],
-      album: track.album['#text'],
-      image: extractImage(track.image),
-      isNowPlaying: track['@attr']?.nowplaying ? true : false
-    }))
+    return data
 
   } catch (error) {
     handleRequestError(error)
@@ -85,18 +92,19 @@ async function getRecentTracks(username, limit = 1) {
 
 async function getTrackListeningNow(username) {
   try {
-    const last_track = await getRecentTracks(username)
-    const { track, artist } = last_track[0]
+    const recent_tracks = await getRecentTracks(username)
+    const { track, artist } = recent_tracks[0]
     const track_info = await getTrackInfo({ track, artist, username })
 
     const data = {
-      ...last_track[0],
+      ...recent_tracks[0],
       userplaycount: track_info.userplaycount,
       lovedtrack: track_info.lovedtrack,
       tags: track_info.tags
     }
 
     return data
+
   } catch (error) {
     throw error
   }
@@ -104,14 +112,14 @@ async function getTrackListeningNow(username) {
 
 async function getAlbumListeningNow(username) {
   try {
-    const lastTrack = await getRecentTracks(username)
-    const { album, artist } = lastTrack[0]
+    const last_track = await getRecentTracks(username)
+    const { album, artist } = last_track[0]
     const album_info = await getAlbumInfo({ album, artist, username })
 
-    if (album_info.image) lastTrack[0].image = album_info.image
+    if (album_info.image) last_track[0].image = album_info.image
 
     const data = {
-      ...lastTrack[0],
+      ...last_track[0],
       userplaycount: album_info.userplaycount || 0,
       tags: album_info.tags
     }
@@ -158,8 +166,9 @@ async function getUserTopTracks(username, period, limit = 5) {
     }
 
     const topTracks = data.toptracks.track
+    const updatedTracks = []
 
-    const trackPromises = topTracks.map(async (track) => {
+    for (const track of topTracks) {
       const trackUrl = track.url
       const ogImage = await getOgImage(trackUrl)
       if (ogImage) {
@@ -170,12 +179,10 @@ async function getUserTopTracks(username, period, limit = 5) {
           }
         ]
       }
-      return track
-    })
+      updatedTracks.push(track)
+    }
 
-    const updatedtracks = await Promise.all(trackPromises)
-
-    return updatedtracks.map(item => ({
+    return updatedTracks.map(item => ({
       rank: item['@attr'].rank,
       image: extractImage(item.image),
       track: {
@@ -276,7 +283,7 @@ async function getLastfmUserData(username) {
   }
 }
 
-async function getTrackInfo({ track, artist, username = null }) {
+async function getTrackInfo({ track, artist, mbid, username = null }) {
   try {
     const params = {
       method: 'track.getInfo',
@@ -294,7 +301,7 @@ async function getTrackInfo({ track, artist, username = null }) {
       artist: response.track.artist,
       userplaycount: Number(response.track.userplaycount) || 0,
       lovedtrack: Boolean(Number(response.track?.userloved)),
-      tags: response.track?.tags?.tag || []
+      tags: response.track?.toptags?.tag || []
     }
 
     if (response.track?.image && response.track?.image.length) {
@@ -396,12 +403,12 @@ function handleRequestError(error) {
 }
 
 export {
-  getAlbumInfo, getAlbumListeningNow, getArtistInfo, getArtistListeningNow,
-  getLastfmUserData,
-  getRecentTracks,
+  extractImage, getAlbumInfo, getAlbumListeningNow, getArtistInfo, getArtistListeningNow,
+  getLastfmUserData, getOgImage, getRecentTracks,
   getTrackInfo, getTrackListeningNow,
   getUserTopAlbums,
   getUserTopArtists,
   getUserTopTracks,
   getWeeklyTrackChart
 }
+

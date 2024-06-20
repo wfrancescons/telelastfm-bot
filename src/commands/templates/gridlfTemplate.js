@@ -33,11 +33,11 @@ function createGradientRectangle(x, y, config) {
     })
 }
 
-function generateScrobbleImage(item, x, y, width, height, param, config, media_type, useMediumImage = false) {
+function generateScrobbleImage(item, x, y, width, height, param, config, media_type, useLargeImage = false) {
     const scrobbleElements = []
 
     if (item.image) {
-        const src = useMediumImage ? item.image.medium : item.image.small
+        const src = useLargeImage ? item.image.large : item.image.medium
         scrobbleElements.push(createImageElement({ src, x, y, width, height }))
     } else {
         scrobbleElements.push(createRectangleElement({ fillStyle: 'rgba(0, 0, 0, 0.5)', x, y, width, height }))
@@ -206,6 +206,7 @@ function gridlfTemplate({ lastfmData, columns, rows, predominantColor, media_typ
         }
 
         const item = lastfmData[index]
+        console.log(item)
         const scrobbleElements = generateScrobbleImage(item, x, y, config.POSTER_WIDTH, config.POSTER_HEIGHT, param, config, media_type)
         data.elements.push(...scrobbleElements)
 

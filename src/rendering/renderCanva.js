@@ -1,4 +1,4 @@
-import { Canvas, FontLibrary, loadImage } from 'skia-canvas'
+import { Canvas, FontLibrary, loadImage } from 'skia-canvas';
 
 // Registrar fontes
 FontLibrary.use('Noto Sans JP', ['./src/rendering/fonts/NotoSansJP/*.ttf'])
