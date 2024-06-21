@@ -10,8 +10,12 @@ import throttleCommands from './middlewares/throttleCommands.js'
 
 const bot = new Telegraf(config.bot.token)
 
+import ensureCacheDirectoryExists from './utils/cacheDir.js'
+
 try {
   console.log('BOT: starting components')
+
+  await ensureCacheDirectoryExists
 
   // Try to connect to database
   await sequelize.authenticate()
