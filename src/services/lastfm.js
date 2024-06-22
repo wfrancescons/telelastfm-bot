@@ -297,9 +297,9 @@ async function getTrackInfo({ track, artist, mbid, username = null }) {
     const response = await makeRequest(params)
 
     const data = {
-      track: response.track.name,
-      artist: response.track.artist,
-      userplaycount: Number(response.track.userplaycount) || 0,
+      track: response.track?.name || track,
+      artist: response.track?.artist || artist,
+      userplaycount: Number(response.track?.userplaycount) || 0,
       lovedtrack: Boolean(Number(response.track?.userloved)),
       tags: response.track?.toptags?.tag || []
     }
@@ -329,13 +329,13 @@ async function getAlbumInfo({ album, artist, username = null }) {
     const response = await makeRequest(params)
 
     const data = {
-      album: response.album.name,
-      artist: response.album.artist,
-      userplaycount: Number(response.album.userplaycount) || 0,
+      album: response.album?.name || album,
+      artist: response.album?.artist || artist,
+      userplaycount: Number(response.album?.userplaycount) || 0,
       tags: response.album?.tags?.tag || []
     }
 
-    if (response.album?.image && response.album?.image.length) {
+    if (response.album?.image?.length) {
       data.image = extractImage(response.album.image)
     }
 
@@ -362,9 +362,9 @@ async function getArtistInfo({ artist, username = null }) {
     if (response.error == 6) throw 'CUSTOM_ARTIST_NOT_FOUND'
 
     const data = {
-      artist: response.artist.name,
-      userplaycount: Number(response.artist.stats?.userplaycount) || 0,
-      tags: response.artist?.tags?.tag
+      artist: response.artist?.name || artist,
+      userplaycount: Number(response.artist?.stats?.userplaycount) || 0,
+      tags: response.artist?.tags?.tag || []
     }
 
     if (response.artist?.image && response.artist?.image.length) {
