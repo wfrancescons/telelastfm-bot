@@ -22,9 +22,6 @@ async function ensureDirectoryExists(dirPath) {
         if (error.code === 'ENOENT') {
             // Diretório não existe, então cria o diretório
             await fs.mkdir(dirPath, { recursive: true })
-            await fs.mkdir(dirPath + '/300x300', { recursive: true })
-            await fs.mkdir(dirPath + '/500x500', { recursive: true })
-            await fs.mkdir(dirPath + '/770x0', { recursive: true })
             console.log('Directory created:', dirPath)
         } else {
             // Lança o erro se for um erro diferente

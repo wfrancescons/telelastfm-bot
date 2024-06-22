@@ -63,7 +63,7 @@ async function downloadImage(imageUrl) {
             const arrayBuffer = await response.arrayBuffer()
             const buffer = Buffer.from(arrayBuffer)
 
-            const outputFilePath = `${CACHE_DIR}/${url_infos.size}/${url_infos.file}`
+            const outputFilePath = `${CACHE_DIR}/${url_infos.size}-${url_infos.file}`
 
             fs.writeFileSync(outputFilePath, buffer)
 

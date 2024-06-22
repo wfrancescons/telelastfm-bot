@@ -74,13 +74,13 @@ function loadImageWithTimeout(url, timeout) {
     return new Promise(async (resolve, reject) => {
         if (url.startsWith('http')) {
             const url_infos = urlParser(url)
-            if (await hasFile(`${CACHE_DIR}/${url_infos.size}`, url_infos.file)) {
-                url = `${CACHE_DIR}/${url_infos.size}/${url_infos.file}`
+            if (await hasFile(`${CACHE_DIR}`, `${url_infos.size}-${url_infos.file}`)) {
+                url = `${CACHE_DIR}/${url_infos.size}-${url_infos.file}`
                 console.log('URL GERADA PELO hasFile', url)
             } else {
                 try {
                     await downloadImage(url)
-                    url = `${CACHE_DIR}/${url_infos.size}/${url_infos.file}`
+                    url = `${CACHE_DIR}/${url_infos.size}-${url_infos.file}`
                 } catch (error) {
                     console.error(error)
                 }
