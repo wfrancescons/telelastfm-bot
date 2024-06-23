@@ -8,7 +8,12 @@ const { lastfm_token } = config
 const lastfm_url_api = 'https://ws.audioscrobbler.com/2.0/'
 const default_image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
 
-const limiter = new Bottleneck({
+const apiLimiter = new Bottleneck({
+  minTime: 200
+})
+
+const webScrappingLimiter = new Bottleneck({
+  maxConcurrent: 5,
   minTime: 200
 })
 
@@ -18,7 +23,7 @@ function buildUrl(params) {
   return url.toString()
 }
 
-const makeRequest = limiter.wrap(async function makeRequest(params) {
+const makeRequest = apiLimiter.wrap(async function makeRequest(params) {
   const url = buildUrl(params)
   console.log(url)
   const response = await request({ url })
@@ -167,18 +172,20 @@ async function getUserTopTracks(username, period, limit = 5) {
 
     const topTracks = data.toptracks.track
 
-    const tracksPromises = topTracks.map(async (artist) => {
-      const artistUrl = artist.url
-      const ogImage = await getOgImage(artistUrl)
-      if (ogImage) {
-        artist.image = [
-          {
-            "size": "small",
-            "#text": ogImage
-          }
-        ]
-      }
-      return artist
+    const tracksPromises = topTracks.map((artist) => {
+      return webScrappingLimiter.schedule(async () => {
+        const artistUrl = artist.url
+        const ogImage = await getOgImage(artistUrl)
+        if (ogImage) {
+          artist.image = [
+            {
+              "size": "small",
+              "#text": ogImage
+            }
+          ]
+        }
+        return artist
+      })
     })
 
     const updatedTracks = await Promise.all(tracksPromises)
@@ -240,18 +247,20 @@ async function getUserTopArtists(username, period, limit = 5) {
 
     const topArtists = data.topartists.artist
 
-    const artistPromises = topArtists.map(async (artist) => {
-      const artistUrl = artist.url
-      const ogImage = await getOgImage(artistUrl)
-      if (ogImage) {
-        artist.image = [
-          {
-            "size": "small",
-            "#text": ogImage
-          }
-        ]
-      }
-      return artist
+    const artistPromises = topArtists.map((artist) => {
+      return webScrappingLimiter.schedule(async () => {
+        const artistUrl = artist.url
+        const ogImage = await getOgImage(artistUrl)
+        if (ogImage) {
+          artist.image = [
+            {
+              "size": "small",
+              "#text": ogImage
+            }
+          ]
+        }
+        return artist
+      })
     })
 
     const updatedArtists = await Promise.all(artistPromises)
