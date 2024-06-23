@@ -115,10 +115,8 @@ async function gridlf(ctx) {
         }
 
         if (param !== 'notexts') {
-            console.time('color')
             const predominantColor = await getPredominantColor(lastfmData[0].image.small)
             templateData.predominantColor = predominantColor
-            console.timeEnd('color')
         }
 
         const template = gridlfTemplate(templateData)

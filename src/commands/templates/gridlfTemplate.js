@@ -206,7 +206,6 @@ function gridlfTemplate({ lastfmData, columns, rows, predominantColor, media_typ
         }
 
         const item = lastfmData[index]
-        console.log(item)
         const scrobbleElements = generateScrobbleImage(item, x, y, config.POSTER_WIDTH, config.POSTER_HEIGHT, param, config, media_type)
         data.elements.push(...scrobbleElements)
 
