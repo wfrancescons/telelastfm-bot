@@ -6,14 +6,15 @@ import request from '../utils/request.js'
 
 const { lastfm_token } = config
 const lastfm_url_api = 'https://ws.audioscrobbler.com/2.0/'
-const default_image = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
+
+const DEFAULT_IMAGE = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
 
 const apiLimiter = new Bottleneck({
   minTime: 200
 })
 
 const webScrappingLimiter = new Bottleneck({
-  maxConcurrent: 5,
+  maxConcurrent: 10,
   minTime: 200
 })
 
@@ -39,7 +40,7 @@ const makeRequest = apiLimiter.wrap(async function makeRequest(params) {
 function extractImage(images) {
   let image = images.pop()['#text']
   if (image === '') {
-    image = default_image
+    image = DEFAULT_IMAGE
   }
 
   const originalImageCropRegex = /\/\d+x\d+\//
@@ -55,9 +56,16 @@ function extractImage(images) {
 async function getOgImage(url) {
   try {
     const html = await request({ url })
+    console.log(html.status, html.statusText)
     const $ = cheerio.load(await html.text())
-    const ogImage = $('meta[property="og:image"]').attr('content').replace('ar0', '300x300')
-    return ogImage
+    const ogImage = $('meta[property="og:image"]').attr('content')
+
+    console.log(ogImage)
+
+    if (!ogImage) return DEFAULT_IMAGE
+
+    return ogImage.replace('ar0', '300x300')
+
   } catch (error) {
     console.error(error)
     return null
