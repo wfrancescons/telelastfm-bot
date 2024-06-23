@@ -166,21 +166,22 @@ async function getUserTopTracks(username, period, limit = 5) {
     }
 
     const topTracks = data.toptracks.track
-    const updatedTracks = []
 
-    for (const track of topTracks) {
-      const trackUrl = track.url
-      const ogImage = await getOgImage(trackUrl)
+    const tracksPromises = topTracks.map(async (artist) => {
+      const artistUrl = artist.url
+      const ogImage = await getOgImage(artistUrl)
       if (ogImage) {
-        track.image = [
+        artist.image = [
           {
             "size": "small",
             "#text": ogImage
           }
         ]
       }
-      updatedTracks.push(track)
-    }
+      return artist
+    })
+
+    const updatedTracks = await Promise.all(tracksPromises)
 
     return updatedTracks.map(item => ({
       rank: item['@attr'].rank,
@@ -191,6 +192,7 @@ async function getUserTopTracks(username, period, limit = 5) {
       },
       scrobbles: item.playcount
     }))
+
   } catch (error) {
     handleRequestError(error)
   }

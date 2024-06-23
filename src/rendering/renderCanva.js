@@ -1,24 +1,9 @@
-import fs from 'node:fs/promises';
-import { dirname, resolve } from 'path';
-import { Canvas, FontLibrary, loadImage } from 'skia-canvas';
-import { fileURLToPath } from 'url';
-import { downloadImage } from '../utils/request.js';
-
-// Obtém o caminho do arquivo atual
-const __filename = fileURLToPath(import.meta.url);
-
-// Obtém o diretório do arquivo atual
-const __dirname = dirname(__filename);
-
-// Assumindo que o arquivo principal está na raiz do projeto,
-// você pode definir a raiz como um nível acima do diretório atual
-const rootDir = resolve(__dirname, '../..')
+import { Canvas, FontLibrary, loadImage } from 'skia-canvas'
+import { getOrSaveImageInCache } from '../utils/cache.js'
 
 // Registrar fontes
 FontLibrary.use('Noto Sans JP', ['./src/rendering/fonts/NotoSansJP/*.ttf'])
 FontLibrary.use('Train One', ['./src/rendering/fonts/TrainOne/*.ttf'])
-
-const CACHE_DIR = rootDir + '/cache'
 
 // Função auxiliar para quebrar texto em várias linhas
 function wrapText(ctx, text, maxWidth) {
@@ -40,55 +25,10 @@ function wrapText(ctx, text, maxWidth) {
     return lines
 }
 
-function urlParser(url) {
-    const array = url.split('/')
-
-    const data = {
-        size: array[5],
-        file: array[6]
-    }
-    return data
-}
-
-/**
- * Verifica se um diretório contém um arquivo específico.
- * @param {string} dirPath - O caminho do diretório.
- * @param {string} fileName - O nome do arquivo a ser procurado.
- * @returns {Promise<boolean>} - Retorna uma promessa que resolve em verdadeiro se o arquivo existir, caso contrário, falso.
- */
-async function hasFile(dirPath, fileName) {
-    try {
-        // Lê o conteúdo do diretório
-        const files = await fs.readdir(dirPath)
-
-        // Verifica se o arquivo está presente
-        return files.includes(fileName)
-
-    } catch (err) {
-        console.error(`Erro ao ler o diretório: ${err.message}`)
-        return false
-    }
-}
-
 function loadImageWithTimeout(url, timeout) {
     return new Promise(async (resolve, reject) => {
-        if (url.startsWith('http')) {
-            const url_infos = urlParser(url)
-            if (await hasFile(`${CACHE_DIR}`, `${url_infos.size}-${url_infos.file}`)) {
-                url = `${CACHE_DIR}/${url_infos.size}-${url_infos.file}`
-                console.log('URL GERADA PELO hasFile', url)
-            } else {
-                try {
-                    await downloadImage(url)
-                    url = `${CACHE_DIR}/${url_infos.size}-${url_infos.file}`
-                } catch (error) {
-                    console.error(error)
-                }
-            }
-        }
-
         const timer = setTimeout(() => {
-            reject(new Error('Tempo limite de carregamento excedido'))
+            reject(new Error('Tempo limite de carregamento excedido', { url }))
         }, timeout)
 
         loadImage(url).then(image => {
@@ -103,14 +43,22 @@ function loadImageWithTimeout(url, timeout) {
 
 async function drawImage(ctx, element) {
     try {
+        // set filters
         ctx.filter = element.filter || 'none'
         ctx.globalCompositeOperation = element.composite || 'source-over'
-        const image = await loadImageWithTimeout(element.src, 2000)
+
+        // donwload image from cache
+        const local_file = await getOrSaveImageInCache(element.src)
+        const image = await loadImageWithTimeout(local_file, 3000)
+
         ctx.drawImage(image, element.x, element.y, element.width, element.height)
+
+        // reset filters
         ctx.globalCompositeOperation = 'source-over'
         ctx.filter = 'none'
+
     } catch (error) {
-        console.error('Error on loadImage:', error)
+        console.error('Error on loadImage:', { error, element })
         drawRect(ctx, {
             fillStyle: 'rgba(0, 0, 0, 0.5)',
             x: element.x,
