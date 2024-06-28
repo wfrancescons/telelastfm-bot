@@ -4,13 +4,15 @@ function formatTrackDetails(data_to_format) {
 
   const statusText = data_to_format.isNowPlaying ? 'is now' : 'was'
   const loveText = data_to_format.isLovedTrack ? ' loves ❤️ and' : ''
+  const streaks = data_to_format.streaks_count
 
-  let textArray = [
+  const textArray = [
     `${data_to_format.first_name}${loveText} ${statusText} listening to:`,
     `\n🎶 ${data_to_format.track}`,
     `\n💿 ${data_to_format.album}`,
     `\n🧑‍🎤 ${data_to_format.artist}\n`,
-    `\n📈 ${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}`
+    `\n📈 ${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}` +
+    `${streaks !== 0 ? `\n🔥 ${streaks} bot streaks` : ''}`
   ]
 
   if (data_to_format.formatted_tags) textArray.push(`\n\n🔖 ${data_to_format.formatted_tags}`)

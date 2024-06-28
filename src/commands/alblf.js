@@ -1,4 +1,5 @@
 import { getLastfmUser } from '../database/services/user.js'
+import { updateStreaks } from '../database/services/userStreaks.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { getAlbumInfo, getAlbumListeningNow } from '../services/lastfm.js'
 import { sendTextMessage } from '../utils/messageSender.js'
@@ -31,6 +32,8 @@ async function alblf(ctx) {
         const lastfm_user = await getLastfmUser(telegram_id)
         if (!lastfm_user) throw 'USER_NOT_FOUND'
 
+        const user_streaks = await updateStreaks(telegram_id)
+
         let lastfm_data
         if (hasArgs) {
             const custom_data = parseCustomData(ctx.args.join(' '))
@@ -41,6 +44,7 @@ async function alblf(ctx) {
 
         const data = {
             first_name,
+            streaks_count: user_streaks.streaks_count,
             ...lastfm_data
         }
 

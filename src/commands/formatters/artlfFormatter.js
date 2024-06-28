@@ -2,13 +2,16 @@ import createEntity from '../../utils/createEntity.js'
 
 function formatTrackDetails(data_to_format) {
 
+    const streaks = data_to_format.streaks_count
+
     const textArray = []
 
     if (data_to_format.isCustom) {
         textArray.push(
             `${data_to_format.first_name} listened to:`,
             `\n🧑‍🎤 ${data_to_format.artist}\n`,
-            `\n📈 ${(data_to_format.userplaycount).toLocaleString('pt-BR')} ${data_to_format.userplaycount > 1 ? 'scrobbles so far' : 'scrobble so far'}`
+            `\n📈 ${(data_to_format.userplaycount).toLocaleString('pt-BR')} ${data_to_format.userplaycount > 1 ? 'scrobbles so far' : 'scrobble so far'}` +
+            `${streaks !== 0 ? `\n🔥 ${streaks} bot streaks` : ''}`
         )
 
     } else {
@@ -16,7 +19,8 @@ function formatTrackDetails(data_to_format) {
         textArray.push(
             `${data_to_format.first_name} ${status} listening to:`,
             `\n🧑‍🎤 ${data_to_format.artist}\n`,
-            `\n📈 ${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}`
+            `\n📈 ${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}` +
+            `${streaks !== 0 ? `\n🔥 ${streaks} bot streaks` : ''}`
         )
     }
 

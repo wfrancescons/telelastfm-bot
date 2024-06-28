@@ -11,6 +11,10 @@ const sequelize = new Sequelize({
 
 const Models = initializeModels(sequelize)
 
+Models.User.hasOne(Models.UserStreaks, { foreignKey: 'telegram_id' })
+
+Models.UserStreaks.belongsTo(Models.User, { foreignKey: 'telegram_id' })
+
 /* Associations
 ChatsWithNick.hasMany(Nick, { foreignKey: 'chat_id' })
 User.hasMany(Nick, { foreignKey: 'added_by' })

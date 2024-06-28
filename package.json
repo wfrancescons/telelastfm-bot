@@ -23,6 +23,7 @@
     "cheerio": "^1.0.0-rc.12",
     "croner": "^8.0.2",
     "get-image-colors": "^4.0.1",
+    "moment": "^2.30.1",
     "oracledb": "^6.5.1",
     "piii": "^4.0.2",
     "piii-filters": "^1.0.0",

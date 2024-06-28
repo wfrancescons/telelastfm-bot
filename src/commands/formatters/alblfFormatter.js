@@ -2,52 +2,56 @@ import createEntity from '../../utils/createEntity.js'
 
 function formatTrackDetails(data_to_format) {
 
-    const textArray = []
+    const streaks = data_to_format.streaks_count
+
+    const text_array = []
 
     if (data_to_format.isCustom) {
-        textArray.push(
+        text_array.push(
             `${data_to_format.first_name} listened to:`,
             `\n💿 ${data_to_format.album}`,
             `\n🧑‍🎤 ${data_to_format.artist}\n`,
-            `\n📈 ${(data_to_format.userplaycount).toLocaleString('pt-BR')} ${data_to_format.userplaycount > 1 ? 'scrobbles so far' : 'scrobble so far'}`
+            `\n📈 ${(data_to_format.userplaycount).toLocaleString('pt-BR')} ${data_to_format.userplaycount > 1 ? 'scrobbles so far' : 'scrobble so far'}` +
+            `${streaks !== 0 ? `\n🔥 ${streaks} bot streaks` : ''}`
         )
 
     } else {
         const status = data_to_format.isNowPlaying ? 'is now' : 'was'
-        textArray.push(
+        text_array.push(
             `${data_to_format.first_name} ${status} listening to:`,
             `\n💿 ${data_to_format.album}`,
             `\n🧑‍🎤 ${data_to_format.artist}\n`,
-            `\n📈 ${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}`
+            `\n📈 ${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}` +
+            `${streaks !== 0 ? `\n🔥 ${streaks} bot streaks` : ''}`
         )
     }
 
-    if (data_to_format.formatted_tags) textArray.push(`\n\n🔖 ${data_to_format.formatted_tags}`)
+    if (data_to_format.formatted_tags) text_array.push(`\n\n🔖 ${data_to_format.formatted_tags}`)
 
-    return textArray
+    return text_array
 }
 
 function calculateIndexes(textArray) {
-    const albumIndex = textArray[0].length + '💿'.length + 2
-    const imageIndex = textArray.slice(0, 3).reduce((sum, current) => sum + current.length, 0) + 1
+    const album_index = textArray[0].length + '💿'.length + 2
+    const image_index = textArray.slice(0, 3).reduce((sum, current) => sum + current.length, 0) + 1
 
     if (textArray.length > 4) {
-        const tagsIndex = textArray.slice(0, 4).reduce((sum, current) => sum + current.length, 0) + '🔖'.length + 3
-        return { albumIndex, imageIndex, tagsIndex }
+        const tags_index = textArray.slice(0, 4).reduce((sum, current) => sum + current.length, 0) + '🔖'.length + 3
+        return { album_index, image_index, tags_index }
     }
 
-    return { albumIndex, imageIndex }
+    return { album_index, image_index }
 }
 
 function createEntities({ first_name, album, indexes, image_url, formatted_tags }) {
     const entities = [
         createEntity(0, first_name.length, 'bold'),
-        createEntity(indexes.albumIndex, album.length, 'bold'),
-        createEntity(indexes.imageIndex, '📈'.length, 'text_link', image_url)
+        createEntity(indexes.album_index, album.length, 'bold'),
+        createEntity(indexes.image_index, '📈'.length, 'text_link', image_url)
     ]
 
     if (indexes.tagsIndex) {
-        entities.push(createEntity(indexes.tagsIndex, formatted_tags.length, 'italic'))
+        entities.push(createEntity(indexes.tags_index, formatted_tags.length, 'italic'))
     }
 
     return entities
@@ -64,13 +68,13 @@ function alblfFormatter(data_to_format) {
             .join(', ')
     }
 
-    const textArray = formatTrackDetails({ ...data_to_format, formatted_tags })
-    const indexes = calculateIndexes(textArray)
+    const text_message = formatTrackDetails({ ...data_to_format, formatted_tags })
+    const indexes = calculateIndexes(text_message)
 
     const entities = createEntities({ first_name, album, indexes, image_url: image.large, formatted_tags })
 
     return {
-        text: textArray.join(''),
+        text: text_message.join(''),
         entities
     }
 }
