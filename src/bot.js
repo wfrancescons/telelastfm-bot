@@ -90,6 +90,12 @@ try {
     })()
   })
 
+  bot.command('adminlf', (ctx) => {
+    (async () => {
+      await Commands.adminlf(ctx)
+    })()
+  })
+
   //bot.command('rankin', (ctx) => Commands.rankin(ctx))
   //bot.command('rankout', (ctx) => Commands.rankout(ctx))
 

@@ -2,6 +2,7 @@ import config from '../config.js'
 import createEntity from '../utils/createEntity.js'
 import { sendTextMessage } from '../utils/messageSender.js'
 
+import adminlf from './adminlf.js'
 import alblf from './alblf.js'
 import artlf from './artlf.js'
 import gridlf from './gridlf.js'
@@ -82,7 +83,7 @@ async function help(ctx) {
 }
 
 export {
-  alblf, artlf, gridlf, help, inlineQuery, lf,
+  adminlf, alblf, artlf, gridlf, help, inlineQuery, lf,
   setlf, start, storylf
 }
 

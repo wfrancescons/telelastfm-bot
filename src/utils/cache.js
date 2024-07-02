@@ -2,9 +2,9 @@ import FileCache from '../lib/fileCache.js'
 import request from './request.js'
 
 const cacheDir = '.cache'
-const maxCacheSize = 1024 * 10 // 10gb
+const maxCacheSize = 1024 * 5 // 5gb
 
-const cache = new FileCache(cacheDir, { maxCacheSize }) // 10gb de cache
+const cache = new FileCache(cacheDir, { maxCacheSize })
 
 function lastfmUrlParser(url) {
     const array = url.split('/')
@@ -59,5 +59,13 @@ async function getOrSaveImageInCache(url) {
     return url
 }
 
-export { getOrSaveImageInCache }
+function getCacheSize() {
+    const size = cache.getCacheSize()
+
+    const gigabytes = size / (1024 ** 3)
+
+    return gigabytes.toFixed(2)
+}
+
+export { getCacheSize, getOrSaveImageInCache }
 

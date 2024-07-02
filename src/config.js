@@ -5,7 +5,8 @@ const config = {
     token: process.env.TELEGRAM_BOT_TOKEN,
     username: process.env.TELEGRAM_BOT_USERNAME,
     news_channel: process.env.TELEGRAM_NEWS_CHANNEL,
-    support_chat: process.env.TELEGRAM_SUPPORT_CHAT
+    support_chat: process.env.TELEGRAM_SUPPORT_CHAT,
+    admin: process.env.TELEGRAM_ADMIN_USER.split(',')
   },
   sequelize: {
     host: process.env.DB_HOST,

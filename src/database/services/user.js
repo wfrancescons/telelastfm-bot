@@ -58,5 +58,14 @@ async function setLastfmUser(telegram_id, lastfm_username) {
   }
 }
 
-export { getLastfmUser, setLastfmUser }
+async function countUsers() {
+  try {
+    const users_count = await User.count()
+    return users_count
+  } catch (error) {
+    throw error
+  }
+}
+
+export { countUsers, getLastfmUser, setLastfmUser }
 
