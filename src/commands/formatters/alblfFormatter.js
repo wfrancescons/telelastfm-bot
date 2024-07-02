@@ -1,57 +1,48 @@
 import createEntity from '../../utils/createEntity.js'
 
-function formatTrackDetails(data_to_format) {
+function formatAlbumDetails(data_to_format) {
+    const statusText = data_to_format.isNowPlaying ? 'is now' : 'was'
+    const streaks = data_to_format.streaks_count ? ` (🔥 ${(data_to_format.streaks_count).toLocaleString('pt-BR')})` : ''
+    const tags = data_to_format.formatted_tags ? `\n🏷️ ${data_to_format.formatted_tags}` : ''
+    const scrobbles = `${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}`
 
-    const streaks = data_to_format.streaks_count
+    let message_text =
+        '{{first_name}}{{streaks}} {{statusText}} listening to:\n' +
+        '💿 {{album}}\n' +
+        '🧑‍🎤 {{artist}}' +
+        '{{tags}}'
 
-    const text_array = []
+    let indexes = {}
 
-    if (data_to_format.isCustom) {
-        text_array.push(
-            `${data_to_format.first_name} listened to:`,
-            `\n💿 ${data_to_format.album}`,
-            `\n🧑‍🎤 ${data_to_format.artist}\n`,
-            `\n📈 ${(data_to_format.userplaycount).toLocaleString('pt-BR')} ${data_to_format.userplaycount > 1 ? 'scrobbles so far' : 'scrobble so far'}` +
-            `${streaks !== 0 ? `\n🔥 ${streaks} bot streaks` : ''}`
-        )
+    indexes.first_name = message_text.indexOf('{{first_name}}')
+    message_text = message_text.replace('{{first_name}}', data_to_format.first_name)
 
-    } else {
-        const status = data_to_format.isNowPlaying ? 'is now' : 'was'
-        text_array.push(
-            `${data_to_format.first_name} ${status} listening to:`,
-            `\n💿 ${data_to_format.album}`,
-            `\n🧑‍🎤 ${data_to_format.artist}\n`,
-            `\n📈 ${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}` +
-            `${streaks !== 0 ? `\n🔥 ${streaks} bot streaks` : ''}`
-        )
-    }
+    message_text = message_text.replace('{{streaks}}', streaks)
+    message_text = message_text.replace('{{statusText}}', statusText)
+    message_text = message_text.replace('{{artist}}', data_to_format.artist)
 
-    if (data_to_format.formatted_tags) text_array.push(`\n\n🔖 ${data_to_format.formatted_tags}`)
+    indexes.album = message_text.indexOf('{{album}}')
+    message_text = message_text.replace('{{album}}', data_to_format.album)
 
-    return text_array
-}
+    indexes.tags = tags ? message_text.indexOf('{{tags}}') + '\n🏷️ '.length : -1
+    message_text = message_text.replace('{{tags}}', tags)
 
-function calculateIndexes(textArray) {
-    const album_index = textArray[0].length + '💿'.length + 2
-    const image_index = textArray.slice(0, 3).reduce((sum, current) => sum + current.length, 0) + 1
+    indexes.scrobbles = message_text.length + 2
+    message_text += '\n\n📈 {{scrobbles}}'
+    message_text = message_text.replace('{{scrobbles}}', scrobbles)
 
-    if (textArray.length > 4) {
-        const tags_index = textArray.slice(0, 4).reduce((sum, current) => sum + current.length, 0) + '🔖'.length + 3
-        return { album_index, image_index, tags_index }
-    }
-
-    return { album_index, image_index }
+    return { message_text, indexes }
 }
 
 function createEntities({ first_name, album, indexes, image_url, formatted_tags }) {
     const entities = [
-        createEntity(0, first_name.length, 'bold'),
-        createEntity(indexes.album_index, album.length, 'bold'),
-        createEntity(indexes.image_index, '📈'.length, 'text_link', image_url)
+        createEntity(indexes.first_name, first_name.length, 'bold'),
+        createEntity(indexes.album, album.length, 'bold'),
+        createEntity(indexes.scrobbles, '📈'.length, 'text_link', image_url)
     ]
 
-    if (indexes.tagsIndex) {
-        entities.push(createEntity(indexes.tags_index, formatted_tags.length, 'italic'))
+    if (indexes.tags !== -1) {
+        entities.push(createEntity(indexes.tags, formatted_tags.length, 'italic'))
     }
 
     return entities
@@ -68,13 +59,12 @@ function alblfFormatter(data_to_format) {
             .join(', ')
     }
 
-    const text_message = formatTrackDetails({ ...data_to_format, formatted_tags })
-    const indexes = calculateIndexes(text_message)
+    const { message_text, indexes } = formatAlbumDetails({ ...data_to_format, formatted_tags })
 
     const entities = createEntities({ first_name, album, indexes, image_url: image.large, formatted_tags })
 
     return {
-        text: text_message.join(''),
+        text: message_text,
         entities
     }
 }

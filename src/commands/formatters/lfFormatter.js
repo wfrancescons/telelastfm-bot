@@ -1,46 +1,52 @@
 import createEntity from '../../utils/createEntity.js'
 
 function formatTrackDetails(data_to_format) {
-
   const statusText = data_to_format.isNowPlaying ? 'is now' : 'was'
   const loveText = data_to_format.isLovedTrack ? ' loves ❤️ and' : ''
-  const streaks = data_to_format.streaks_count
+  const streaks = data_to_format.streaks_count ? ` (🔥 ${(data_to_format.streaks_count).toLocaleString('pt-BR')})` : ''
+  const tags = data_to_format.formatted_tags ? `\n🏷️ ${data_to_format.formatted_tags}` : ''
+  const scrobbles = `${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}`
 
-  const textArray = [
-    `${data_to_format.first_name}${loveText} ${statusText} listening to:`,
-    `\n🎶 ${data_to_format.track}`,
-    `\n💿 ${data_to_format.album}`,
-    `\n🧑‍🎤 ${data_to_format.artist}\n`,
-    `\n📈 ${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}` +
-    `${streaks !== 0 ? `\n🔥 ${streaks} bot streaks` : ''}`
-  ]
+  let message_text =
+    '{{first_name}}{{streaks}}{{loveText}} {{statusText}} listening to:\n' +
+    '🎶 {{track}}\n' +
+    '💿 {{album}}\n' +
+    '🧑‍🎤 {{artist}}' +
+    '{{tags}}'
 
-  if (data_to_format.formatted_tags) textArray.push(`\n\n🔖 ${data_to_format.formatted_tags}`)
+  let indexes = {}
 
-  return textArray
-}
+  indexes.first_name = message_text.indexOf('{{first_name}}')
+  message_text = message_text.replace('{{first_name}}', data_to_format.first_name)
 
-function calculateIndexes(textArray) {
-  const trackIndex = textArray[0].length + '🎶'.length + 2
-  const imageIndex = textArray.slice(0, 4).reduce((sum, current) => sum + current.length, 0) + 1
+  message_text = message_text.replace('{{streaks}}', streaks)
+  message_text = message_text.replace('{{loveText}}', loveText)
+  message_text = message_text.replace('{{statusText}}', statusText)
+  message_text = message_text.replace('{{album}}', data_to_format.album)
+  message_text = message_text.replace('{{artist}}', data_to_format.artist)
 
-  if (textArray.length > 5) {
-    const tagsIndex = textArray.slice(0, 5).reduce((sum, current) => sum + current.length, 0) + '🔖'.length + 3
-    return { trackIndex, imageIndex, tagsIndex }
-  }
+  indexes.track = message_text.indexOf('{{track}}')
+  message_text = message_text.replace('{{track}}', data_to_format.track)
 
-  return { trackIndex, imageIndex }
+  indexes.tags = tags ? message_text.indexOf('{{tags}}') + '\n🏷️ '.length : -1
+  message_text = message_text.replace('{{tags}}', tags)
+
+  indexes.scrobbles = message_text.length + 2
+  message_text += '\n\n📈 {{scrobbles}}'
+  message_text = message_text.replace('{{scrobbles}}', scrobbles)
+
+  return { message_text, indexes }
 }
 
 function createEntities({ first_name, track, indexes, image_url, formatted_tags }) {
   const entities = [
-    createEntity(0, first_name.length, 'bold'),
-    createEntity(indexes.trackIndex, track.length, 'bold'),
-    createEntity(indexes.imageIndex, '📈'.length, 'text_link', image_url)
+    createEntity(indexes.first_name, first_name.length, 'bold'),
+    createEntity(indexes.track, track.length, 'bold'),
+    createEntity(indexes.scrobbles, '📈'.length, 'text_link', image_url)
   ]
 
-  if (indexes.tagsIndex) {
-    entities.push(createEntity(indexes.tagsIndex, formatted_tags.length, 'italic'))
+  if (indexes.tags !== -1) {
+    entities.push(createEntity(indexes.tags, formatted_tags.length, 'italic'))
   }
 
   return entities
@@ -57,13 +63,12 @@ function lfFormatter(data_to_format) {
       .join(', ')
   }
 
-  const textArray = formatTrackDetails({ ...data_to_format, formatted_tags })
-  const indexes = calculateIndexes(textArray)
+  const { message_text, indexes } = formatTrackDetails({ ...data_to_format, formatted_tags })
 
   const entities = createEntities({ first_name, track, indexes, image_url: image.large, formatted_tags })
 
   return {
-    text: textArray.join(''),
+    text: message_text,
     entities
   }
 }
