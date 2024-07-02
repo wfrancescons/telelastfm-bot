@@ -101,12 +101,10 @@ try {
 
   // Set development webhook
   if (config.environment === 'development') {
-    import('node:http').then((http) => {
-      http.createServer(bot.webhookCallback('/secret-path')).listen(3000)
-    }).catch(error => console.error(error))
+    bot.startPolling()
+  } else {
+    bot.launch()
   }
-
-  bot.launch()
 
   console.log(`BOT: running in ${config.environment} environment`)
 } catch (error) {
