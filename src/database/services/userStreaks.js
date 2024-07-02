@@ -29,10 +29,21 @@ async function findStreaksByPkOrCreate(telegram_id) {
 async function incrementUserStreaks(telegram_id) {
     try {
         const user_streaks = await UserStreaks.findByPk(telegram_id)
-        await user_streaks.update({
-            streaks_count: user_streaks.streaks_count + 1,
+        let { streaks_count, streaks_peak } = user_streaks
+
+        console.log({ user_streaks })
+
+        streaks_count++
+
+        const updated_data = {
+            streaks_count,
             last_streak_timestamp: new Date
-        })
+        }
+
+        if (streaks_count > streaks_peak) updated_data.streaks_peak = streaks_count
+
+        await user_streaks.update(updated_data)
+
         return user_streaks
     } catch (error) {
         throw error
@@ -55,6 +66,8 @@ async function resetUserStreaks(telegram_id) {
 async function updateStreaks(telegram_id) {
 
     const user_streaks = await findStreaksByPkOrCreate(telegram_id)
+
+    console.log({ user_streaks })
 
     const today = moment().startOf('day')
     const lastStreakDate = moment(user_streaks.last_streak_timestamp).startOf('day')

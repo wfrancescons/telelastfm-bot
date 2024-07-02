@@ -14,6 +14,11 @@ function UserStreaks(sequelize) {
             allowNull: false,
             defaultValue: 0
         },
+        streaks_peak: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
         last_streak_timestamp: {
             type: DataTypes.DATE,
             allowNull: false,
