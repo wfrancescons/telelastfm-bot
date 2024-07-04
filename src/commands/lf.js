@@ -7,8 +7,18 @@ import lfFormatter from './formatters/lfFormatter.js'
 
 async function lf(ctx) {
 
-  const telegram_id = ctx.message.from.id
-  const first_name = ctx.update.message.from.first_name
+  let telegram_id = ctx.message.from.id
+  let first_name = ctx.update.message.from.first_name
+  let reply_to_message_id = ctx.message.message_id
+
+  const isReplyToOther = ctx.update.message?.reply_to_message
+  const isReplyToChannel = ctx.update.message?.reply_to_message?.sender_chat?.type === 'channel'
+
+  if (isReplyToOther && !isReplyToChannel) {
+    telegram_id = ctx.update.message.reply_to_message.from.id
+    first_name = ctx.update.message.reply_to_message.from.first_name
+    reply_to_message_id = ctx.update.message.reply_to_message.message_id
+  }
 
   try {
 
@@ -30,7 +40,7 @@ async function lf(ctx) {
     const message = lfFormatter(data_to_format)
     const extras = {
       entities: message.entities,
-      reply_to_message_id: ctx.message?.message_id
+      reply_to_message_id
     }
 
     await sendTextMessage(ctx, message.text, extras)

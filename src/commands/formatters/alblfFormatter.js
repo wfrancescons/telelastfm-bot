@@ -1,13 +1,13 @@
 import createEntity from '../../utils/createEntity.js'
 
 function formatAlbumDetails(data_to_format) {
-    const statusText = data_to_format.isNowPlaying ? 'is now' : 'was'
+    const statusText = data_to_format.isCustom ? 'listened' : data_to_format.isNowPlaying ? 'is now listening' : 'was listening'
     const streaks = data_to_format.streaks_count ? ` (🔥 ${(data_to_format.streaks_count).toLocaleString('pt-BR')})` : ''
     const tags = data_to_format.formatted_tags ? `\n🏷️ ${data_to_format.formatted_tags}` : ''
     const scrobbles = `${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}`
 
     let message_text =
-        '{{first_name}}{{streaks}} {{statusText}} listening to:\n' +
+        '{{first_name}}{{streaks}} {{statusText}} to:\n' +
         '💿 {{album}}\n' +
         '🧑‍🎤 {{artist}}' +
         '{{tags}}'
