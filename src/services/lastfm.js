@@ -310,7 +310,7 @@ async function getLastfmUserData(username) {
   }
 }
 
-async function getTrackInfo({ track, artist, mbid, username = null }) {
+async function getTrackInfo({ track, artist, username = null }) {
   try {
     const params = {
       method: 'track.getInfo',
@@ -325,14 +325,16 @@ async function getTrackInfo({ track, artist, mbid, username = null }) {
 
     const data = {
       track: response.track?.name || track,
-      artist: response.track?.artist || artist,
+      album: response.track?.album?.title || '',
+      artist: response.track?.artist?.name || artist,
       userplaycount: Number(response.track?.userplaycount) || 0,
       lovedtrack: Boolean(Number(response.track?.userloved)),
-      tags: response.track?.toptags?.tag || []
+      tags: response.track?.toptags?.tag || [],
+      image: DEFAULT_IMAGE
     }
 
-    if (response.track?.image && response.track?.image.length) {
-      data.image = extractImage(response.track.image)
+    if (response.track?.album?.image && response.track.album.image.length) {
+      data.image = extractImage(response.track.album.image)
     }
 
     return data
