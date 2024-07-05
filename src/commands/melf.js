@@ -1,3 +1,4 @@
+import config from '../config.js'
 import { getLastfmUser } from '../database/services/user.js'
 import { updateStreaks } from '../database/services/userStreaks.js'
 import errorHandler from '../handlers/errorHandler.js'
@@ -22,8 +23,7 @@ async function melf(ctx) {
 
         ctx.replyWithChatAction('typing').catch(error => console.error(error))
 
-        const bot_username = 'lastfmtestbot'
-        console.log({ bot_username })
+        const bot_username = config.bot.username.replace('@', '')
 
         if (ctx.update.message?.reply_to_message?.from?.username === bot_username) {
             const text = ctx.update.message.reply_to_message.text
