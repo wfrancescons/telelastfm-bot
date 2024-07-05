@@ -24,12 +24,12 @@ async function lf(ctx) {
 
     ctx.replyWithChatAction('typing').catch(error => console.error(error))
 
-    const user = await getLastfmUser(telegram_id)
-    if (!user) throw 'USER_NOT_FOUND'
+    const lastfm_user = await getLastfmUser(telegram_id)
+    if (!lastfm_user) throw 'USER_NOT_FOUND'
 
     const user_streaks = await updateStreaks(telegram_id)
 
-    const lastfm_data = await getTrackListeningNow(user)
+    const lastfm_data = await getTrackListeningNow(lastfm_user)
 
     const data_to_format = {
       first_name,
