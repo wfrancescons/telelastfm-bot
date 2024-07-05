@@ -89,10 +89,17 @@ try {
       await Commands.toplf(ctx)
     })()
   })
-
-  bot.command('adminlf', (ctx) => {
+  bot.command('melf', (ctx) => {
     (async () => {
-      await Commands.adminlf(ctx)
+      await Commands.melf(ctx)
+    })()
+  })
+
+  // ADMIN
+
+  bot.command('botstatuslf', (ctx) => {
+    (async () => {
+      await Commands.botstatuslf(ctx)
     })()
   })
 
