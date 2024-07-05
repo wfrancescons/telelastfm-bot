@@ -38,7 +38,7 @@ const makeRequest = apiLimiter.wrap(async function makeRequest(params) {
 })
 
 function extractImage(images) {
-  let image = images.pop()['#text']
+  let image = images.pop()['#text'] || null
   if (image === '') {
     image = DEFAULT_IMAGE
   }
@@ -330,7 +330,12 @@ async function getTrackInfo({ track, artist, username = null }) {
       userplaycount: Number(response.track?.userplaycount) || 0,
       lovedtrack: Boolean(Number(response.track?.userloved)),
       tags: response.track?.toptags?.tag || [],
-      image: DEFAULT_IMAGE
+      image: {
+        small: 'https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png',
+        medium: 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png',
+        large: 'https://lastfm.freetls.fastly.net/i/u/500x500/2a96cbd8b46e442fc41c2b86b821562f.png',
+        extralarge: 'https://lastfm.freetls.fastly.net/i/u/770x0/2a96cbd8b46e442fc41c2b86b821562f.png',
+      }
     }
 
     if (response.track?.album?.image && response.track.album.image.length) {
