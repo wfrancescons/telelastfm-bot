@@ -100,7 +100,7 @@ async function youlf(ctx) {
         const user_streaks = await updateStreaks(telegram_id)
 
         const sender_lastfm_data = await getLastfmData({ lastfm_user: sender_lastfm_user, media_type })
-        const reply_lastfm_data = await getLastfmData({ lastfm_user: reply_lastfm_user, media_type, ...sender_lastfm_data })
+        const reply_lastfm_data = await getScrobblesData({ lastfm_user: reply_lastfm_user, media_type, ...sender_lastfm_data })
 
         const data = {
             first_name,

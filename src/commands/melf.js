@@ -167,7 +167,7 @@ async function melf(ctx) {
         const user_streaks = await updateStreaks(telegram_id)
 
         const reply_lastfm_data = await getLastfmData({ lastfm_user: reply_lastfm_user, media_type })
-        const sender_lastfm_data = await getLastfmData({ lastfm_user: sender_lastfm_user, media_type, ...reply_lastfm_data })
+        const sender_lastfm_data = await getScrobblesData({ lastfm_user: sender_lastfm_user, media_type, ...reply_lastfm_data })
 
         const data = {
             first_name,
