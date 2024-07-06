@@ -1,14 +1,15 @@
 import createEntity from '../../utils/createEntity.js'
 
 function formatTrackDetails(data_to_format) {
-  const statusText = data_to_format.isNowPlaying ? 'is now' : 'was'
+  const statusText = data_to_format.isCustom ? 'listened' : data_to_format.isNowPlaying ? 'is now listening' : 'was listening'
   const loveText = data_to_format.isLovedTrack ? ' loves ❤️ and' : ''
   const streaks = data_to_format.streaks_count ? ` (🔥 ${(data_to_format.streaks_count).toLocaleString('pt-BR')})` : ''
   const tags = data_to_format.formatted_tags ? `\n🏷️ ${data_to_format.formatted_tags}` : ''
-  const scrobbles = `${(data_to_format.userplaycount + 1).toLocaleString('pt-BR')} ${data_to_format.userplaycount + 1 !== 1 ? 'scrobbles so far' : 'scrobble so far'}`
+  const playcount = data_to_format.isNowPlaying ? data_to_format.userplaycount + 1 : data_to_format.userplaycount
+  const scrobbles = `${playcount.toLocaleString('pt-BR')} ${playcount !== 1 ? 'scrobbles so far' : 'scrobble so far'}`
 
   let message_text =
-    '{{first_name}}{{streaks}}{{loveText}} {{statusText}} listening to:\n' +
+    '{{first_name}}{{streaks}}{{loveText}} {{statusText}} to:\n' +
     '🎶 {{track}}\n' +
     '💿 {{album}}\n' +
     '🧑‍🎤 {{artist}}' +
@@ -59,7 +60,7 @@ function lfFormatter(data_to_format) {
   if (tags && tags.length > 0) {
     formatted_tags = tags
       .slice(0, 3)
-      .map(tag => tag.name.trim().toLowerCase().replace(' ', '').replace(' ', ''))
+      .map(tag => tag.name.trim().toLowerCase().replace(/\s+/g, ''))
       .join(', ')
   }
 
