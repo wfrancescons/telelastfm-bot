@@ -31,7 +31,7 @@ async function getLastfmData(lastfm_user, media_type) {
 
 function parseArgs(args) {
     const media_type = args.find(arg => acceptedMedias.includes(arg)) || 'tracks'
-    return { media_type }
+    return media_type
 }
 
 async function storylf(ctx) {
@@ -39,14 +39,12 @@ async function storylf(ctx) {
     const telegram_id = ctx.message.from.id
     const first_name = ctx.update.message.from.first_name
     const args = ctx.update.message.text.trim().toLowerCase().split(' ')
+    const media_type = parseArgs(args)
 
     try {
         ctx.replyWithChatAction('typing').catch(error => console.error(error))
 
         const lastfm_user = await getLastfmUser(telegram_id)
-
-        const { media_type } = parseArgs(args)
-
         const lastfm_data = await getLastfmData(lastfm_user, mediaMap[media_type])
 
         const responseExtra = {
