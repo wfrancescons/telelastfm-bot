@@ -37,6 +37,8 @@ try {
     { command: 'alblf', description: 'Send your last album scrobble' },
     { command: 'artlf', description: 'Send your last artist scrobble' },
     { command: 'setlf', description: 'Set your Lastfm username' },
+    { command: 'melf', description: 'See your scrobbles for what the user you responded to is listening to' },
+    { command: 'youlf', description: 'See the scrobbles of the user you responded to for what you are listening to.' },
     { command: 'storylf', description: 'Generate a story collage' },
     { command: 'gridlf', description: 'Generate a grid collage' },
     { command: 'toplf', description: 'Generate a top scrobbles collage' },
@@ -51,6 +53,7 @@ try {
   // Set bot response
   bot.start((ctx) => Commands.start(ctx))
   bot.help((ctx) => Commands.help(ctx))
+  bot.command('privacy', (ctx) => Commands.privacy(ctx))
 
   bot.command('collage', (ctx) => ctx.reply(`Comando alterado para /gridlf\nMais informações: ${config.bot.news_channel}`))
 
@@ -92,6 +95,11 @@ try {
   bot.command('melf', (ctx) => {
     (async () => {
       await Commands.melf(ctx)
+    })()
+  })
+  bot.command('youlf', (ctx) => {
+    (async () => {
+      await Commands.youlf(ctx)
     })()
   })
 

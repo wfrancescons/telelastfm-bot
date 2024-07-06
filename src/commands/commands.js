@@ -11,6 +11,7 @@ import lf from './lf.js'
 import melf from './melf.js'
 import setlf from './setlf.js'
 import storylf from './storylf.js'
+import youlf from './youlf.js'
 ////import toplf from './toplf.js'
 
 //import rmvn from './rmvn.js'
@@ -83,7 +84,25 @@ async function help(ctx) {
   }
 }
 
+async function privacy(ctx) {
+
+  try {
+
+    const extra = {
+      reply_to_message_id: ctx.message?.message_id,
+      entities: []
+    }
+
+    const message = `PRIVACY DATA`
+
+    await sendTextMessage(ctx, message, extra)
+
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 export {
-  alblf, artlf, botstatuslf, gridlf, help, inlineQuery, lf, melf, setlf, start, storylf
+  alblf, artlf, botstatuslf, gridlf, help, inlineQuery, lf, melf, privacy, setlf, start, storylf, youlf
 }
 
