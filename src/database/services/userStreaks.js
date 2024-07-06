@@ -67,8 +67,6 @@ async function updateStreaks(telegram_id) {
 
     const user_streaks = await findStreaksByPkOrCreate(telegram_id)
 
-    console.log({ user_streaks })
-
     const today = moment().startOf('day')
     const lastStreakDate = moment(user_streaks.last_streak_timestamp).startOf('day')
 
