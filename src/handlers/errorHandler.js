@@ -17,9 +17,9 @@ export default async function (ctx, error, info) {
                         type: 'article',
                         id: 1,
                         title: '⚠️ User not found',
-                        description: 'Use /reg to set your Lastfm\'s username',
+                        description: 'Use /setlf to set your Lastfm\'s username',
                         input_message_content: {
-                            message_text: 'Send /reg to @telelastfmbot to set your Lastfm\'s username'
+                            message_text: 'Send /setlf to @telelastfmbot to set your Lastfm\'s username'
                         }
                     }]
 
@@ -29,11 +29,11 @@ export default async function (ctx, error, info) {
 
                 if (isReply) {
                     const { first_name } = ctx.update.message.reply_to_message.from
-                    ctx.replyWithMarkdown(`${first_name} needs to type \`/reg lastfmusername\` to set a Lastfm's username`, extras)
+                    ctx.replyWithMarkdown(`${first_name} needs to type \`/setlf lastfmusername\` to set a Lastfm's username`, extras)
                     break
                 }
 
-                await ctx.replyWithMarkdown('Type `/reg lastfmusername` to set your Lastfm\'s username', extras)
+                await ctx.replyWithMarkdown('Type `/setlf lastfmusername` to set your Lastfm\'s username', extras)
                 break
             }
 
@@ -63,7 +63,7 @@ export default async function (ctx, error, info) {
                 await ctx.replyWithMarkdown(
                     'There aren\'t any scrobbles in your Lastfm. 🙁\n\n' +
                     'Is your username correct? 🤔\n' +
-                    'Type `/reg lastfmusername` to set your Lastfm\'s username',
+                    'Type `/setlf lastfmusername` to set your Lastfm\'s username',
                     extras
                 )
                 break
@@ -71,8 +71,8 @@ export default async function (ctx, error, info) {
 
             case 'REG_WITHOUT_ARGS': {
                 await ctx.replyWithMarkdown(
-                    'Type /reg with with your Lastfm\'s username. \n' +
-                    'Example: `/reg lastfmusername` \n' +
+                    'Type /setlf with with your Lastfm\'s username. \n' +
+                    'Example: `/setlf lastfmusername` \n' +
                     'Please, try again 🙂',
                     extras
                 )
@@ -95,62 +95,16 @@ export default async function (ctx, error, info) {
                 break
             }
 
-            case 'ADDN_INCORRECT_ARGS': {
-                await ctx.replyWithMarkdown(
-                    'Type /addn with artist\'s name + hyphen + artist\'s nick. \n' +
-                    'Example: `/addn Jennifer Hudson - EGOT Winner` \n' +
-                    'Please, try again 🙂',
-                    extras
-                )
-                break
-            }
-
-            case 'ADDN_BADWORDS': {
-                await ctx.replyWithMarkdown(
-                    'You\'re using bad words 🚫\n' +
-                    'Please, be kind 😉',
-                    extras
-                )
-                break
-            }
-
-            case 'ADDN_MAX_STRING_LENGTH': {
-                await ctx.replyWithMarkdown(
-                    'Artist name or nickname is too long 🥴\n' +
-                    'Please, try again with ordinary names 🙂',
-                    extras
-                )
-                break
-            }
-
-            case 'RMVN_WITHOUT_ARGS': {
-                await ctx.replyWithMarkdown(
-                    'Type /rmvn with artist\'s name to remove artist\'s nick. \n' +
-                    'Example: `/rmvn Taylor Swift` \n' +
-                    'Please, try again 🙂',
-                    extras
-                )
-                break
-            }
-            case 'RMVN_NICK_NOT_FOUND': {
-                await ctx.reply(
-                    'Didn\'t find anyone with that name in my records 🤔 \n' +
-                    'Please, try again 🙂',
-                    extras
-                )
-                break
-            }
-
             case 'COLLAGE_INCORRECT_ARGS': {
                 await ctx.replyWithMarkdown(
                     'Invalid argumments 🤔\n\n' +
                     '✅ Type a columns x rows value greater than 0 and up to 10\n' +
                     '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`\n\n' +
                     '➡️ Examples:\n' +
-                    '`/collage 3x3`\n' +
-                    '`/collage 5x5 7day`\n' +
-                    '`/collage 4x8 noplays`\n' +
-                    '`/collage 6x7 nonames`',
+                    '`/gridlf 3x3`\n' +
+                    '`/gridlf 5x5 7day`\n' +
+                    '`/gridlf 4x8 noplays`\n' +
+                    '`/gridlf 6x7 nonames`',
                     extras
                 )
                 break
@@ -161,12 +115,12 @@ export default async function (ctx, error, info) {
                     'Invalid argumments 🤔\n\n' +
                     '✅ Valid Media Types: `tracks`, `alb`, `art`\n' +
                     '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`\n\n' +
-                    'Type `/top mediatype period` to generate a collage\n' +
+                    'Type `/toplf mediatype period` to generate a collage\n' +
                     '➡️ Examples:\n' +
-                    '`/top alb`\n' +
-                    '`/top 7day`\n' +
-                    '`/top tracks 1month`\n' +
-                    '`/top alb overall`',
+                    '`/toplf alb`\n' +
+                    '`/toplf 7day`\n' +
+                    '`/toplf tracks 1month`\n' +
+                    '`/toplf alb overall`',
                     extras
                 )
                 break
@@ -177,9 +131,9 @@ export default async function (ctx, error, info) {
                     'Invalid argumments 🤔\n\n' +
                     '✅ Valid Media Types: `tracks`, `albums`, `artists`\n' +
                     '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`\n\n' +
-                    'Type `/story mediatype period` to generate a collage\n' +
-                    'or `/story mediatype` to generate a image of your latest scrobble.\n' +
-                    '➡️ Examples: `/story album 1month` or `/story track`',
+                    'Type `/storylf mediatype period` to generate a collage\n' +
+                    'or `/storylf mediatype` to generate a image of your latest scrobble.\n' +
+                    '➡️ Examples: `/storylf album 1month` or `/storylf track`',
                     extras
                 )
                 break
@@ -271,7 +225,7 @@ export default async function (ctx, error, info) {
                     'Something went wrong 🥴 \n' +
                     'I couldn\'t find any Lastfm user with the username you provided.\n' +
                     'Did you change your Lastfm username?\n' +
-                    'Type `/reg lastfmusername` to change your username.\n\n' +
+                    'Type `/setlf lastfmusername` to change your username.\n\n' +
                     'If the issue keeps happening, contact me @telelastfmsac',
                     extras
                 )
