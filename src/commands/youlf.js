@@ -1,5 +1,5 @@
 import { getLastfmUser } from '../database/services/user.js'
-import { updateStreaks } from '../database/services/userStreaks.js'
+import { findStreaksByPkOrCreate } from '../database/services/userStreaks.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { acceptedMedias, mediaMap } from '../helpers/validValuesMap.js'
 import { getAlbumInfo, getAlbumListeningNow, getArtistInfo, getArtistListeningNow, getTrackInfo, getTrackListeningNow } from '../services/lastfm.js'
@@ -97,7 +97,7 @@ async function youlf(ctx) {
         const reply_lastfm_user = await getLastfmUser(reply_user_telegram_id)
         if (!reply_lastfm_user) throw 'USER_NOT_FOUND_REPLY'
 
-        const user_streaks = await updateStreaks(telegram_id)
+        const user_streaks = await findStreaksByPkOrCreate(reply_user_telegram_id)
 
         const sender_lastfm_data = await getLastfmData({ lastfm_user: sender_lastfm_user, media_type })
         const reply_lastfm_data = await getScrobblesData({ lastfm_user: reply_lastfm_user, media_type, ...sender_lastfm_data })
