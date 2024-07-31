@@ -1,4 +1,5 @@
 import { getLastfmUser } from '../database/services/user.js'
+import { updateStreaks } from '../database/services/userStreaks.js'
 import errorHandler from '../handlers/errorHandler.js'
 import limitText from '../helpers/limitText.js'
 import { getAlbumListeningNow, getArtistListeningNow, getTrackListeningNow } from '../services/lastfm.js'
@@ -14,6 +15,9 @@ async function inlineQuery(ctx) {
     try {
 
         const lastfm_user = await getLastfmUser(telegram_id)
+        if (!lastfm_user) throw 'USER_NOT_FOUND'
+
+        const user_streaks = await updateStreaks(telegram_id)
 
         const lastfm_data = await Promise.all([
             getTrackListeningNow(lastfm_user),
@@ -24,18 +28,21 @@ async function inlineQuery(ctx) {
         const [lf, alblf, artlf] = lastfm_data
 
         lf.formattedMessage = lfFormatter({
-            ...lf,
-            first_name
+            first_name,
+            streaks_count: user_streaks.streaks_count,
+            ...lf
         })
 
         alblf.formattedMessage = alblfFormatter({
-            ...alblf,
-            first_name
+            first_name,
+            streaks_count: user_streaks.streaks_count,
+            ...alblf
         })
 
         artlf.formattedMessage = artlfFormatter({
-            ...artlf,
-            first_name
+            first_name,
+            streaks_count: user_streaks.streaks_count,
+            ...artlf
         })
 
         const results = [
