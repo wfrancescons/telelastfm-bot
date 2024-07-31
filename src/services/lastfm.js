@@ -39,7 +39,7 @@ const makeRequest = apiLimiter.wrap(async function makeRequest(params) {
 
 function extractImage(images) {
   let image = images.pop()['#text'] || null
-  if (image === '') {
+  if (!image) {
     image = DEFAULT_IMAGE
   }
 
