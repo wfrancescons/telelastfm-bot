@@ -133,12 +133,28 @@ async function melf(ctx) {
             const lastfm_user_sender = await getLastfmUser(telegram_id)
             if (!lastfm_user_sender) throw 'USER_NOT_FOUND'
 
-            const media_type = detectMediaType(text_splitted[1])
+            let media_type = detectMediaType(text_splitted[1])
             if (!media_type) return console.log('não é uma mensagem de música')
 
             const user_streaks = await updateStreaks(telegram_id)
 
             const message_infos = parseTextFromThisBot(text_splitted, media_type)
+
+            const arg = mediaMap[args.pop()]
+            if (arg) {
+                if (media_type === 'tracks') {
+                    if (arg === 'tracks' || arg === 'albums' || arg === 'artists') {
+                        media_type = mediaMap[arg]
+                    }
+                }
+
+                if (media_type === 'albums') {
+                    if (arg === 'albums' || arg === 'artists') {
+                        media_type = mediaMap[arg]
+                    }
+                }
+            }
+
             const lastfm_data = await getScrobblesData({ lastfm_user: lastfm_user_sender, media_type, ...message_infos })
 
             const data = {
