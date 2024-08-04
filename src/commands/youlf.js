@@ -74,28 +74,28 @@ function parseArgs(args) {
 
 async function youlf(ctx) {
 
-    const isReplyToOther = ctx.update.message?.reply_to_message
-    const isReplyToChannel = ctx.update.message?.reply_to_message?.sender_chat?.type === 'channel'
-
-    if (!isReplyToOther || isReplyToChannel) return console.log('precisa responder uma mensagem de outro usuário')
-
-    let telegram_id = ctx.message.from.id
-    let first_name = ctx.update.message.reply_to_message.from.first_name
-    let reply_to_message_id = ctx.update.message.reply_to_message.message_id
-    const args = ctx.update.message.text.trim().toLowerCase().split(' ')
-    let media_type = parseArgs(args)
-    media_type = mediaMap[media_type]
-
-    const reply_user_telegram_id = ctx.update.message.reply_to_message.from.id
-
     try {
         ctx.replyWithChatAction('typing').catch(error => console.error(error))
+
+        const isReplyToOther = ctx.update.message?.reply_to_message
+        const isReplyToChannel = ctx.update.message?.reply_to_message?.sender_chat?.type === 'channel'
+
+        if (!isReplyToOther || isReplyToChannel) throw 'NOT_A_REPLY_MESSAGE'
+
+        let telegram_id = ctx.message.from.id
+        let first_name = ctx.update.message.reply_to_message.from.first_name
+        let reply_to_message_id = ctx.update.message.reply_to_message.message_id
+        const args = ctx.update.message.text.trim().toLowerCase().split(' ')
+        let media_type = parseArgs(args)
+        media_type = mediaMap[media_type]
+
+        const reply_user_telegram_id = ctx.update.message.reply_to_message.from.id
 
         const sender_lastfm_user = await getLastfmUser(telegram_id)
         if (!sender_lastfm_user) throw 'USER_NOT_FOUND'
 
         const reply_lastfm_user = await getLastfmUser(reply_user_telegram_id)
-        if (!reply_lastfm_user) throw 'USER_NOT_FOUND_REPLY'
+        if (!reply_lastfm_user) throw 'USER_NOT_FOUND'
 
         const user_streaks = await findStreaksByPkOrCreate(reply_user_telegram_id)
 

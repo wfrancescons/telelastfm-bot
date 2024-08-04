@@ -232,6 +232,34 @@ export default async function (ctx, error, info) {
                 break
             }
 
+            case 'NOT_A_MUSIC_BOT_MESSAGE': {
+                await ctx.replyWithMarkdown(
+                    'Oops 🥴\n' +
+                    '\n➡️ This command is only valid for messages with music information\n' +
+                    '\nPlease, try again 🙂',
+                    extras
+                )
+                break
+            }
+
+            case 'NOT_A_REPLY_MESSAGE': {
+                await ctx.replyWithMarkdown(
+                    '\n➡️ In order to use this command, you need to reply to another user\'s message\n' +
+                    '\nPlease, try again 🙂',
+                    extras
+                )
+                break
+            }
+
+            case 'USER_NOT_FOUND_REPLY': {
+                await ctx.replyWithMarkdown(
+                    '\n➡️ In order to use this command, you need to reply to another user\'s message.\n' +
+                    '\nPlease, try again 🙂',
+                    extras
+                )
+                break
+            }
+
             default: {
                 console.error('Error:', error)
                 if (!await canSendMessage(ctx.message.chat.id, ctx.botInfo.id)) break

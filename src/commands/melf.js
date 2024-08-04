@@ -117,16 +117,16 @@ async function melf(ctx) {
     const isReplyToOther = ctx.update.message?.reply_to_message
     const isReplyToChannel = ctx.update.message?.reply_to_message?.sender_chat?.type === 'channel'
 
-    if (!isReplyToOther || isReplyToChannel) return console.log('precisa responder uma mensagem de outro usuário')
-
-    const reply_user_telegram_id = ctx.update.message.reply_to_message.from.id
-
     try {
         ctx.replyWithChatAction('typing').catch(error => console.error(error))
 
+        if (!isReplyToOther || isReplyToChannel) throw 'NOT_A_REPLY_MESSAGE'
+
+        const reply_user_telegram_id = ctx.update.message.reply_to_message.from.id
+
         if (isMessageFromThisBot(ctx)) {
             const bot_text = ctx.update.message.reply_to_message.text
-            if (!bot_text) return console.log('não é uma mensagem de música')
+            if (!bot_text) throw 'NOT_A_MUSIC_BOT_MESSAGE'
 
             const text_splitted = bot_text.split('\n')
 
@@ -134,7 +134,7 @@ async function melf(ctx) {
             if (!lastfm_user_sender) throw 'USER_NOT_FOUND'
 
             let media_type = detectMediaType(text_splitted[1])
-            if (!media_type) return console.log('não é uma mensagem de música')
+            if (!media_type) throw 'NOT_A_MUSIC_BOT_MESSAGE'
 
             const user_streaks = await updateStreaks(telegram_id)
 
