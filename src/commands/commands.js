@@ -14,10 +14,8 @@ import storylf from './storylf.js'
 import youlf from './youlf.js'
 ////import toplf from './toplf.js'
 
-//import rmvn from './rmvn.js'
-//import addn from './addn.js'
-//import rankin from './rankin.js'
-//import rankout from './rankout.js'
+import rankinlf from './rankinlf.js'
+import rankoutlf from './rankoutlf.js'
 
 async function start(ctx) {
 
@@ -103,6 +101,6 @@ async function privacy(ctx) {
 }
 
 export {
-  alblf, artlf, botstatuslf, gridlf, help, inlineQuery, lf, melf, privacy, setlf, start, storylf, youlf
+  alblf, artlf, botstatuslf, gridlf, help, inlineQuery, lf, melf, privacy, rankinlf, rankoutlf, setlf, start, storylf, youlf
 }
 

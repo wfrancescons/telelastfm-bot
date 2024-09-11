@@ -36,12 +36,14 @@ try {
     { command: 'lf', description: 'Send your last track scrobble' },
     { command: 'alblf', description: 'Send your last album scrobble' },
     { command: 'artlf', description: 'Send your last artist scrobble' },
-    { command: 'setlf', description: 'Set your Lastfm username' },
+    { command: 'gridlf', description: 'Generate a grid collage' },
+    { command: 'storylf', description: 'Generate a story collage' },
     { command: 'melf', description: 'See your scrobbles for what the user you responded to is listening to' },
     { command: 'youlf', description: 'See the scrobbles of the user you responded to for what you are listening to.' },
-    { command: 'storylf', description: 'Generate a story collage' },
-    { command: 'gridlf', description: 'Generate a grid collage' },
+    { command: 'rankinlf', description: 'Join to a group\'s Weekly Chart Race' },
+    { command: 'rankoutlf', description: 'Leave a group\'s Weekly Chart Race' },
     { command: 'toplf', description: 'Generate a top scrobbles collage' },
+    { command: 'setlf', description: 'Set your Lastfm username' },
     { command: 'help', description: 'Send a list of valid commands' }
   ])
 
@@ -102,6 +104,16 @@ try {
       await Commands.youlf(ctx)
     })()
   })
+  bot.command('rankinlf', (ctx) => {
+    (async () => {
+      await Commands.rankinlf(ctx)
+    })()
+  })
+  bot.command('rankoutlf', (ctx) => {
+    (async () => {
+      await Commands.rankoutlf(ctx)
+    })()
+  })
 
   // ADMIN
 
@@ -110,9 +122,6 @@ try {
       await Commands.botstatuslf(ctx)
     })()
   })
-
-  //bot.command('rankin', (ctx) => Commands.rankin(ctx))
-  //bot.command('rankout', (ctx) => Commands.rankout(ctx))
 
   bot.on('inline_query', (ctx) => {
     (async () => {
@@ -128,6 +137,11 @@ try {
   }
 
   console.log(`BOT: running in ${config.environment} environment`)
+
+  import('./cron/cronjob.js')
+    .then(() => console.log('CRONJOB: Task scheduled'))
+    .catch(error => console.error(error))
+
 } catch (error) {
   console.error('BOT: error when starting - ', error)
 }

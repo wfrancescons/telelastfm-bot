@@ -26,7 +26,6 @@ function buildUrl(params) {
 
 const makeRequest = apiLimiter.wrap(async function makeRequest(params) {
   const url = buildUrl(params)
-  console.log(url)
   const response = await request({ url })
 
   if (!response.ok) {
@@ -64,11 +63,8 @@ async function getOgImage(url) {
         }
       }
     })
-    console.log(html.status, html.statusText)
     const $ = cheerio.load(await html.text())
     const ogImage = $('meta[property="og:image"]').attr('content')
-
-    console.log(ogImage)
 
     if (!ogImage) return DEFAULT_IMAGE
 

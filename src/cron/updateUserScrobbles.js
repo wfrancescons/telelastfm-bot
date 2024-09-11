@@ -1,6 +1,6 @@
-import { getWeeklyTrackChart } from '../controllers/lastfm.js'
-import { getAllRankGroups } from '../database/rank.js'
-import { getSpecificUsers, updateUserScrobbles } from '../database/user.js'
+import { getAllRankUsers } from '../database/services/rankGroupParticipants.js'
+import { setUserScrobbles } from '../database/services/weeklyScrobblesPlaycount.js'
+import { getWeeklyTrackChart } from '../services/lastfm.js'
 
 async function getLastfmData(lastfm_user) {
     try {
@@ -28,41 +28,17 @@ async function getLastfmData(lastfm_user) {
     }
 }
 
-async function getUsers() {
+async function updateUserScrobbles() {
     try {
-        const groups = await getAllRankGroups()
-        const users = groups.flatMap(group => {
-            return group.users.map(user => user.telegram_id)
-        })
+        const rank_users = await getAllRankUsers()
 
-        const unique_users = [...new Set(users)]
-        return unique_users
-
+        for (const user of rank_users) {
+            const lastfm_data = await getLastfmData(user.lastfm_username)
+            await setUserScrobbles(user.telegram_id, lastfm_data)
+        }
     } catch (error) {
-        console.log(error)
+        throw error
     }
 }
 
-export default function () {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const telegram_ids = await getUsers()
-            const users_infos = await getSpecificUsers(telegram_ids)
-
-            const updated_infos = await Promise.all(
-                users_infos.map(async (item) => {
-                    const lastfm_data = await getLastfmData(item.lastfm_username)
-                    return { telegram_id: item.telegram_id, lastfm_data }
-                }))
-
-            await Promise.all(
-                updated_infos.map(async (item) => {
-                    await updateUserScrobbles(item.telegram_id, item.lastfm_data)
-                })
-            )
-            resolve()
-        } catch (error) {
-            reject(error)
-        }
-    })
-}
+export default updateUserScrobbles

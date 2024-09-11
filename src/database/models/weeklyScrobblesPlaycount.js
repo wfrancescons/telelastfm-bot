@@ -5,7 +5,7 @@ function WeeklyScrobblesPlaycount(sequelize) {
         telegram_id: {
             type: DataTypes.BIGINT,
             allowNull: false,
-            unique: true,
+            primaryKey: true
         },
         scrobbles_playcount: {
             type: DataTypes.INTEGER,
@@ -16,8 +16,7 @@ function WeeklyScrobblesPlaycount(sequelize) {
             allowNull: false,
         }
     }, {
-        createdAt: 'timestamp',
-        updatedAt: false
+        timestamps: true
     })
 }
 

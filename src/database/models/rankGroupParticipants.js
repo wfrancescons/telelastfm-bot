@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize'
 
-function UsersInRank(sequelize) {
-    return sequelize.define('UsersInRank', {
+function rankGroupParticipants(sequelize) {
+    return sequelize.define('RankGroupParticipants', {
         chat_id: {
             type: DataTypes.BIGINT,
             allowNull: false
@@ -13,4 +13,4 @@ function UsersInRank(sequelize) {
     }, { timestamps: true })
 }
 
-export default UsersInRank
+export default rankGroupParticipants

@@ -1,133 +1,86 @@
-import { getUserTopAlbums, getUserTopArtists, getUserTopTracks } from '../controllers/lastfm.js'
-import { getLastfmUser } from '../database/user.js'
+import { getLastfmUser } from '../database/services/user.js'
+import { updateStreaks } from '../database/services/userStreaks.js'
 import errorHandler from '../handlers/errorHandler.js'
-import { canSendMediaMessage, canSendMessage, isChannel, isChannelMsgForward } from '../helpers/chatHelper.js'
-import { generateBackground } from '../helpers/colors.js'
-import { acceptedMedias, acceptedPeriods, mediaMap, periodInTextMap, periodMap } from '../helpers/validValuesMap.js'
-import { htmlToImage } from '../modules/htmlToImage.js'
-import generateTopHtml from './templates/topTemplate.js'
+import { acceptedMedias, acceptedPeriods } from '../helpers/validValuesMap.js'
+import { getTrackListeningNow, getUserTopAlbums, getUserTopArtists, getUserTopTracks } from '../services/lastfm.js'
+import { sendTextMessage } from '../utils/messageSender.js'
+import lfFormatter from './formatters/lfFormatter.js'
 
-function getLastfmData(lastfm_user, media, period) {
+const DEFAULT_MEDIA_TYPE = 'albums'
+const DEFAULT_PERIOD = '7day'
 
-    return new Promise((resolve, reject) => {
-        if (media === 'tracks') {
-            getUserTopTracks(lastfm_user, period)
-                .then(data => resolve(data))
-                .catch(error => reject(error))
-        }
-
-        if (media === 'albums') {
-            getUserTopAlbums(lastfm_user, period)
-                .then(data => resolve(data))
-                .catch(error => reject(error))
-        }
-
-        if (media === 'artists') {
-            getUserTopArtists(lastfm_user, period)
-                .then(data => resolve(data))
-                .catch(error => reject(error))
-        }
-
-    })
+function parseArgs(args) {
+    const media_type = args.find(arg => acceptedMedias.includes(arg)) || DEFAULT_MEDIA_TYPE
+    const period = args.find(arg => acceptedPeriods.includes(arg)) || DEFAULT_PERIOD
+    return { media_type, period }
 }
 
-function createTemplate(lastfm_user, media_type, period) {
-    return new Promise(async (resolve, reject) => {
-        try {
-
-            console.time('Fetch Lastfm Data')
-            const lastfm_data = await getLastfmData(lastfm_user, media_type, period)
-            console.timeEnd('Fetch Lastfm Data')
-
-            console.time('Background Blur')
-            const background_buffer = await generateBackground(lastfm_data[0].image)
-            console.timeEnd('Background Blur')
-
-            const html = generateTopHtml({
-                lastfm_data,
-                background_buffer,
-                media_type,
-                period
-            })
-
-            const ssOptions = {
-                type: 'jpeg',
-                quality: 100,
-                fullPage: false,
-                clip: { x: 0, y: 0, width: 1080, height: 1920 },
-                path: ''
-            }
-
-            resolve([html, ssOptions])
-
-        } catch (error) {
-            reject(error)
+async function getLastfmData(lastfm_user, media_type, period, limit) {
+    try {
+        if (media_type === 'tracks') {
+            const lastfmData = await getUserTopTracks(lastfm_user, period, limit)
+            return lastfmData
         }
-    })
+
+        if (media_type === 'albums') {
+            const lastfmData = await getUserTopAlbums(lastfm_user, period, limit)
+            return lastfmData
+        }
+
+        if (media_type === 'artists') {
+            const lastfmData = await getUserTopArtists(lastfm_user, period, limit)
+            return lastfmData
+        }
+    } catch (error) {
+        throw error
+    }
 }
 
-async function top(ctx) {
-    console.time('TOTAL TIME')
+async function toplf(ctx) {
 
-    const chat_id = ctx.message.chat.id
-    const { first_name, id: telegram_id } = ctx.update.message.from
+    let telegram_id = ctx.message.from.id
+    let first_name = ctx.update.message.from.first_name
+    let reply_to_message_id = ctx.message.message_id
     const args = ctx.update.message.text.trim().toLowerCase().split(' ')
+    const media_type = parseArgs(args)
+
+    const isReplyToOther = ctx.update.message?.reply_to_message
+    const isReplyToChannel = ctx.update.message?.reply_to_message?.sender_chat?.type === 'channel'
+
+    if (isReplyToOther && !isReplyToChannel) {
+        telegram_id = ctx.update.message.reply_to_message.from.id
+        first_name = ctx.update.message.reply_to_message.from.first_name
+        reply_to_message_id = ctx.update.message.reply_to_message.message_id
+    }
 
     try {
-        if (isChannel(ctx) || !await canSendMessage(chat_id, ctx.botInfo.id)) return
-        await ctx.replyWithChatAction('typing')
 
-        let media_type = args.find(arg => acceptedMedias.includes(arg))
-        media_type = media_type ? mediaMap[media_type] : undefined
-
-        let period = args.find(arg => acceptedPeriods.includes(arg))
-        period = period ? periodMap[period] : undefined
-
-        if ((!media_type || !period) && args.length > 2) return errorHandler(ctx, 'TOP_INCORRECT_ARGS')
-
-        if (!media_type) media_type = 'albums'
-        if (!period) period = '7day'
-
-        //verifica a permissão de enviar imagens
-        if (!await canSendMediaMessage(chat_id, ctx.botInfo.id)) return errorHandler(ctx, 'CANNOT_SEND_MEDIA_MESSAGES')
+        ctx.replyWithChatAction('typing').catch(error => console.error(error))
 
         const lastfm_user = await getLastfmUser(telegram_id)
+        if (!lastfm_user) throw 'USER_NOT_FOUND'
 
-        //gera a colagem
-        const extras = {}
-        if (isChannelMsgForward(ctx)) extras.reply_to_message_id = ctx.message.message_id
+        const user_streaks = await updateStreaks(telegram_id)
 
-        const response = await ctx.reply(
-            'Generating your top 🖼️\n' +
-            'It may take a while...',
-            extras
-        )
+        const lastfm_data = await getTrackListeningNow(lastfm_user)
 
-        await ctx.replyWithChatAction('upload_photo')
+        const data_to_format = {
+            first_name,
+            streaks_count: user_streaks.streaks_count,
+            ...lastfm_data
+        }
 
+        const message = lfFormatter(data_to_format)
+        const extras = {
+            entities: message.entities,
+            reply_to_message_id
+        }
 
-        createTemplate(lastfm_user, media_type, period)
-            .then(topGenerated => {
-                console.time('Screenshot Browser')
-                htmlToImage(...topGenerated)
-                    .then(img_buffer => {
-                        console.timeEnd('Screenshot Browser')
-                        extras.caption = `${first_name}, your top ${media_type} of ${periodInTextMap[period]}`
-                        console.time('Telegram')
-                        ctx.replyWithPhoto({ source: img_buffer }, extras)
-                            .finally(() => {
-                                console.timeEnd('Telegram')
-                                console.timeEnd('TOTAL TIME')
-                                ctx.deleteMessage(response.message_id)
-                            })
-                    })
-                    .catch(error => errorHandler(ctx, error))
-            })
-            .catch(error => errorHandler(ctx, error))
+        await sendTextMessage(ctx, message.text, extras)
 
     } catch (error) {
         errorHandler(ctx, error)
     }
 }
 
-export default top
+export default toplf

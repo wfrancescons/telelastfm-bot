@@ -7,7 +7,6 @@ function UserStreaks(sequelize) {
             allowNull: false,
             unique: true,
             primaryKey: true
-
         },
         streaks_count: {
             type: DataTypes.INTEGER,

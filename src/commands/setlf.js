@@ -1,5 +1,4 @@
 import config from '../config.js'
-import { logCommand } from '../database/services/commandUsageLog.js'
 import { setLastfmUser } from '../database/services/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import createEntity from '../utils/createEntity.js'
@@ -11,8 +10,6 @@ async function setlf(ctx) {
     const chat_id = ctx.message.chat.id
     const text = ctx.update.message.text.split(' ')
     const [command, lastfm_user] = text
-
-    logCommand('setlb', telegram_id, chat_id)
 
     try {
         await ctx.replyWithChatAction('typing')

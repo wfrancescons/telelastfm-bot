@@ -176,8 +176,7 @@ export default async function (ctx, error, info) {
             case 'RANK_REGISTERED_USER': {
                 await ctx.reply(
                     `You are already participating in this group's race.\n` +
-                    `To exit, use /rankout 😉\n\n` +
-                    `Spots left: ${info}`,
+                    `To exit, use /rankout 😉`,
                     extras
                 )
                 break

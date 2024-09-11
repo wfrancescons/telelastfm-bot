@@ -31,8 +31,6 @@ async function incrementUserStreaks(telegram_id) {
         const user_streaks = await UserStreaks.findByPk(telegram_id)
         let { streaks_count, streaks_peak } = user_streaks
 
-        console.log({ user_streaks })
-
         streaks_count++
 
         const updated_data = {
