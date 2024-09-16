@@ -138,9 +138,9 @@ try {
 
   console.log(`BOT: running in ${config.environment} environment`)
 
-  import('./cron/cronjob.js')
-    .then(() => console.log('CRONJOB: Task scheduled'))
-    .catch(error => console.error(error))
+  /* import('./cron/cronjob.js')
+      .then(() => console.log('CRONJOB: Task scheduled'))
+      .catch(error => console.error(error)) */
 
 } catch (error) {
   console.error('BOT: error when starting - ', error)
