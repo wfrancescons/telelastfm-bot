@@ -18,8 +18,7 @@ try {
 
   // Set bot 'Description'
   bot.telegram.setMyDescription(
-    'Share your last.fm scrobbles with your friends 🎵\n' +
-    'Customize artists\' names with nicks 🙂'
+    'Share your last.fm scrobbles with your friends 🎵'
   )
 
   // Set bot 'About'
@@ -138,9 +137,9 @@ try {
 
   console.log(`BOT: running in ${config.environment} environment`)
 
-  /* import('./cron/cronjob.js')
-      .then(() => console.log('CRONJOB: Task scheduled'))
-      .catch(error => console.error(error)) */
+  import('./cron/cronjob.js')
+    .then(() => console.log('CRONJOB: Task scheduled'))
+    .catch(error => console.error(error))
 
 } catch (error) {
   console.error('BOT: error when starting - ', error)
