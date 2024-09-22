@@ -81,7 +81,9 @@ export default async function (ctx, error, info) {
 
             case 'CUSTOM_ARTIST_NOT_FOUND': {
                 await ctx.replyWithMarkdown(
-                    'TODO: CUSTOM ERROR',
+                    'I can\'t find any artist with that name. Did you type it correctly? 🤔\n' +
+                    '\n➡️ Example: `/artlf Taylor Swift` \n' +
+                    '\nPlease, try again 🙂',
                     extras
                 )
                 break
@@ -89,7 +91,10 @@ export default async function (ctx, error, info) {
 
             case 'CUSTOM_ALBUM_NOT_FOUND': {
                 await ctx.replyWithMarkdown(
-                    'TODO: CUSTOM ERROR',
+                    'I can\'t find any albums by this artist. Did you type it correctly? 🤔\n' +
+                    '\nType album\'s name - artist\'s name.\n' +
+                    '➡️ Example: `/alblf Chromatica - Lady Gaga` \n' +
+                    '\nPlease, try again 🙂',
                     extras
                 )
                 break
@@ -167,7 +172,7 @@ export default async function (ctx, error, info) {
                 await ctx.reply(
                     'Can\'t get your scrobbles 🥴\n' +
                     'Your Lastfm profile is private 🔒\n' +
-                    'Go to last.fm/settings/privacy and uncheck “Hide recent listening information” to use this bot.',
+                    'Go to last.fm > settings > privacy and uncheck “Hide recent listening information” to use this bot.',
                     extras
                 )
                 break
@@ -176,16 +181,7 @@ export default async function (ctx, error, info) {
             case 'RANK_REGISTERED_USER': {
                 await ctx.reply(
                     `You are already participating in this group's race.\n` +
-                    `To exit, use /rankout 😉`,
-                    extras
-                )
-                break
-            }
-
-            case 'RANK_NO_VACANCY': {
-                await ctx.reply(
-                    'There are no spots left in this group\'s race 😔\n' +
-                    'Someone needs to use /rankout to free new spots',
+                    `To exit, use /rankoutlf 😉`,
                     extras
                 )
                 break
@@ -203,7 +199,7 @@ export default async function (ctx, error, info) {
             case 'RANK_USER_NOT_FOUND': {
                 await ctx.reply(
                     'I couldn\'t find you on the runners list 🤨\n\n' +
-                    'Use /rankin to join the race',
+                    'Use /rankinlf to join the race',
                     extras
                 )
                 break
