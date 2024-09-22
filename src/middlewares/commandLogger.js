@@ -9,10 +9,11 @@ const validCommands = [
     'gridlf',
     'storylf',
     'setlf',
+    'melf',
+    'youlf',
     'toplf',
-    'rankls',
-    'rankinls',
-    'rankout'
+    'rankinlf',
+    'rankoutlf'
 ]
 
 function commandLogger(ctx, next) {
