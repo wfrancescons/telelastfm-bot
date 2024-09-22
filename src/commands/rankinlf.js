@@ -1,10 +1,8 @@
-import { findOrCreateRecord, getRecordsCountByChatId } from '../database/services/rankGroupParticipants.js'
+import { findOrCreateRecord } from '../database/services/rankGroupParticipants.js'
 import { getLastfmUser } from '../database/services/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import createEntity from '../utils/createEntity.js'
 import { sendTextMessage } from '../utils/messageSender.js'
-
-const MAX_SPOTS = 50
 
 async function rankinlf(ctx) {
 
@@ -20,18 +18,16 @@ async function rankinlf(ctx) {
         const lastfm_user = await getLastfmUser(telegram_id)
         if (!lastfm_user) throw 'USER_NOT_FOUND'
 
-        const participants_count = await getRecordsCountByChatId(chat_id)
-        if (participants_count >= MAX_SPOTS) return errorHandler(ctx, 'RANK_NO_VACANCY')
-
         const new_record = await findOrCreateRecord(chat_id, telegram_id)
+
+        if (!new_record) throw 'COMMON_ERROR'
 
         const extras = {
             reply_to_message_id: ctx.message.message_id,
             entities: []
         }
 
-        const message = `You're in the group Weekly Chart Race! 🎶🏃‍♂️ \n\n` +
-            `Spots left: ${MAX_SPOTS - participants_count - 1}`
+        const message = `You're in the group Weekly Chart Race! 🎶🏃‍♂️`
 
         extras.entities.push(createEntity(20, 18, 'bold'))
 

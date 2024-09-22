@@ -1,10 +1,8 @@
-import { deleteRecord, getRecordsCountByChatId } from '../database/services/rankGroupParticipants.js'
+import { deleteRecord } from '../database/services/rankGroupParticipants.js'
 import { getLastfmUser } from '../database/services/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import createEntity from '../utils/createEntity.js'
 import { sendTextMessage } from '../utils/messageSender.js'
-
-const MAX_SPOTS = 50
 
 async function rankoutlf(ctx) {
 
@@ -23,16 +21,13 @@ async function rankoutlf(ctx) {
         const deletedUser = await deleteRecord(chat_id, telegram_id)
         if (!deletedUser) return errorHandler(ctx, 'RANK_USER_NOT_FOUND')
 
-        const participants_count = await getRecordsCountByChatId(chat_id)
-
         const extras = {
             reply_to_message_id: ctx.message.message_id,
             entities: []
         }
 
         const message = `OK, you're out of Weekly Chart Race! 🎶🏃‍♂️ \n\n` +
-            `Spots left: ${MAX_SPOTS - participants_count} \n` +
-            `Use /rankin to join again.`
+            `Use /rankinlf to join again.`
 
         extras.entities.push(createEntity(18, 18, 'bold'))
 

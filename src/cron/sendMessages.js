@@ -1,9 +1,7 @@
 import bot from '../bot.js'
-import { getAllRankGroups, getRecordsCountByChatId, getUsersByChatId } from '../database/services/rankGroupParticipants.js'
+import { getAllRankGroups, getUsersByChatId } from '../database/services/rankGroupParticipants.js'
 import { getUserScrobblesPlaycount } from '../database/services/weeklyScrobblesPlaycount.js'
 import { canSendMessage } from '../helpers/chatHelper.js'
-
-const MAX_SPOTS = 50
 
 export default async function () {
     try {
@@ -20,12 +18,12 @@ export default async function () {
             for (const telegram_id of users) {
 
                 const member_info = await bot.telegram.getChatMember(chat_id, telegram_id)
-                const member_name = member_info.user.first_name
                 const member_scrobbles_info = await getUserScrobblesPlaycount(telegram_id)
 
                 const user = {
                     telegram_id,
-                    first_name: member_name,
+                    first_name: member_info.user.first_name || '',
+                    username: member_info.user.username || '',
                     scrobbles_playcount: member_scrobbles_info.scrobbles_playcount
                 }
 
@@ -51,16 +49,23 @@ export default async function () {
                 return medals[index] || medals[3]
             }
 
-            result.reduce((sum, item) => {
-                const nameIndex = text.reduce((sumIndex, current) => sumIndex + current.length, 0) + 4
+            result.slice(0, 10).reduce((sum, item, index) => {
+                const mention_index = text.reduce((sumIndex, current) => sumIndex + current.length, 0) + 4
+
+                // Adiciona uma quebra de linha após a terceira iteração
+                if (index === 3) {
+                    text.push('\n')
+                }
+
+                const mention = item.username ? `@${item.username}` : item.first_name || item.telegram_id
 
                 text.push(
-                    `\n${medal(sum)} ${item.first_name} - ${Number(item.scrobbles_playcount).toLocaleString('pt-BR')} ${item.scrobbles_playcount != 1 ? 'scrobbles' : 'scrobble'}`
+                    `\n${medal(sum)} ${mention} - ${Number(item.scrobbles_playcount).toLocaleString('pt-BR')} ${item.scrobbles_playcount != 1 ? 'scrobbles' : 'scrobble'}`
                 )
 
                 entities.push({
-                    offset: nameIndex,
-                    length: item.first_name.length,
+                    offset: mention_index,
+                    length: mention.length,
                     type: 'text_mention',
                     user: {
                         id: item.telegram_id,
@@ -71,12 +76,8 @@ export default async function () {
                 return sum + 1
             }, 0)
 
-            const rankGroup = await getRecordsCountByChatId(chat_id)
 
-            if (rankGroup.length < 20) text.push(
-                `\n\nSpots left: ${MAX_SPOTS - rankGroup.length} \n` +
-                `Use /rankin to join the race.`
-            )
+            text.push(`\n\nUse /rankinlf to join the race or /rankoutlf to quit it.`)
 
             await bot.telegram.sendMessage(chat_id, text.join(''), { entities })
 
