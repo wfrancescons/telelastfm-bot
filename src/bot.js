@@ -88,11 +88,13 @@ try {
       await Commands.gridlf(ctx)
     })()
   })
-  bot.command('toplf', (ctx) => {
+
+  /*bot.command('toplf', (ctx) => {
     (async () => {
       await Commands.toplf(ctx)
     })()
-  })
+  }) */
+
   bot.command('melf', (ctx) => {
     (async () => {
       await Commands.melf(ctx)

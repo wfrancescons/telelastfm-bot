@@ -50,12 +50,13 @@ export default async function () {
             }
 
             result.slice(0, 10).reduce((sum, item, index) => {
-                const mention_index = text.reduce((sumIndex, current) => sumIndex + current.length, 0) + 4
 
                 // Adiciona uma quebra de linha após a terceira iteração
                 if (index === 3) {
                     text.push('\n')
                 }
+
+                const mention_index = text.reduce((sumIndex, current) => sumIndex + current.length, 0) + 4
 
                 const mention = item.username ? `@${item.username}` : item.first_name || item.telegram_id
 
@@ -77,7 +78,7 @@ export default async function () {
             }, 0)
 
 
-            text.push(`\n\nUse /rankinlf to join the race or /rankoutlf to quit it.`)
+            text.push(`\n\nUse /rankinlf to join or /rankoutlf to quit the race.`)
 
             await bot.telegram.sendMessage(chat_id, text.join(''), { entities })
 
