@@ -41,7 +41,7 @@ try {
     { command: 'youlf', description: 'See the scrobbles of the user you responded to for what you are listening to.' },
     { command: 'rankinlf', description: 'Join to a group\'s Weekly Chart Race' },
     { command: 'rankoutlf', description: 'Leave a group\'s Weekly Chart Race' },
-    { command: 'toplf', description: 'Generate a top scrobbles collage' },
+    //{ command: 'toplf', description: 'Generate a top scrobbles collage' },
     { command: 'setlf', description: 'Set your Lastfm username' },
     { command: 'help', description: 'Send a list of valid commands' }
   ])
