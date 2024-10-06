@@ -1,8 +1,15 @@
+import config from '../config.js'
 import { canSendMessage } from '../helpers/chatHelper.js'
+import createEntity from '../utils/createEntity.js'
+import { sendTextMessage } from '../utils/messageSender.js'
 
 export default async function (ctx, error, info) {
 
-    const extras = { reply_to_message_id: ctx.message?.message_id }
+    const extras = {
+        reply_to_message_id: ctx.message?.message_id,
+        entities: []
+    }
+
     const isInlineQuery = ctx.update?.inline_query
     const isReply = ctx.update.message?.reply_to_message?.from.id
 
@@ -19,7 +26,7 @@ export default async function (ctx, error, info) {
                         title: '⚠️ User not found',
                         description: 'Use /setlf to set your Lastfm\'s username',
                         input_message_content: {
-                            message_text: 'Send /setlf to @telelastfmbot to set your Lastfm\'s username'
+                            message_text: `⚠️ Send /setlf to @${config.bot.username.replace('@', '')} to set your Lastfm\'s username`
                         }
                     }]
 
@@ -27,13 +34,18 @@ export default async function (ctx, error, info) {
                     break
                 }
 
+                const command = '/setlf lastfmusername'
+                let message = `Type ${command} to set your Lastfm's username`
+
                 if (isReply) {
                     const { first_name } = ctx.update.message.reply_to_message.from
-                    ctx.replyWithMarkdown(`${first_name} needs to type \`/setlf lastfmusername\` to set a Lastfm's username`, extras)
-                    break
+                    message = `${first_name} needs to type ${command} to set a Lastfm's username`
+                    extras.entities.push(createEntity(message.indexOf(first_name), first_name.length, 'bold'))
                 }
 
-                await ctx.replyWithMarkdown('Type `/setlf lastfmusername` to set your Lastfm\'s username', extras)
+                extras.entities.push(createEntity(message.indexOf(command), command.length, 'code'))
+
+                await sendTextMessage(ctx, message, extras)
                 break
             }
 
@@ -54,216 +66,248 @@ export default async function (ctx, error, info) {
                     break
                 }
 
+                const command = '/setlf lastfmusername'
+                let message = `There aren't any scrobbles in your Lastfm. 🙁\n\n` +
+                    `Is your username correct? 🤔\n` +
+                    `Type ${command} to set your Lastfm's username`
+
                 if (isReply) {
                     const { first_name } = ctx.update.message.reply_to_message.from
-                    ctx.replyWithMarkdown(`There aren't any scrobbles in ${first_name}'s Lastfm. 🙁`, extras)
-                    break
+                    message = `There aren't any scrobbles in ${first_name}'s Lastfm. 🙁`
+                    extras.entities.push(createEntity(message.indexOf(first_name), first_name.length, 'bold'))
                 }
 
-                await ctx.replyWithMarkdown(
-                    'There aren\'t any scrobbles in your Lastfm. 🙁\n\n' +
-                    'Is your username correct? 🤔\n' +
-                    'Type `/setlf lastfmusername` to set your Lastfm\'s username',
-                    extras
-                )
+                extras.entities.push(createEntity(message.indexOf(command), command.length, 'code'))
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'REG_WITHOUT_ARGS': {
-                await ctx.replyWithMarkdown(
-                    'Type /setlf with with your Lastfm\'s username. \n' +
-                    'Example: `/setlf lastfmusername` \n' +
-                    'Please, try again 🙂',
-                    extras
-                )
+                const example = '/setlf lastfmusername'
+                let message = `Type /setlf with with your Lastfm's username. \n` +
+                    `➡️ Example: ${example} \n` +
+                    `Please, try again 🙂`
+
+                extras.entities.push(createEntity(message.indexOf(example), example.length, 'code'))
+
+                await sendTextMessage(ctx, message, extras)
                 break
             }
 
             case 'CUSTOM_ARTIST_NOT_FOUND': {
-                await ctx.replyWithMarkdown(
-                    'I can\'t find any artist with that name. Did you type it correctly? 🤔\n' +
-                    '\n➡️ Example: `/artlf Taylor Swift` \n' +
-                    '\nPlease, try again 🙂',
-                    extras
-                )
+                const example = '/artlf Taylor Swift'
+                let message = `I can't find any artist with that name. Did you type it correctly? 🤔\n` +
+                    `➡️ Example: ${example} \n` +
+                    `Please, try again 🙂`
+
+                extras.entities.push(createEntity(message.indexOf(example), example.length, 'code'))
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'CUSTOM_ALBUM_NOT_FOUND': {
-                await ctx.replyWithMarkdown(
-                    'I can\'t find any albums by this artist. Did you type it correctly? 🤔\n' +
-                    '\nType album\'s name - artist\'s name.\n' +
-                    '➡️ Example: `/alblf Chromatica - Lady Gaga` \n' +
-                    '\nPlease, try again 🙂',
-                    extras
-                )
+                const correct_format = `album's name - artist's name`
+                const example = '/alblf Chromatica - Lady Gaga'
+                let message = `I can't find any albums by this artist. Did you type it correctly? 🤔\n` +
+                    `Type like this: ${correct_format}\n` +
+                    `\n➡️ Example: ${example} \n` +
+                    `\nPlease, try again 🙂`
+
+                extras.entities.push(createEntity(message.indexOf(correct_format), correct_format.length, 'italic'))
+                extras.entities.push(createEntity(message.indexOf(correct_format), correct_format.length, 'bold'))
+                extras.entities.push(createEntity(message.indexOf(example), example.length, 'code'))
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
-            case 'COLLAGE_INCORRECT_ARGS': {
-                await ctx.replyWithMarkdown(
-                    'Invalid argumments 🤔\n\n' +
-                    '✅ Type a columns x rows value greater than 0 and up to 10\n' +
-                    '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`\n\n' +
-                    '➡️ Examples:\n' +
-                    '`/gridlf 3x3`\n' +
-                    '`/gridlf 5x5 7day`\n' +
-                    '`/gridlf 4x8 noplays`\n' +
-                    '`/gridlf 6x7 nonames`',
-                    extras
-                )
-                break
-            }
+            case 'GRID_INCORRECT_ARGS': {
+                const valid_periods = ['overall', '7day', '1month', '3month', '6month', '12month']
+                const example_commands = ['/gridlf 3x3', '/gridlf 5x5 7day', '/gridlf 4x8 noplays', '/gridlf 6x7 nonames']
 
-            case 'TOP_INCORRECT_ARGS': {
-                await ctx.replyWithMarkdown(
-                    'Invalid argumments 🤔\n\n' +
-                    '✅ Valid Media Types: `tracks`, `alb`, `art`\n' +
-                    '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`\n\n' +
-                    'Type `/toplf mediatype period` to generate a collage\n' +
-                    '➡️ Examples:\n' +
-                    '`/toplf alb`\n' +
-                    '`/toplf 7day`\n' +
-                    '`/toplf tracks 1month`\n' +
-                    '`/toplf alb overall`',
-                    extras
-                )
+                const message =
+                    `Invalid argumments 🤔\n\n` +
+                    `✅ Type a columns x rows value greater than 0 and up to 10\n` +
+                    `✅ Valid Periods: ${valid_periods.join(', ')}\n` +
+                    `\n➡️ Examples:\n` +
+                    `${example_commands.join('\n')}`
+
+                for (const period of valid_periods) {
+                    extras.entities.push(createEntity(message.indexOf(period), period.length, 'code'))
+                }
+                for (const command of example_commands) {
+                    extras.entities.push(createEntity(message.indexOf(command), command.length, 'code'))
+                }
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'STORY_INCORRECT_ARGS': {
-                await ctx.replyWithMarkdown(
-                    'Invalid argumments 🤔\n\n' +
-                    '✅ Valid Media Types: `tracks`, `albums`, `artists`\n' +
-                    '✅ Valid Periods: `overall`, `7day`, `1month`, `3month`, `6month`, `12month`\n\n' +
-                    'Type `/storylf mediatype period` to generate a collage\n' +
-                    'or `/storylf mediatype` to generate a image of your latest scrobble.\n' +
-                    '➡️ Examples: `/storylf album 1month` or `/storylf track`',
-                    extras
-                )
+
+                const valid_types = ['tracks', 'albums', 'artists']
+                const valid_periods = ['overall', '7day', '1month', '3month', '6month', '12month']
+                const example_commands = ['/storylf mediatype period', '/storylf mediatype', '/storylf album 1month', '/storylf track']
+
+                const message =
+                    `Invalid argumments 🤔\n\n` +
+                    `✅ Valid Media Types: ${valid_types.join(', ')}\n` +
+                    `✅ Valid Periods: ${valid_periods.join(', ')}\n` +
+                    `Type ${example_commands[0]} to generate a collage\n` +
+                    `or ${example_commands[1]} to generate a image of your latest scrobble.\n` +
+                    `\n➡️ Examples: ${example_commands[2]} or ${example_commands[3]}`
+
+                for (const type of valid_types) {
+                    extras.entities.push(createEntity(message.indexOf(type), type.length, 'code'))
+                }
+                for (const period of valid_periods) {
+                    extras.entities.push(createEntity(message.indexOf(period), period.length, 'code'))
+                }
+                for (const command of example_commands) {
+                    extras.entities.push(createEntity(message.indexOf(command), command.length, 'code'))
+                }
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'NOT_A_VALID_LASTFM_USER': {
-                extras.entities = [{
-                    offset: 0,
-                    length: info.length,
-                    type: 'bold'
-                }]
-                await ctx.reply(
-                    `${info} doesn't seem to be a valid Lastfm's username 🤔 \n` +
-                    `Please, try again 🙂`,
-                    extras
-                )
+                const message = `${info} doesn't seem to be a valid Lastfm's username 🤔 \n` +
+                    `Please, try again 🙂`
+
+                extras.entities.push(createEntity(0, info.length, 'code'))
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'CANNOT_SEND_MEDIA_MESSAGES': {
-                await ctx.reply(
-                    'Sorry 😔\n' +
-                    'I\'m not allowed to send photos here 🚫📷 \n\n' +
-                    'An admin needs to review my permissions',
-                    extras
-                )
+                const message = `Sorry 😔\n` +
+                    `I'm not allowed to send photos here 🚫📷 \n\n` +
+                    `An admin needs to review my permissions`
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'PRIVATE_USER': {
-                await ctx.reply(
-                    'Can\'t get your scrobbles 🥴\n' +
-                    'Your Lastfm profile is private 🔒\n' +
-                    'Go to last.fm > settings > privacy and uncheck “Hide recent listening information” to use this bot.',
-                    extras
-                )
+                const path = 'last.fm > settings > privacy'
+                const option = 'Hide recent listening information'
+
+                const message = `Can't get your scrobbles 🥴\n` +
+                    `Your Lastfm profile is private 🔒\n` +
+                    `Go to ${path} and uncheck ${option} to use this bot.`
+
+                extras.entities.push(createEntity(message.indexOf(path), path.length, 'bold'))
+                extras.entities.push(createEntity(message.indexOf(path), path.length, 'italic'))
+
+                extras.entities.push(createEntity(message.indexOf(option), option.length, 'bold'))
+                extras.entities.push(createEntity(message.indexOf(option), option.length, 'italic'))
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'RANK_REGISTERED_USER': {
-                await ctx.reply(
-                    `You are already participating in this group's race.\n` +
-                    `To exit, use /rankoutlf 😉`,
-                    extras
-                )
+                const message = `You are already participating in this group's race.\n` +
+                    `To exit, use /rankoutlf 😉`
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'RANK_PERSONAL_CHAT': {
-                await ctx.reply(
-                    'Ranking isn\'t available for private chats 😔\n' +
-                    'Try using the command in a group',
-                    extras
-                )
+                const message = `Ranking isn't available for private chats 😔\n` +
+                    `Try using the command in a group`
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'RANK_USER_NOT_FOUND': {
-                await ctx.reply(
-                    'I couldn\'t find you on the runners list 🤨\n\n' +
-                    'Use /rankinlf to join the race',
-                    extras
-                )
+                const message = `I couldn't find you on the runners list 🤨\n\n` +
+                    `Use /rankinlf to join the race`
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'COMMON_ERROR': {
-                await ctx.reply(
-                    'Something went wrong with Lastfm 🥴 \n' +
-                    'But don\'t fret, let\'s give it another shot in a couple of minutes.\n' +
-                    'If the issue keeps happening, contact me @telelastfmsac',
-                    extras
-                )
+                const message = `Something went wrong with Lastfm 🥴 \n` +
+                    `But don't fret, let's give it another shot in a couple of minutes.\n` +
+                    `If the issue keeps happening, contact me ${config.bot.support_chat}`
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'USER_CHANGED_USERNAME': {
-                await ctx.replyWithMarkdown(
-                    'Something went wrong 🥴 \n' +
-                    'I couldn\'t find any Lastfm user with the username you provided.\n' +
-                    'Did you change your Lastfm username?\n' +
-                    'Type `/setlf lastfmusername` to change your username.\n\n' +
-                    'If the issue keeps happening, contact me @telelastfmsac',
-                    extras
-                )
+                const command = '/setlf lastfmusername'
+                const message = `Something went wrong 🥴 \n` +
+                    `I couldn't find any Lastfm user with the username you provided.\n` +
+                    `Did you change your Lastfm username?\n` +
+                    `Type ${command} to change your username.\n\n` +
+                    `If the issue keeps happening, contact me ${config.bot.support_chat}`
+
+                extras.entities.push(createEntity(message.indexOf(command), command.length, 'code'))
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'NOT_A_MUSIC_BOT_MESSAGE': {
-                await ctx.replyWithMarkdown(
-                    'Oops 🥴\n' +
-                    '\n➡️ This command is only valid for messages with music information\n' +
-                    '\nPlease, try again 🙂',
-                    extras
-                )
+                const message = `Oops 🥴\n` +
+                    `\n➡️ This command is only valid for messages with music information\n` +
+                    `\nPlease, try again 🙂`
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'NOT_A_REPLY_MESSAGE': {
-                await ctx.replyWithMarkdown(
-                    '\n➡️ In order to use this command, you need to reply to another user\'s message\n' +
-                    '\nPlease, try again 🙂',
-                    extras
-                )
+                const message = `\n➡️ In order to use this command, you need to reply to another user's message\n` +
+                    `\nPlease, try again 🙂`
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             case 'USER_NOT_FOUND_REPLY': {
-                await ctx.replyWithMarkdown(
-                    '\n➡️ In order to use this command, you need to reply to another user\'s message.\n' +
-                    '\nPlease, try again 🙂',
-                    extras
-                )
+                const message = `\n➡️ In order to use this command, you need to reply to another user's message\n` +
+                    `\nPlease, try again 🙂`
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
             default: {
                 console.error('Error:', error)
                 if (!await canSendMessage(ctx.message.chat.id, ctx.botInfo.id)) break
-                await ctx.reply(
-                    'Something went wrong with Lastfm 🥴 \n' +
-                    'But don\'t fret, let\'s give it another shot in a couple of minutes.\n' +
-                    'If the issue keeps happening, contact me @telelastfmsac',
-                    extras
-                )
+
+                const message = `Something went wrong with Lastfm 🥴 \n` +
+                    `But don't fret, let's give it another shot in a couple of minutes.\n` +
+                    `If the issue keeps happening, contact me ${config.bot.support_chat}`
+
+                await sendTextMessage(ctx, message, extras)
+
                 break
             }
 
