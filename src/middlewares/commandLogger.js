@@ -3,6 +3,7 @@ import { logCommand } from '../database/services/commandUsageLog.js'
 const validCommands = [
     'start',
     'help',
+    'privacy',
     'lf',
     'alblf',
     'artlf',
@@ -11,7 +12,6 @@ const validCommands = [
     'setlf',
     'melf',
     'youlf',
-    'toplf',
     'rankinlf',
     'rankoutlf'
 ]
