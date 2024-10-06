@@ -179,10 +179,10 @@ function generateAlbumStory({ lastfm_data, canva_data, config }) {
 
   // album
   canva_data.elements.push(createTextElement({
-    text: limitText(album_title, 30),
+    text: limitText(album_title, 45),
     align: 'center',
     x: 540,
-    y: 1140,
+    y: 1180,
     font: `normal 700 ${config.H1_FONT_SIZE}px "Noto Sans JP", sans-serif`,
     fillStyle: '#ffffff',
     shadow: {
@@ -192,7 +192,7 @@ function generateAlbumStory({ lastfm_data, canva_data, config }) {
       blur: 10
     },
     maxWidth: 1000,
-    lineHeight: 50
+    lineHeight: config.H1_FONT_SIZE + 10
   }))
 
   // artist
@@ -200,7 +200,7 @@ function generateAlbumStory({ lastfm_data, canva_data, config }) {
     text: limitText(artist_title, 40),
     align: 'center',
     x: 540,
-    y: 1210,
+    y: 1250,
     font: `normal 400 ${config.H2_FONT_SIZE}px "Noto Sans JP", sans-serif`,
     fillStyle: '#ffffff',
     shadow: {
