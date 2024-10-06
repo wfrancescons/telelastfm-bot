@@ -1,19 +1,11 @@
 import { getLastfmUser } from '../database/services/user.js'
-import { updateStreaks } from '../database/services/userStreaks.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { acceptedMedias, acceptedPeriods } from '../helpers/validValuesMap.js'
-import { getTrackListeningNow, getUserTopAlbums, getUserTopArtists, getUserTopTracks } from '../services/lastfm.js'
+import { getUserTopAlbums, getUserTopArtists, getUserTopTracks } from '../services/lastfm.js'
 import { sendTextMessage } from '../utils/messageSender.js'
-import lfFormatter from './formatters/lfFormatter.js'
 
-const DEFAULT_MEDIA_TYPE = 'albums'
+const DEFAULT_MEDIA_TYPE = 'artists'
 const DEFAULT_PERIOD = '7day'
-
-function parseArgs(args) {
-    const media_type = args.find(arg => acceptedMedias.includes(arg)) || DEFAULT_MEDIA_TYPE
-    const period = args.find(arg => acceptedPeriods.includes(arg)) || DEFAULT_PERIOD
-    return { media_type, period }
-}
 
 async function getLastfmData(lastfm_user, media_type, period, limit) {
     try {
@@ -36,47 +28,93 @@ async function getLastfmData(lastfm_user, media_type, period, limit) {
     }
 }
 
-async function toplf(ctx) {
+function parseArgs(args) {
+    const grid = args.find(arg => arg.match(GRID_REGEX)) || DEFAULT_GRID
+    const media_type = args.find(arg => acceptedMedias.includes(arg)) || DEFAULT_MEDIA_TYPE
+    const period = args.find(arg => acceptedPeriods.includes(arg)) || DEFAULT_PERIOD
+    const param = args.find(arg => ['notexts', 'noplays'].includes(arg))
+    return { grid, media_type, period, param }
+}
 
-    let telegram_id = ctx.message.from.id
-    let first_name = ctx.update.message.from.first_name
-    let reply_to_message_id = ctx.message.message_id
-    const args = ctx.update.message.text.trim().toLowerCase().split(' ')
-    const media_type = parseArgs(args)
+function validateGrid(grid) {
+    const match = grid.match(GRID_REGEX)
+    if (!match) throw 'COLLAGE_INCORRECT_ARGS'
 
-    const isReplyToOther = ctx.update.message?.reply_to_message
-    const isReplyToChannel = ctx.update.message?.reply_to_message?.sender_chat?.type === 'channel'
+    const COLUMNS = Number(match[1])
+    const ROWS = Number(match[2])
 
-    if (isReplyToOther && !isReplyToChannel) {
-        telegram_id = ctx.update.message.reply_to_message.from.id
-        first_name = ctx.update.message.reply_to_message.from.first_name
-        reply_to_message_id = ctx.update.message.reply_to_message.message_id
+    if (COLUMNS > MAX_COLUMNS || COLUMNS < MIN_COLUMNS || ROWS > MAX_ROWS || ROWS < MIN_ROWS) {
+        throw 'COLLAGE_INCORRECT_ARGS'
     }
 
-    try {
+    return { COLUMNS, ROWS }
+}
 
+async function toplf(ctx) {
+
+    const telegram_id = ctx.message.from.id
+    const first_name = ctx.update.message.from.first_name
+    const args = ctx.update.message.text.trim().toLowerCase().split(' ')
+
+    try {
         ctx.replyWithChatAction('typing').catch(error => console.error(error))
 
         const lastfm_user = await getLastfmUser(telegram_id)
-        if (!lastfm_user) throw 'USER_NOT_FOUND'
 
-        const user_streaks = await updateStreaks(telegram_id)
+        const { grid, media_type, period, param } = parseArgs(args)
+        const { COLUMNS, ROWS } = validateGrid(grid)
 
-        const lastfm_data = await getTrackListeningNow(lastfm_user)
-
-        const data_to_format = {
-            first_name,
-            streaks_count: user_streaks.streaks_count,
-            ...lastfm_data
+        const responseExtra = {
+            reply_to_message_id: ctx.message?.message_id,
+            entities: []
         }
 
-        const message = lfFormatter(data_to_format)
-        const extras = {
-            entities: message.entities,
-            reply_to_message_id
+        const examplesCommand = ['/gridlf 4x1 tracks', '/gridlf 5x3 art', '/gridlf 10x10 notext']
+        const tipText = '💡 Tip: you can define your grid, type of media or make a collage with no text\n'
+
+        const responseMessage =
+            `Generating your ${grid} grid...\n` +
+            `\n⏰ It may take a while\n` +
+            `\n${tipText}` +
+            `\n➡️ Examples:\n` +
+            `${examplesCommand.join('\n')}`
+
+        responseExtra.entities.push(createEntity(responseMessage.indexOf(tipText), tipText.length, 'italic'))
+        for (const example of examplesCommand) {
+            responseExtra.entities.push(createEntity(responseMessage.indexOf(example), example.length, 'code'))
         }
 
-        await sendTextMessage(ctx, message.text, extras)
+        const response = await sendTextMessage(ctx, responseMessage, responseExtra)
+
+        const lastfmData = await getLastfmData(lastfm_user, mediaMap[media_type], periodMap[period], COLUMNS * ROWS)
+
+        const extra = {
+            reply_to_message_id: ctx.message?.message_id,
+            caption: `${first_name}, your ${grid} grid`
+        }
+
+        ctx.replyWithChatAction('upload_photo').catch(error => console.error(error))
+
+        const templateData = {
+            lastfmData,
+            columns: COLUMNS,
+            rows: ROWS,
+            predominantColor: [14, 14, 14],
+            media_type: mediaMap[media_type],
+            param
+        }
+
+        if (param !== 'notexts') {
+            const predominantColor = await getPredominantColor(lastfmData[0].image.small)
+            templateData.predominantColor = predominantColor
+        }
+
+        const template = gridlfTemplate(templateData)
+
+        const canva = await renderCanvas(template)
+
+        await sendPhotoMessage(ctx, { source: canva }, extra)
+        await ctx.deleteMessage(response.message_id)
 
     } catch (error) {
         errorHandler(ctx, error)

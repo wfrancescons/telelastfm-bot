@@ -25,7 +25,8 @@ async function setlf(ctx) {
             }
 
             const message = `${lastfm_user} set as your Lastfm username ✅` +
-                `\n\n➡️ Access ${config.bot.news_channel} for news and server status`
+                `\n\n➡️ Access ${config.bot.news_channel} for news and server status\n` +
+                `\nBy using this bot, you agree to our Terms of Use and Privacy Policy available at /privacy`
 
             extras.entities.push(createEntity(message.indexOf(lastfm_user), lastfm_user.length, 'bold'))
 
