@@ -86,9 +86,9 @@ export default async function (ctx, error, info) {
 
             case 'REG_WITHOUT_ARGS': {
                 const example = '/setlf lastfmusername'
-                let message = `Type /setlf with with your Lastfm's username. \n` +
-                    `➡️ Example: ${example} \n` +
-                    `Please, try again 🙂`
+                let message = `Type /setlf with with your Lastfm's username.\n` +
+                    `\n➡️ Example: ${example}\n` +
+                    `\nPlease, try again 🙂`
 
                 extras.entities.push(createEntity(message.indexOf(example), example.length, 'code'))
 
@@ -182,7 +182,7 @@ export default async function (ctx, error, info) {
                 const message = `${info} doesn't seem to be a valid Lastfm's username 🤔 \n` +
                     `Please, try again 🙂`
 
-                extras.entities.push(createEntity(0, info.length, 'code'))
+                extras.entities.push(createEntity(0, info.length, 'bold'))
 
                 await sendTextMessage(ctx, message, extras)
 
