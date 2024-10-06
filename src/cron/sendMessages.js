@@ -58,7 +58,7 @@ export default async function () {
 
                 const mention_index = text.reduce((sumIndex, current) => sumIndex + current.length, 0) + 4
 
-                const mention = item.username ? `@${item.username}` : item.first_name || item.telegram_id
+                const mention = item.first_name ? item.first_name : item.username ? `@${item.username}` : item.telegram_id
 
                 text.push(
                     `\n${medal(sum)} ${mention} - ${Number(item.scrobbles_playcount).toLocaleString('pt-BR')} ${item.scrobbles_playcount != 1 ? 'scrobbles' : 'scrobble'}`
