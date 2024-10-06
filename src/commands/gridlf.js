@@ -70,6 +70,7 @@ async function gridlf(ctx) {
         ctx.replyWithChatAction('typing').catch(error => console.error(error))
 
         const lastfm_user = await getLastfmUser(telegram_id)
+        if (!lastfm_user) throw 'USER_NOT_FOUND'
 
         const { grid, media_type, period, param } = parseArgs(args)
         const { COLUMNS, ROWS } = validateGrid(grid)

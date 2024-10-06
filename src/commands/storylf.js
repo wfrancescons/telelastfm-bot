@@ -45,6 +45,7 @@ async function storylf(ctx) {
         ctx.replyWithChatAction('typing').catch(error => console.error(error))
 
         const lastfm_user = await getLastfmUser(telegram_id)
+        if (!lastfm_user) throw 'USER_NOT_FOUND'
         const lastfm_data = await getLastfmData(lastfm_user, mediaMap[media_type])
 
         const responseExtra = {

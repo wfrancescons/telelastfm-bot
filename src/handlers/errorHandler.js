@@ -34,7 +34,7 @@ export default async function (ctx, error, info) {
                     break
                 }
 
-                const command = '/setlf lastfmusername'
+                const command = '/setlf yourlastfmusername'
                 let message = `Type ${command} to set your Lastfm's username`
 
                 if (isReply) {
@@ -66,7 +66,7 @@ export default async function (ctx, error, info) {
                     break
                 }
 
-                const command = '/setlf lastfmusername'
+                const command = '/setlf yourlastfmusername'
                 let message = `There aren't any scrobbles in your Lastfm. 🙁\n\n` +
                     `Is your username correct? 🤔\n` +
                     `Type ${command} to set your Lastfm's username`
@@ -85,7 +85,7 @@ export default async function (ctx, error, info) {
             }
 
             case 'REG_WITHOUT_ARGS': {
-                const example = '/setlf lastfmusername'
+                const example = '/setlf yourlastfmusername'
                 let message = `Type /setlf with with your Lastfm's username.\n` +
                     `\n➡️ Example: ${example}\n` +
                     `\nPlease, try again 🙂`
@@ -256,7 +256,7 @@ export default async function (ctx, error, info) {
             }
 
             case 'USER_CHANGED_USERNAME': {
-                const command = '/setlf lastfmusername'
+                const command = '/setlf yourlastfmusername'
                 const message = `Something went wrong 🥴 \n` +
                     `I couldn't find any Lastfm user with the username you provided.\n` +
                     `Did you change your Lastfm username?\n` +
