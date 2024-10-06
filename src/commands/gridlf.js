@@ -48,13 +48,13 @@ function parseArgs(args) {
 
 function validateGrid(grid) {
     const match = grid.match(GRID_REGEX)
-    if (!match) throw 'COLLAGE_INCORRECT_ARGS'
+    if (!match) throw 'GRID_INCORRECT_ARGS'
 
     const COLUMNS = Number(match[1])
     const ROWS = Number(match[2])
 
     if (COLUMNS > MAX_COLUMNS || COLUMNS < MIN_COLUMNS || ROWS > MAX_ROWS || ROWS < MIN_ROWS) {
-        throw 'COLLAGE_INCORRECT_ARGS'
+        throw 'GRID_INCORRECT_ARGS'
     }
 
     return { COLUMNS, ROWS }
