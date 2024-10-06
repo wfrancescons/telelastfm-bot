@@ -1,84 +1,89 @@
 import bot from '../bot.js'
-import { getAllRankGroups, getUsers } from '../database/rank.js'
-import { getUsersScrobbles } from '../database/user.js'
+import { getAllRankGroups, getUsersByChatId } from '../database/services/rankGroupParticipants.js'
+import { getUserScrobblesPlaycount } from '../database/services/weeklyScrobblesPlaycount.js'
 import { canSendMessage } from '../helpers/chatHelper.js'
 
-const MAX_SPOTS = 20
-
 export default async function () {
-    return new Promise(async (resolve, reject) => {
-        try {
+    try {
+        const groups = await getAllRankGroups() // array com os ids dos grupos [-12345, -698745,...]
 
-            const groups = await getAllRankGroups()
+        const { id: bot_id } = await bot.telegram.getMe()
 
-            const { id: bot_id } = await bot.telegram.getMe()
+        for (const chat_id of groups) {
+            if (!await canSendMessage(chat_id, bot_id)) continue
 
-            await Promise.all(groups.map(async (group) => {
+            const users = await getUsersByChatId(chat_id) // array com os ids dos usuários [1234, 5647, ...]
 
-                if (!await canSendMessage(group.chat_id, bot_id)) Promise.resolve()
+            const result = []
+            for (const telegram_id of users) {
 
-                const users_scrobbles_infos = await getUsersScrobbles(group.users.map(user => user.telegram_id))
+                const member_info = await bot.telegram.getChatMember(chat_id, telegram_id)
+                const member_scrobbles_info = await getUserScrobblesPlaycount(telegram_id)
 
-                const result = await Promise.all(users_scrobbles_infos.map(async (item) => {
-                    const member_info = await bot.telegram.getChatMember(group.chat_id, item.telegram_id)
-                    const member_name = member_info.user.first_name
-
-                    item.first_name = member_name
-
-                    return item
-                }))
-
-                result.sort((a, b) => b.weekly_scrobbles_playcount.scrobbles - a.weekly_scrobbles_playcount.scrobbles)
-
-                const text = [
-                    `🏆 Weekly Tracks Chart 🏆\n`,
-                ]
-
-                const entities = [
-                    {
-                        offset: 0,
-                        length: text[0].length,
-                        type: 'bold',
-                    }
-                ]
-
-                const medal = (index) => {
-                    const medals = ['🥇', '🥈', '🥉', '🏅']
-                    return medals[index] || medals[3]
+                const user = {
+                    telegram_id,
+                    first_name: member_info.user.first_name || '',
+                    username: member_info.user.username || '',
+                    scrobbles_playcount: member_scrobbles_info.scrobbles_playcount
                 }
 
-                result.reduce((sum, item) => {
-                    const nameIndex = text.reduce((sumIndex, current) => sumIndex + current.length, 0) + 4
+                result.push(user)
+            }
 
-                    text.push(
-                        `\n${medal(sum)} ${item.first_name} - ${Number(item.weekly_scrobbles_playcount.scrobbles).toLocaleString('pt-BR')} ${item.weekly_scrobbles_playcount.scrobbles != 1 ? 'scrobbles' : 'scrobble'}`
-                    )
+            result.sort((a, b) => b.scrobbles_playcount - a.scrobbles_playcount)
 
-                    entities.push({
-                        offset: nameIndex,
-                        length: item.first_name.length,
-                        type: 'text_mention',
-                        user: {
-                            id: item.telegram_id,
-                            first_name: item.first_name
-                        }
-                    })
+            const text = [
+                `🏆 Weekly Tracks Chart 🏆\n`,
+            ]
 
-                    return sum + 1
-                }, 0)
+            const entities = [
+                {
+                    offset: 0,
+                    length: text[0].length,
+                    type: 'bold',
+                }
+            ]
 
-                const rankGroup = await getUsers(group.chat_id)
+            const medal = (index) => {
+                const medals = ['🥇', '🥈', '🥉', '🏅']
+                return medals[index] || medals[3]
+            }
 
-                if (rankGroup.length < 20) text.push(
-                    `\n\nSpots left: ${MAX_SPOTS - rankGroup.length} \n` +
-                    `Use /rankin to join the race.`
+            result.slice(0, 10).reduce((sum, item, index) => {
+
+                // Adiciona uma quebra de linha após a terceira iteração
+                if (index === 3) {
+                    text.push('\n')
+                }
+
+                const mention_index = text.reduce((sumIndex, current) => sumIndex + current.length, 0) + 4
+
+                const mention = item.first_name ? item.first_name : item.username ? `@${item.username}` : item.telegram_id
+
+                text.push(
+                    `\n${medal(sum)} ${mention} - ${Number(item.scrobbles_playcount).toLocaleString('pt-BR')} ${item.scrobbles_playcount != 1 ? 'scrobbles' : 'scrobble'}`
                 )
 
-                await bot.telegram.sendMessage(group.chat_id, text.join(''), { entities })
-            }))
-            resolve()
-        } catch (error) {
-            reject(error)
+                entities.push({
+                    offset: mention_index,
+                    length: mention.length,
+                    type: 'text_mention',
+                    user: {
+                        id: item.telegram_id,
+                        first_name: item.first_name
+                    }
+                })
+
+                return sum + 1
+            }, 0)
+
+
+            text.push(`\n\nUse /rankinlf to join or /rankoutlf to quit the race.`)
+
+            await bot.telegram.sendMessage(chat_id, text.join(''), { entities })
+
         }
-    })
+    } catch (error) {
+        console.error(error)
+    }
 }

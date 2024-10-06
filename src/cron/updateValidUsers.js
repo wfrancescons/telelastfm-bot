@@ -1,39 +1,45 @@
 import bot from '../bot.js'
-import { getAllRankGroups, updateUsersInGroups } from '../database/rank.js'
+import { getAllRankGroups, getUsersByChatId, removeInvalidUsersFromGroup } from '../database/services/rankGroupParticipants.js'
 
-async function verifyMember(chat_id, user) {
+async function verifyMember(chat_id, telegram_id) {
+    const validUsersStatus = ['administrator', 'member', 'creator', 'restricted']
+
     try {
-        const validUsersStatus = ['administrator', 'member', 'creator', 'restricted']
-        const member_info = await bot.telegram.getChatMember(chat_id, user.telegram_id)
+        const member_info = await bot.telegram.getChatMember(chat_id, telegram_id)
 
-        if (!validUsersStatus.includes(member_info.status)) return null
-        return user
+        if (validUsersStatus.includes(member_info.status)) {
+            return true
+        }
+        return false
+
     } catch (error) {
-        console.log(error)
-        return null
+        console.log(`BOT: Error verifying user ${telegram_id}:`, error)
     }
 }
 
-export default function () {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const groups = await getAllRankGroups()
+export default async function updateGroups() {
+    try {
+        const groups = await getAllRankGroups()
 
-            await Promise.all(
-                groups.map(async (group) => {
-                    const users_status = await Promise.all(group.users.map(async (user) => await verifyMember(group.chat_id, user)))
-                    const valid_users = users_status.reduce((acc, curr) => {
-                        if (curr) {
-                            acc.push({ telegram_id: curr.telegram_id })
-                        }
-                        return acc
-                    }, [])
-                    await updateUsersInGroups(group.chat_id, valid_users)
-                })
-            )
-            resolve()
-        } catch (error) {
-            reject(error)
+        for (const chat_id of groups) {
+            // Buscar usuários no banco de dados para o grupo atual
+            const groupUsers = await getUsersByChatId(chat_id)
+
+            // Verificar membros válidos
+            const validUsersSet = new Set()  // Usando Set para melhorar a performance nas comparações
+
+            for (const user of groupUsers) {
+                // Iterar sobre o gerador assíncrono para verificar usuários válidos
+                if (await verifyMember(chat_id, user)) {
+                    validUsersSet.add(user)
+                }
+            }
+
+            // Remover os usuários que não estão no conjunto de usuários válidos
+            await removeInvalidUsersFromGroup(chat_id, Array.from(validUsersSet))
         }
-    })
+    } catch (error) {
+        console.error('Error updating groups:', error)
+        throw error
+    }
 }
