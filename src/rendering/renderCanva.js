@@ -106,28 +106,34 @@ function drawText(ctx, element) {
 }
 
 async function renderCanvas(data) {
-    const canvas = new Canvas(data.width, data.height)
-    const ctx = canvas.getContext('2d')
+    try {
+        const canvas = new Canvas(data.width, data.height)
+        const ctx = canvas.getContext('2d')
 
-    ctx.fillStyle = data.background || 'white'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.fillStyle = data.background || 'white'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    for (const element of data.elements) {
-        if (element.type === 'image') {
-            await drawImage(ctx, element)
+        for (const element of data.elements) {
+            if (element.type === 'image') {
+                await drawImage(ctx, element)
+            }
+            if (element.type === 'rectangle') {
+                drawRect(ctx, element)
+            }
+            if (element.type === 'text') {
+                drawText(ctx, element)
+            }
+            if (element.type === 'icon') {
+                await drawImage(ctx, element)
+            }
         }
-        if (element.type === 'rectangle') {
-            drawRect(ctx, element)
-        }
-        if (element.type === 'text') {
-            drawText(ctx, element)
-        }
-        if (element.type === 'icon') {
-            await drawImage(ctx, element)
-        }
+
+        const buffer = await canvas.toBuffer('jpeg', { quality: 0.95 })
+        return buffer
+
+    } catch (error) {
+        throw error
     }
-
-    return canvas.toBuffer('jpeg', { quality: 0.95 })
 }
 
 export default renderCanvas
