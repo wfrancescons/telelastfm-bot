@@ -49,7 +49,7 @@ async function drawImage(ctx, element) {
 
         // donwload image from cache
         const local_file = await getOrSaveImageInCache(element.src)
-        const image = await loadImageWithTimeout(local_file, 3000)
+        const image = await loadImage(local_file)
 
         ctx.drawImage(image, element.x, element.y, element.width, element.height)
 
@@ -107,7 +107,7 @@ function drawText(ctx, element) {
 
 async function renderCanvas(data) {
     try {
-        const canvas = new Canvas(data.width, data.height)
+        let canvas = new Canvas(data.width, data.height)
         const ctx = canvas.getContext('2d')
 
         ctx.fillStyle = data.background || 'white'
@@ -128,7 +128,8 @@ async function renderCanvas(data) {
             }
         }
 
-        const buffer = await canvas.toBuffer('jpeg', { quality: 0.95 })
+        const buffer = canvas.toBufferSync('jpeg', { quality: 0.95 }) //fix memory leak
+        canvas = null //fix memory leak
         return buffer
 
     } catch (error) {

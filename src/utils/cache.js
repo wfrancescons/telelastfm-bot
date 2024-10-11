@@ -18,7 +18,7 @@ function lastfmUrlParser(url) {
 
 async function downloadImage(imageUrl) {
     try {
-        console.log('Imagem baixada ⬇️:', imageUrl)
+        //console.log('Imagem baixada ⬇️:', imageUrl)
         const response = await request({ url: imageUrl, timeout: 5000 })
 
         if (!response.ok) {
@@ -42,7 +42,7 @@ async function getOrSaveImageInCache(url) {
             let local_file = await cache.get(`${url_infos.size}-${url_infos.file}`)
 
             if (local_file) {
-                console.log('Imagem em cache 🗃️:', local_file)
+                //console.log('Imagem em cache 🗃️:', local_file)
                 return local_file
             }
 

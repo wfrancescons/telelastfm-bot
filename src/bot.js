@@ -147,7 +147,11 @@ try {
   console.error('BOT: error when starting - ', error)
 }
 
-process.once('SIGINT', () => bot.stop('SIGINT'))
+process.once('SIGINT', () => {
+  bot.stop('SIGINT')
+  console.log('You clicked Ctrl+C!')
+  //process.exit(1)
+})
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
 
 export default bot
