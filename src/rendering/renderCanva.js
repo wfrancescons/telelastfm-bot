@@ -108,6 +108,8 @@ function drawText(ctx, element) {
 async function renderCanvas(data) {
     try {
         let canvas = new Canvas(data.width, data.height)
+        canvas.gpu = false //fix memory leak
+
         const ctx = canvas.getContext('2d')
 
         ctx.fillStyle = data.background || 'white'
@@ -128,8 +130,7 @@ async function renderCanvas(data) {
             }
         }
 
-        const buffer = canvas.toBufferSync('jpeg', { quality: 0.95 }) //fix memory leak
-        canvas = null //fix memory leak
+        const buffer = await canvas.toBuffer('jpeg', { quality: 0.95 })
         return buffer
 
     } catch (error) {
