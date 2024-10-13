@@ -25,22 +25,6 @@ function wrapText(ctx, text, maxWidth) {
     return lines
 }
 
-function loadImageWithTimeout(url, timeout) {
-    return new Promise(async (resolve, reject) => {
-        const timer = setTimeout(() => {
-            reject(new Error('Tempo limite de carregamento excedido', { url }))
-        }, timeout)
-
-        loadImage(url).then(image => {
-            clearTimeout(timer)
-            resolve(image)
-        }).catch(error => {
-            clearTimeout(timer)
-            reject(error)
-        })
-    })
-}
-
 async function drawImage(ctx, element) {
     try {
         // set filters
@@ -107,8 +91,7 @@ function drawText(ctx, element) {
 
 async function renderCanvas(data) {
     try {
-        let canvas = new Canvas(data.width, data.height)
-        canvas.gpu = false //fix memory leak
+        const canvas = new Canvas(data.width, data.height)
 
         const ctx = canvas.getContext('2d')
 
@@ -130,7 +113,7 @@ async function renderCanvas(data) {
             }
         }
 
-        const buffer = await canvas.toBuffer('jpeg', { quality: 0.95 })
+        const buffer = canvas.toBufferSync('jpeg', { quality: 0.95 })
         return buffer
 
     } catch (error) {

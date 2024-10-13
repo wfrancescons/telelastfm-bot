@@ -149,8 +149,7 @@ try {
 
 process.once('SIGINT', () => {
   bot.stop('SIGINT')
-  console.log('You clicked Ctrl+C!')
-  //process.exit(1)
+  process.exit(1)
 })
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
 
