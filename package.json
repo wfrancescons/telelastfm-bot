@@ -1,6 +1,6 @@
 {
   "name": "telegram-lastfm-bot",
-  "version": "3.6.0",
+  "version": "4.0.0",
   "description": "Telegram bot that provides music statistics for you and your friends from LastFM",
   "main": "./src/bot.js",
   "engines": {
@@ -19,6 +19,7 @@
   "author": "Wesley Francescon <wfrancescons@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.58",
     "bottleneck": "^2.19.5",
     "cheerio": "^1.0.0-rc.12",
     "croner": "^8.0.2",
@@ -26,7 +27,6 @@
     "moment": "^2.30.1",
     "oracledb": "^6.5.1",
     "sequelize": "^6.37.3",
-    "skia-canvas": "https://github.com/samizdatco/skia-canvas/releases/download/v0.9.29/skia-canvas-v0.9.29-linux-x64-glibc.tar.gz",
     "telegraf": "^4.16.3"
   },
   "repository": {

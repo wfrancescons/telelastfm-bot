@@ -1,11 +1,28 @@
-import { Canvas, FontLibrary, loadImage } from 'skia-canvas'
+import { createCanvas, GlobalFonts, loadImage } from '@napi-rs/canvas'
+import { readdir } from 'node:fs/promises'
+import { join } from 'node:path'
 import { getOrSaveImageInCache } from '../utils/cache.js'
 
-// Registrar fontes
-FontLibrary.use('Noto Sans JP', ['./src/rendering/fonts/NotoSansJP/*.ttf'])
-FontLibrary.use('Train One', ['./src/rendering/fonts/TrainOne/*.ttf'])
+const fonts_dir = './src/rendering/fonts/'
 
-// Função auxiliar para quebrar texto em várias linhas
+const loadAllFontsFromDirectory = async (dir) => {
+    const files = await readdir(dir, { withFileTypes: true })
+
+    for (const file of files) {
+        const filePath = join(dir, file.name)
+
+        if (file.isDirectory()) {
+            await loadAllFontsFromDirectory(filePath)
+        } else if (file.isFile() && (file.name.endsWith('.ttf') || file.name.endsWith('.otf'))) {
+            const fontFamilyName = file.name.replace(/\.(ttf|otf)$/, '')
+            GlobalFonts.registerFromPath(filePath, fontFamilyName)
+            console.log(`Fonte registrada: ${fontFamilyName}`)
+        }
+    }
+}
+
+await loadAllFontsFromDirectory(fonts_dir)
+
 function wrapText(ctx, text, maxWidth) {
     const words = text.split(' ')
     let lines = []
@@ -31,7 +48,7 @@ async function drawImage(ctx, element) {
         ctx.filter = element.filter || 'none'
         ctx.globalCompositeOperation = element.composite || 'source-over'
 
-        // donwload image from cache
+        // download image from cache
         const local_file = await getOrSaveImageInCache(element.src)
         const image = await loadImage(local_file)
 
@@ -91,8 +108,7 @@ function drawText(ctx, element) {
 
 async function renderCanvas(data) {
     try {
-        const canvas = new Canvas(data.width, data.height)
-
+        let canvas = createCanvas(data.width, data.height)
         const ctx = canvas.getContext('2d')
 
         ctx.fillStyle = data.background || 'white'
@@ -113,7 +129,7 @@ async function renderCanvas(data) {
             }
         }
 
-        const buffer = canvas.toBufferSync('jpeg', { quality: 0.95 })
+        const buffer = await canvas.encode('jpeg', { quality: 0.95 })
         return buffer
 
     } catch (error) {
