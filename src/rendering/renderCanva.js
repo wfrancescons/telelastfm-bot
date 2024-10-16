@@ -1,7 +1,6 @@
 import { createCanvas, GlobalFonts, loadImage } from '@napi-rs/canvas'
 import { readdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import { getOrSaveImageInCache } from '../utils/cache.js'
 
 const fonts_dir = './src/rendering/fonts/'
 
@@ -16,7 +15,7 @@ const loadAllFontsFromDirectory = async (dir) => {
         } else if (file.isFile() && (file.name.endsWith('.ttf') || file.name.endsWith('.otf'))) {
             const fontFamilyName = file.name.replace(/\.(ttf|otf)$/, '')
             GlobalFonts.registerFromPath(filePath, fontFamilyName)
-            console.log(`Fonte registrada: ${fontFamilyName}`)
+            console.log(`Set font: ${fontFamilyName}`)
         }
     }
 }
@@ -48,9 +47,7 @@ async function drawImage(ctx, element) {
         ctx.filter = element.filter || 'none'
         ctx.globalCompositeOperation = element.composite || 'source-over'
 
-        // download image from cache
-        const local_file = await getOrSaveImageInCache(element.src)
-        const image = await loadImage(local_file)
+        const image = await loadImage(element.src)
 
         ctx.drawImage(image, element.x, element.y, element.width, element.height)
 

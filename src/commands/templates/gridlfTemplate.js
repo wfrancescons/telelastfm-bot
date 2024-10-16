@@ -37,7 +37,7 @@ function generateScrobbleImage(item, x, y, width, height, param, config, media_t
     const scrobbleElements = []
 
     if (item.image) {
-        const src = useLargeImage ? item.image.large : item.image.medium
+        const src = item.image
         scrobbleElements.push(createImageElement({ src, x, y, width, height }))
     } else {
         scrobbleElements.push(createRectangleElement({ fillStyle: 'rgba(0, 0, 0, 0.5)', x, y, width, height }))
@@ -151,7 +151,7 @@ function generateScrobbleImage(item, x, y, width, height, param, config, media_t
     return scrobbleElements
 }
 
-function gridlfTemplate({ lastfmData, columns, rows, predominantColor, media_type, param = null }) {
+function gridlfTemplate({ lastfm_data, columns, rows, predominantColor, media_type, param = null }) {
     const config = {
         POSTER_WIDTH: 250,
         POSTER_HEIGHT: 250,
@@ -182,7 +182,7 @@ function gridlfTemplate({ lastfmData, columns, rows, predominantColor, media_typ
     const firstLarge = columns > 2 && rows > 2
 
     if (firstLarge) {
-        const firstItem = lastfmData[0]
+        const firstItem = lastfm_data[0]
         const firstElements = generateScrobbleImage(firstItem, 0, 0, 2 * config.POSTER_WIDTH, 2 * config.POSTER_HEIGHT, param, config, media_type, true)
         data.elements.push(...firstElements)
     }
@@ -191,7 +191,7 @@ function gridlfTemplate({ lastfmData, columns, rows, predominantColor, media_typ
     let x = firstLarge ? 2 * config.POSTER_WIDTH : 0
     let y = 0
 
-    while (index < lastfmData.length) {
+    while (index < lastfm_data.length) {
         if (x >= columns * config.POSTER_WIDTH) {
             x = 0
             y += config.POSTER_HEIGHT
@@ -205,7 +205,7 @@ function gridlfTemplate({ lastfmData, columns, rows, predominantColor, media_typ
             break
         }
 
-        const item = lastfmData[index]
+        const item = lastfm_data[index]
         const scrobbleElements = generateScrobbleImage(item, x, y, config.POSTER_WIDTH, config.POSTER_HEIGHT, param, config, media_type)
         data.elements.push(...scrobbleElements)
 

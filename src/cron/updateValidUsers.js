@@ -7,10 +7,7 @@ async function verifyMember(chat_id, telegram_id) {
     try {
         const member_info = await bot.telegram.getChatMember(chat_id, telegram_id)
 
-        if (validUsersStatus.includes(member_info.status)) {
-            return true
-        }
-        return false
+        return validUsersStatus.includes(member_info.status)
 
     } catch (error) {
         console.log(`BOT: Error verifying user ${telegram_id}:`, error)
@@ -22,21 +19,18 @@ export default async function updateGroups() {
         const groups = await getAllRankGroups()
 
         for (const chat_id of groups) {
-            // Buscar usuários no banco de dados para o grupo atual
-            const groupUsers = await getUsersByChatId(chat_id)
 
-            // Verificar membros válidos
-            const validUsersSet = new Set()  // Usando Set para melhorar a performance nas comparações
+            const group_users = await getUsersByChatId(chat_id)
+            const valid_users = []
 
-            for (const user of groupUsers) {
-                // Iterar sobre o gerador assíncrono para verificar usuários válidos
-                if (await verifyMember(chat_id, user)) {
-                    validUsersSet.add(user)
+            for (const user of group_users) {
+                const isValidMember = await verifyMember(chat_id, user)
+                if (isValidMember) {
+                    valid_users.push(user)
                 }
             }
 
-            // Remover os usuários que não estão no conjunto de usuários válidos
-            await removeInvalidUsersFromGroup(chat_id, Array.from(validUsersSet))
+            await removeInvalidUsersFromGroup(chat_id, valid_users)
         }
     } catch (error) {
         console.error('Error updating groups:', error)

@@ -34,7 +34,7 @@ function createGradientRectangle(x, y, config) {
 }
 
 function generateTrackStory({ lastfm_data, canva_data, config }) {
-  const src = lastfm_data.image.extralarge
+  const src = lastfm_data.image
   const track_title = lastfm_data.track
   const album_title = lastfm_data.album
   const artist_title = lastfm_data.artist
@@ -158,7 +158,7 @@ function generateTrackStory({ lastfm_data, canva_data, config }) {
 }
 
 function generateAlbumStory({ lastfm_data, canva_data, config }) {
-  const src = lastfm_data.image.extralarge
+  const src = lastfm_data.image
   const album_title = lastfm_data.album
   const artist_title = lastfm_data.artist
   const scrobbles = Number(lastfm_data.userplaycount) + 1
@@ -263,7 +263,7 @@ function generateAlbumStory({ lastfm_data, canva_data, config }) {
 }
 
 function generateArtistStory({ lastfm_data, canva_data, config }) {
-  const src = lastfm_data.image.extralarge
+  const src = lastfm_data.image
   const artist_title = lastfm_data.artist
   const scrobbles = Number(lastfm_data.userplaycount) + 1
 

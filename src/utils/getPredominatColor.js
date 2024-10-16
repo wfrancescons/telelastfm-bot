@@ -1,9 +1,15 @@
 import getColors from 'get-image-colors'
 
 async function getPredominantColor(url) {
-    const colors = await getColors(url)
-    const rgb = colors[0].rgb()
-    return rgb
+    try {
+        const colors = await getColors(url)
+        const rgb = colors[0].rgb()
+        return rgb
+    } catch (error) {
+        console.error(error)
+        return [14, 14, 14]
+    }
+
 }
 
 export default getPredominantColor

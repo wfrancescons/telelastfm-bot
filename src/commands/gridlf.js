@@ -2,7 +2,8 @@ import { getLastfmUser } from '../database/services/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { acceptedMedias, acceptedPeriods, mediaMap, periodMap } from '../helpers/validValuesMap.js'
 import renderCanvas from '../rendering/renderCanva.js'
-import { getUserTopAlbums, getUserTopArtists, getUserTopTracks } from '../services/lastfm.js'
+import { getArtistImageUrl, getTrackImageUrl, getUserTopAlbums, getUserTopArtists, getUserTopTracks } from '../services/lastfm.js'
+import { findCachedImage, saveImageToCache } from '../utils/cache.js'
 import createEntity from '../utils/createEntity.js'
 import getPredominantColor from '../utils/getPredominatColor.js'
 import { sendPhotoMessage, sendTextMessage } from '../utils/messageSender.js'
@@ -20,18 +21,67 @@ const GRID_REGEX = /^(\d+)x(\d+)$/
 async function getLastfmData(lastfm_user, media_type, period, limit) {
     try {
         if (media_type === 'tracks') {
-            const lastfmData = await getUserTopTracks(lastfm_user, period, limit)
-            return lastfmData
+            const lastfm_data = await getUserTopTracks(lastfm_user, period, limit)
+
+            for (const scrobble of lastfm_data) {
+                const lastfm_info = {
+                    track: scrobble.track.name,
+                    artist: scrobble.track.artist
+                }
+
+                let cached_image = await findCachedImage(mediaMap[media_type], { ...lastfm_info })
+
+                if (!cached_image) {
+                    const track_image_url = await getTrackImageUrl({ ...lastfm_info, username: lastfm_user })
+                    cached_image = await saveImageToCache(mediaMap[media_type], track_image_url, lastfm_info)
+                }
+
+                scrobble.image = cached_image
+            }
+
+            return lastfm_data
         }
 
         if (media_type === 'albums') {
-            const lastfmData = await getUserTopAlbums(lastfm_user, period, limit)
-            return lastfmData
+            const lastfm_data = await getUserTopAlbums(lastfm_user, period, limit)
+
+            for (const scrobble of lastfm_data) {
+                const lastfm_info = {
+                    album: scrobble.album.name,
+                    artist: scrobble.album.artist
+                }
+
+                let cached_image = await findCachedImage(mediaMap[media_type], { ...lastfm_info })
+
+                if (!cached_image) {
+                    cached_image = await saveImageToCache(mediaMap[media_type], scrobble.image.large, lastfm_info)
+                }
+
+                scrobble.image = cached_image
+            }
+
+            return lastfm_data
         }
 
         if (media_type === 'artists') {
-            const lastfmData = await getUserTopArtists(lastfm_user, period, limit)
-            return lastfmData
+            const lastfm_data = await getUserTopArtists(lastfm_user, period, limit)
+
+            for (const scrobble of lastfm_data) {
+                const lastfm_info = {
+                    artist: scrobble.artist.name
+                }
+
+                let cached_image = await findCachedImage(mediaMap[media_type], { ...lastfm_info })
+
+                if (!cached_image) {
+                    const artist_image_url = await getArtistImageUrl({ ...lastfm_info, username: lastfm_user })
+                    cached_image = await saveImageToCache(mediaMap[media_type], artist_image_url, lastfm_info)
+                }
+
+                scrobble.image = cached_image
+            }
+
+            return lastfm_data
         }
     } catch (error) {
         throw error
@@ -80,7 +130,7 @@ async function gridlf(ctx) {
             entities: []
         }
 
-        const examplesCommand = ['/gridlf 4x1 tracks', '/gridlf 5x3 art', '/gridlf 10x10 notext']
+        const examplesCommand = ['/gridlf 4x1 tracks', '/gridlf 5x3 art', '/gridlf 10x10 notexts']
         const tipText = '💡 Tip: you can define your grid, type of media or make a collage with no text\n'
 
         const responseMessage =
@@ -97,17 +147,17 @@ async function gridlf(ctx) {
 
         const response = await sendTextMessage(ctx, responseMessage, responseExtra)
 
-        const lastfmData = await getLastfmData(lastfm_user, mediaMap[media_type], periodMap[period], COLUMNS * ROWS)
+        const lastfm_data = await getLastfmData(lastfm_user, mediaMap[media_type], periodMap[period], COLUMNS * ROWS)
 
         const extra = {
             reply_to_message_id: ctx.message?.message_id,
-            caption: `${first_name}, your ${grid} grid`
+            caption: `${first_name}, your ${grid} ${mediaMap[media_type]} grid`
         }
 
         ctx.replyWithChatAction('upload_photo').catch(error => console.error(error))
 
         const templateData = {
-            lastfmData,
+            lastfm_data,
             columns: COLUMNS,
             rows: ROWS,
             predominantColor: [14, 14, 14],
@@ -116,7 +166,7 @@ async function gridlf(ctx) {
         }
 
         if (param !== 'notexts') {
-            const predominantColor = await getPredominantColor(lastfmData[0].image.small)
+            const predominantColor = await getPredominantColor(lastfm_data[0].image)
             templateData.predominantColor = predominantColor
         }
 

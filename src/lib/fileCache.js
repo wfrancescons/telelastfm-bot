@@ -1,5 +1,5 @@
 import fs from 'node:fs/promises'
-import path from 'path'
+import path from 'node:path'
 
 class FileCache {
     constructor(cacheDir, { maxCacheSize = 0, fileTTL = 0 }) {
@@ -83,6 +83,27 @@ class FileCache {
                 }
             }
         }
+    }
+
+    async findImage(filename) {
+        const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp']
+
+        try {
+            const files = await fs.readdir(this.cacheDir)
+
+            for (const file of files) {
+                const ext = path.extname(file)
+                const nameWithoutExt = path.basename(file, ext)
+
+                if (nameWithoutExt === filename && validExtensions.includes(ext)) {
+                    return path.join(this.cacheDir, file)
+                }
+            }
+        } catch (error) {
+            console.error('Error reading cache directory:', error)
+        }
+
+        return null
     }
 
     async get(fileName) {

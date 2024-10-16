@@ -10,7 +10,7 @@ const lastfm_url_api = 'https://ws.audioscrobbler.com/2.0/'
 const DEFAULT_IMAGE = 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
 
 const apiLimiter = new Bottleneck({
-  minTime: 200
+  minTime: 100
 })
 
 const webScrappingLimiter = new Bottleneck({
@@ -184,25 +184,7 @@ async function getUserTopTracks(username, period, limit = 5) {
 
     const topTracks = data.toptracks.track
 
-    const tracksPromises = topTracks.map((artist) => {
-      return webScrappingLimiter.schedule(async () => {
-        const artistUrl = artist.url
-        const ogImage = await getOgImage(artistUrl)
-        if (ogImage) {
-          artist.image = [
-            {
-              "size": "small",
-              "#text": ogImage
-            }
-          ]
-        }
-        return artist
-      })
-    })
-
-    const updatedTracks = await Promise.all(tracksPromises)
-
-    return updatedTracks.map(item => ({
+    return topTracks.map(item => ({
       rank: item['@attr'].rank,
       image: extractImage(item.image),
       track: {
@@ -259,25 +241,7 @@ async function getUserTopArtists(username, period, limit = 5) {
 
     const topArtists = data.topartists.artist
 
-    const artistPromises = topArtists.map((artist) => {
-      return webScrappingLimiter.schedule(async () => {
-        const artistUrl = artist.url
-        const ogImage = await getOgImage(artistUrl)
-        if (ogImage) {
-          artist.image = [
-            {
-              "size": "small",
-              "#text": ogImage
-            }
-          ]
-        }
-        return artist
-      })
-    })
-
-    const updatedArtists = await Promise.all(artistPromises)
-
-    return updatedArtists.map(item => ({
+    return topArtists.map(item => ({
       rank: item['@attr'].rank,
       image: extractImage(item.image),
       artist: {
@@ -326,6 +290,7 @@ async function getTrackInfo({ track, artist, username = null }) {
       userplaycount: Number(response.track?.userplaycount) || 0,
       lovedtrack: Boolean(Number(response.track?.userloved)),
       tags: response.track?.toptags?.tag || [],
+      url: response.track?.url || null,
       image: {
         small: 'https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png',
         medium: 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png',
@@ -408,6 +373,50 @@ async function getArtistInfo({ artist, username = null }) {
   }
 }
 
+async function getArtistImageUrl({ artist, username }) {
+  try {
+    const artist_info = await getArtistInfo({ artist, username })
+    const image_url = artist_info.image?.large || null
+
+    return image_url
+  } catch (error) {
+    handleRequestError(error)
+  }
+}
+
+async function getTrackImageUrl({ track, artist, username }) {
+  try {
+    const track_info = await getTrackInfo({ track, artist, username })
+
+    let lastfm_image_url
+
+    if (track_info.image.medium === DEFAULT_IMAGE) {
+      lastfm_image_url = null
+    } else {
+      lastfm_image_url = track_info.image?.large
+    }
+
+    if (!lastfm_image_url) {
+
+      const track_url = track_info.url
+
+      if (track_url) {
+
+        const og_image = await getOgImage(track_url)
+        const image_obj = extractImage([{ "size": "small", "#text": og_image }])
+
+        return image_obj.large
+
+      }
+
+    }
+    return lastfm_image_url
+
+  } catch (error) {
+    handleRequestError(error)
+  }
+}
+
 async function getWeeklyTrackChart(username) {
   try {
     const data = await makeRequest({
@@ -433,9 +442,8 @@ function handleRequestError(error) {
 }
 
 export {
-  extractImage, getAlbumInfo, getAlbumListeningNow, getArtistInfo, getArtistListeningNow,
-  getLastfmUserData, getOgImage, getRecentTracks,
-  getTrackInfo, getTrackListeningNow,
+  extractImage, getAlbumInfo, getAlbumListeningNow, getArtistImageUrl, getArtistInfo, getArtistListeningNow,
+  getLastfmUserData, getOgImage, getRecentTracks, getTrackImageUrl, getTrackInfo, getTrackListeningNow,
   getUserTopAlbums,
   getUserTopArtists,
   getUserTopTracks,

@@ -3,6 +3,7 @@ import errorHandler from '../handlers/errorHandler.js'
 import { acceptedMedias, mediaMap } from '../helpers/validValuesMap.js'
 import renderCanvas from '../rendering/renderCanva.js'
 import { getAlbumListeningNow, getArtistListeningNow, getTrackListeningNow } from '../services/lastfm.js'
+import { findCachedImage, saveImageToCache } from '../utils/cache.js'
 import createEntity from '../utils/createEntity.js'
 import getPredominantColor from '../utils/getPredominatColor.js'
 import { sendPhotoMessage, sendTextMessage } from '../utils/messageSender.js'
@@ -53,7 +54,7 @@ async function storylf(ctx) {
             entities: []
         }
 
-        const examplesCommand = ['/story alb', '/story art']
+        const examplesCommand = ['/storylf alb', '/storylf art']
         const tipText = '💡 Tip: you can define the type of media of your story\n'
         const responseMessage = `Generating your ${media_type} story...\n` +
             `\n${tipText}` +
@@ -75,7 +76,14 @@ async function storylf(ctx) {
 
         ctx.replyWithChatAction('upload_photo').catch(error => console.error(error))
 
-        const predominant_color = await getPredominantColor(lastfm_data.image.small)
+        let cached_image = await findCachedImage(mediaMap[media_type], lastfm_data)
+        if (!cached_image) {
+            cached_image = await saveImageToCache(mediaMap[media_type], lastfm_data.image.large, lastfm_data)
+        }
+
+        lastfm_data.image = cached_image
+
+        const predominant_color = await getPredominantColor(lastfm_data.image)
 
         const templateData = {
             lastfm_data,
