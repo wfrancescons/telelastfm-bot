@@ -20,7 +20,7 @@ function lastfmUrlParser(url) {
 }
 
 function generateBaseFilename(media_type, { track, album, artist }) {
-    const sanitize = str => str.replace(/[^a-z0-9]/gi, '_').toLowerCase()
+    const sanitize = str => str.replace(/[^\p{L}\p{N}]/gu, '_').toLowerCase()
 
     if (media_type === 'tracks') {
         if (track && album) {
