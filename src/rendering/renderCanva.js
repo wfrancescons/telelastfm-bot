@@ -1,26 +1,8 @@
-import { createCanvas, GlobalFonts, loadImage } from '@napi-rs/canvas'
-import { readdir } from 'node:fs/promises'
-import { join } from 'node:path'
+import { Canvas, FontLibrary, loadImage } from '@mpaperno/skia-canvas'
 
-const fonts_dir = './src/rendering/fonts/'
-
-const loadAllFontsFromDirectory = async (dir) => {
-    const files = await readdir(dir, { withFileTypes: true })
-
-    for (const file of files) {
-        const filePath = join(dir, file.name)
-
-        if (file.isDirectory()) {
-            await loadAllFontsFromDirectory(filePath)
-        } else if (file.isFile() && (file.name.endsWith('.ttf') || file.name.endsWith('.otf'))) {
-            const fontFamilyName = file.name.replace(/\.(ttf|otf)$/, '')
-            GlobalFonts.registerFromPath(filePath, fontFamilyName)
-            console.log(`Set font: ${fontFamilyName}`)
-        }
-    }
-}
-
-await loadAllFontsFromDirectory(fonts_dir)
+// Registrar fontes
+FontLibrary.use('Noto Sans JP', ['./src/rendering/fonts/NotoSansJP/*.ttf'])
+FontLibrary.use('Train One', ['./src/rendering/fonts/TrainOne/*.ttf'])
 
 function wrapText(ctx, text, maxWidth) {
     const words = text.split(' ')
@@ -104,34 +86,30 @@ function drawText(ctx, element) {
 }
 
 async function renderCanvas(data) {
-    try {
-        let canvas = createCanvas(data.width, data.height)
-        const ctx = canvas.getContext('2d')
+    const canvas = new Canvas(data.width, data.height)
+    const ctx = canvas.getContext('2d')
 
-        ctx.fillStyle = data.background || 'white'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = data.background || 'white'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-        for (const element of data.elements) {
-            if (element.type === 'image') {
-                await drawImage(ctx, element)
-            }
-            if (element.type === 'rectangle') {
-                drawRect(ctx, element)
-            }
-            if (element.type === 'text') {
-                drawText(ctx, element)
-            }
-            if (element.type === 'icon') {
-                await drawImage(ctx, element)
-            }
+    for (const element of data.elements) {
+        if (element.type === 'image') {
+            await drawImage(ctx, element)
         }
-
-        const buffer = await canvas.encode('jpeg', { quality: 0.95 })
-        return buffer
-
-    } catch (error) {
-        throw error
+        if (element.type === 'rectangle') {
+            drawRect(ctx, element)
+        }
+        if (element.type === 'text') {
+            drawText(ctx, element)
+        }
+        if (element.type === 'icon') {
+            await drawImage(ctx, element)
+        }
     }
+
+    const canva_buffer = await canvas.toBuffer('jpeg', { quality: 0.95 })
+
+    return canva_buffer
 }
 
 export default renderCanvas
