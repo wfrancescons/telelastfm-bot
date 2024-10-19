@@ -43,7 +43,8 @@ try {
     { command: 'rankoutlf', description: 'Leave a group\'s Weekly Chart Race' },
     //{ command: 'toplf', description: 'Generate a top scrobbles collage' },
     { command: 'setlf', description: 'Set your Lastfm username' },
-    { command: 'help', description: 'Send a list of valid commands' }
+    { command: 'help', description: 'Send a list of valid commands' },
+    { command: 'privacy', description: 'Send the Terms of Use and Privacy Policy' }
   ])
 
   bot.use(ignoreChannelMessage)
