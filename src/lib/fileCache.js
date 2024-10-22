@@ -145,6 +145,15 @@ class FileCache {
         }
     }
 
+    list() {
+        try {
+            return [...this.cacheFiles.keys()]
+        } catch (error) {
+            console.error('Error listing cache files:', error)
+            return []
+        }
+    }
+
     getCacheSize() {
         return [...this.cacheFiles.values()].reduce((acc, metadata) => acc + metadata.size, 0)
     }

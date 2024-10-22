@@ -3,7 +3,7 @@ import config from '../../config.js';
 import { countUsagesToday } from '../../database/services/commandUsageLog.js';
 import { countUsers } from '../../database/services/user.js';
 import errorHandler from '../../handlers/errorHandler.js';
-import { getCacheSize } from '../../utils/cache.js';
+import { countCacheFiles, getCacheSize } from '../../utils/cache.js';
 import { sendTextMessage } from '../../utils/messageSender.js';
 
 async function botstatuslf(ctx) {
@@ -16,6 +16,7 @@ async function botstatuslf(ctx) {
 
         const users_count = await countUsers()
         const cache_size = getCacheSize()
+        const files_in_cache = countCacheFiles()
         const uptime_total = process.uptime()
         const uptime_hours = Math.floor(uptime_total / 3600)
         const uptime_minutes = Math.floor((uptime_total % 3600) / 60)
@@ -47,6 +48,7 @@ async function botstatuslf(ctx) {
             `CPU Usage: ${cpu_usage_percentage}%\n\n` +
 
             `*🗃️ Cache:*\n` +
+            `Total Files: ${files_in_cache.toLocaleString('pt-BR')}\n` +
             `Cache Size: ${cache_size} GB\n`
 
         const extras = {

@@ -116,5 +116,15 @@ async function findCachedImage(media_type, { track, album, artist }) {
     }
 }
 
-export { findCachedImage, generateFilename, getCacheSize, getFile, lastfmUrlParser, saveImageToCache }
+function countCacheFiles() {
+    try {
+        const files = cache.list()
+        return files.length
+    } catch (error) {
+        console.error('Error counting cache files:', error)
+        return 0
+    }
+}
+
+export { countCacheFiles, findCachedImage, generateFilename, getCacheSize, getFile, lastfmUrlParser, saveImageToCache }
 
