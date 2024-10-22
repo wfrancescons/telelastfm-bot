@@ -1,6 +1,7 @@
 import { Telegraf } from 'telegraf'
 import config from './config.js'
 import sequelize from './database/database.js'
+import { logMemoryRss } from './dev/logMemory.js'
 
 import * as Commands from './commands/commands.js'
 import ignoreChannelMessage from './middlewares/ignoreChannelMessages.js'
@@ -130,6 +131,8 @@ try {
   // Set development webhook
   if (config.environment === 'development') {
     bot.startPolling()
+
+    setInterval(logMemoryRss, 5000)
   } else {
     bot.launch()
   }
