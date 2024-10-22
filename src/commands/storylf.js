@@ -1,3 +1,4 @@
+import { logCommand } from '../database/services/commandUsageLog.js'
 import { getLastfmUser } from '../database/services/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { acceptedMedias, mediaMap } from '../helpers/validValuesMap.js'
@@ -41,6 +42,9 @@ async function storylf(ctx) {
     const first_name = ctx.update.message.from.first_name
     const args = ctx.update.message.text.trim().toLowerCase().split(' ')
     const media_type = parseArgs(args)
+    const chat_id = ctx.message.chat.id
+
+    logCommand('storylf', telegram_id, chat_id)
 
     try {
         ctx.replyWithChatAction('typing').catch(error => console.error(error))

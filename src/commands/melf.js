@@ -1,4 +1,5 @@
 import config from '../config.js'
+import { logCommand } from '../database/services/commandUsageLog.js'
 import { getLastfmUser } from '../database/services/user.js'
 import { updateStreaks } from '../database/services/userStreaks.js'
 import errorHandler from '../handlers/errorHandler.js'
@@ -113,6 +114,9 @@ async function melf(ctx) {
     const args = ctx.update.message.text.trim().toLowerCase().split(' ')
     let media_type = parseArgs(args)
     media_type = mediaMap[media_type]
+    const chat_id = ctx.message.chat.id
+
+    logCommand('melf', telegram_id, chat_id)
 
     const isReplyToOther = ctx.update.message?.reply_to_message
     const isReplyToChannel = ctx.update.message?.reply_to_message?.sender_chat?.type === 'channel'

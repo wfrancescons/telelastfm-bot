@@ -1,3 +1,4 @@
+import { logCommand } from '../database/services/commandUsageLog.js'
 import { getLastfmUser } from '../database/services/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { acceptedMedias, acceptedPeriods, mediaMap, periodMap } from '../helpers/validValuesMap.js'
@@ -115,6 +116,9 @@ async function gridlf(ctx) {
     const telegram_id = ctx.message.from.id
     const first_name = ctx.update.message.from.first_name
     const args = ctx.update.message.text.trim().toLowerCase().split(' ')
+    const chat_id = ctx.message.chat.id
+
+    logCommand('gridlf', telegram_id, chat_id)
 
     try {
         ctx.replyWithChatAction('typing').catch(error => console.error(error))

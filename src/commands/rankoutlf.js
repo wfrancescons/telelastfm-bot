@@ -1,3 +1,4 @@
+import { logCommand } from '../database/services/commandUsageLog.js'
 import { deleteRecord } from '../database/services/rankGroupParticipants.js'
 import { getLastfmUser } from '../database/services/user.js'
 import errorHandler from '../handlers/errorHandler.js'
@@ -8,6 +9,8 @@ async function rankoutlf(ctx) {
 
     const telegram_id = ctx.message.from.id
     const chat_id = ctx.message.chat.id
+
+    logCommand('rankoutlf', telegram_id, chat_id)
 
     try {
 

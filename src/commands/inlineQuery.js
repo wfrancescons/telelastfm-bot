@@ -1,3 +1,4 @@
+import { logCommand } from '../database/services/commandUsageLog.js'
 import { getLastfmUser } from '../database/services/user.js'
 import { updateStreaks } from '../database/services/userStreaks.js'
 import errorHandler from '../handlers/errorHandler.js'
@@ -11,6 +12,8 @@ async function inlineQuery(ctx) {
 
     const telegram_id = ctx.update.inline_query.from.id
     const first_name = ctx.update.inline_query.from.first_name
+
+    logCommand('inline_query', telegram_id, telegram_id)
 
     try {
 

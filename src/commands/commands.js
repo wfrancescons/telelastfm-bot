@@ -13,12 +13,17 @@ import setlf from './setlf.js'
 import storylf from './storylf.js'
 import youlf from './youlf.js'
 
+import { logCommand } from '../database/services/commandUsageLog.js'
 import rankinlf from './rankinlf.js'
 import rankoutlf from './rankoutlf.js'
 
 async function start(ctx) {
 
   const first_name = ctx.update.message.from.first_name
+  const telegram_id = ctx.message.from.id
+  const chat_id = ctx.message.chat.id
+
+  logCommand('start', telegram_id, chat_id)
 
   try {
     const extra = {
@@ -47,6 +52,11 @@ async function start(ctx) {
 
 // Help command
 async function help(ctx) {
+
+  const telegram_id = ctx.message.from.id
+  const chat_id = ctx.message.chat.id
+
+  logCommand('help', telegram_id, chat_id)
 
   try {
 
@@ -83,6 +93,11 @@ async function help(ctx) {
 }
 
 async function privacy(ctx) {
+
+  const telegram_id = ctx.message.from.id
+  const chat_id = ctx.message.chat.id
+
+  logCommand('privacy', telegram_id, chat_id)
 
   try {
 

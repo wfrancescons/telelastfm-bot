@@ -1,7 +1,9 @@
+import { logCommand } from '../database/services/commandUsageLog.js'
 import { getLastfmUser } from '../database/services/user.js'
 import errorHandler from '../handlers/errorHandler.js'
 import { acceptedMedias, acceptedPeriods } from '../helpers/validValuesMap.js'
 import { getUserTopAlbums, getUserTopArtists, getUserTopTracks } from '../services/lastfm.js'
+import createEntity from '../utils/createEntity.js'
 import { sendTextMessage } from '../utils/messageSender.js'
 
 const DEFAULT_MEDIA_TYPE = 'artists'
@@ -55,6 +57,9 @@ async function toplf(ctx) {
     const telegram_id = ctx.message.from.id
     const first_name = ctx.update.message.from.first_name
     const args = ctx.update.message.text.trim().toLowerCase().split(' ')
+    const chat_id = ctx.message.chat.id
+
+    logCommand('toplf', telegram_id, chat_id)
 
     try {
         ctx.replyWithChatAction('typing').catch(error => console.error(error))

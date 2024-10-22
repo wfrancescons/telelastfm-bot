@@ -1,3 +1,4 @@
+import { logCommand } from '../database/services/commandUsageLog.js'
 import { getLastfmUser } from '../database/services/user.js'
 import { updateStreaks } from '../database/services/userStreaks.js'
 import errorHandler from '../handlers/errorHandler.js'
@@ -10,6 +11,9 @@ async function artlf(ctx) {
     let telegram_id = ctx.message.from.id
     let first_name = ctx.update.message.from.first_name
     let reply_to_message_id = ctx.message.message_id
+    const chat_id = ctx.message.chat.id
+
+    logCommand('artlf', telegram_id, chat_id)
 
     const isReplyToOther = ctx.update.message?.reply_to_message
     const isReplyToChannel = ctx.update.message?.reply_to_message?.sender_chat?.type === 'channel'

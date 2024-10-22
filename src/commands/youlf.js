@@ -1,3 +1,4 @@
+import { logCommand } from '../database/services/commandUsageLog.js'
 import { getLastfmUser } from '../database/services/user.js'
 import { findStreaksByPkOrCreate } from '../database/services/userStreaks.js'
 import errorHandler from '../handlers/errorHandler.js'
@@ -73,6 +74,11 @@ function parseArgs(args) {
 }
 
 async function youlf(ctx) {
+
+    const telegram_id = ctx.message.from.id
+    const chat_id = ctx.message.chat.id
+
+    logCommand('youlf', telegram_id, chat_id)
 
     try {
         ctx.replyWithChatAction('typing').catch(error => console.error(error))

@@ -3,7 +3,6 @@ import config from './config.js'
 import sequelize from './database/database.js'
 
 import * as Commands from './commands/commands.js'
-import commandLogger from './middlewares/commandLogger.js'
 import ignoreChannelMessage from './middlewares/ignoreChannelMessages.js'
 import parseArgs from './middlewares/parseArgs.js'
 import throttleCommands from './middlewares/throttleCommands.js'
@@ -50,14 +49,11 @@ try {
   bot.use(ignoreChannelMessage)
   bot.use(throttleCommands)
   bot.use(parseArgs)
-  bot.use(commandLogger)
 
   // Set bot response
   bot.start((ctx) => Commands.start(ctx))
   bot.help((ctx) => Commands.help(ctx))
   bot.command('privacy', (ctx) => Commands.privacy(ctx))
-
-  bot.command('collage', (ctx) => ctx.reply(`Comando alterado para /gridlf\nMais informações: ${config.bot.news_channel}`))
 
   bot.command('lf', (ctx) => {
     (async () => {
