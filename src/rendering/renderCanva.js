@@ -1,4 +1,5 @@
-import { Canvas, FontLibrary, loadImage } from '@mpaperno/skia-canvas'
+import { Canvas, FontLibrary, Image } from '@mpaperno/skia-canvas'
+import { readFile } from 'node:fs/promises'
 
 // Registrar fontes
 FontLibrary.use('Noto Sans JP', ['./src/rendering/fonts/NotoSansJP/*.ttf'])
@@ -29,7 +30,11 @@ async function drawImage(ctx, element) {
         ctx.filter = element.filter || 'none'
         ctx.globalCompositeOperation = element.composite || 'source-over'
 
-        const image = await loadImage(element.src)
+        const image_buffer = await readFile(element.src)
+
+        const image = new Image(element.width, element.height)//await loadImage(element.src)
+
+        image.src = image_buffer
 
         ctx.drawImage(image, element.x, element.y, element.width, element.height)
 
