@@ -55,7 +55,7 @@ async function inlineQuery(ctx) {
                 title: 'Track:',
                 description: `🎶 ${limitText(lf.track, 15)}\n` +
                     `📈 ${(lf.userplaycount + 1).toLocaleString('pt-BR')} ${lf.userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`,
-                thumb_url: lf.image.small,
+                thumb_url: lf.image.medium,
                 input_message_content: {
                     message_text: lf.formattedMessage.text,
                     entities: lf.formattedMessage.entities
@@ -67,7 +67,7 @@ async function inlineQuery(ctx) {
                 title: 'Album:',
                 description: `💿 ${limitText(alblf.album, 15)}\n` +
                     `📈 ${(alblf.userplaycount + 1).toLocaleString('pt-BR')} ${alblf.userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`,
-                thumb_url: alblf.image.small,
+                thumb_url: alblf.image.medium,
                 input_message_content: {
                     message_text: alblf.formattedMessage.text,
                     entities: alblf.formattedMessage.entities
@@ -79,7 +79,7 @@ async function inlineQuery(ctx) {
                 title: 'Artist:',
                 description: `🧑‍🎤 ${limitText(artlf.artist, 15)}\n` +
                     `📈 ${(artlf.userplaycount + 1).toLocaleString('pt-BR')} ${artlf.userplaycount + 1 != 1 ? 'scrobbles so far' : 'scrobble so far'}`,
-                thumb_url: artlf.image.small,
+                thumb_url: artlf.image.medium,
                 input_message_content: {
                     message_text: artlf.formattedMessage.text,
                     entities: artlf.formattedMessage.entities
