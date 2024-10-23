@@ -1,9 +1,14 @@
-import { Canvas, FontLibrary, Image } from '@mpaperno/skia-canvas'
-import { readFile } from 'node:fs/promises'
+import { Canvas, FontLibrary, loadImage } from '@mpaperno/skia-canvas'
+import Bottleneck from 'bottleneck'
 
 // Registrar fontes
 FontLibrary.use('Noto Sans JP', ['./src/rendering/fonts/NotoSansJP/*.ttf'])
 FontLibrary.use('Train One', ['./src/rendering/fonts/TrainOne/*.ttf'])
+
+const limiter = new Bottleneck({
+    maxConcurrent: 4,
+    minTime: 0
+})
 
 function wrapText(ctx, text, maxWidth) {
     const words = text.split(' ')
@@ -30,11 +35,7 @@ async function drawImage(ctx, element) {
         ctx.filter = element.filter || 'none'
         ctx.globalCompositeOperation = element.composite || 'source-over'
 
-        const image_buffer = await readFile(element.src)
-
-        const image = new Image(element.width, element.height)//await loadImage(element.src)
-
-        image.src = image_buffer
+        const image = await loadImage(element.src)
 
         ctx.drawImage(image, element.x, element.y, element.width, element.height)
 
@@ -121,4 +122,6 @@ async function renderCanvas(data) {
     return canva_buffer
 }
 
-export default renderCanvas
+const wrapped = limiter.wrap(renderCanvas)
+
+export default wrapped
