@@ -94,6 +94,8 @@ async function renderCanvas(data) {
     const canvas = new Canvas(data.width, data.height)
     const ctx = canvas.getContext('2d')
 
+    canvas.gpu = false
+
     ctx.fillStyle = data.background || 'white'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
@@ -112,7 +114,9 @@ async function renderCanvas(data) {
         }
     }
 
-    const canva_buffer = await canvas.toBuffer('jpeg', { quality: 0.95 })
+    const canva_buffer = canvas.toBufferSync('jpeg')
+
+    canvas = null // explicit for GC
 
     return canva_buffer
 }
