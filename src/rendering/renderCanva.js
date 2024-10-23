@@ -91,7 +91,7 @@ function drawText(ctx, element) {
 }
 
 async function renderCanvas(data) {
-    const canvas = new Canvas(data.width, data.height)
+    let canvas = new Canvas(data.width, data.height)
     const ctx = canvas.getContext('2d')
 
     canvas.gpu = false
