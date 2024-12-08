@@ -83,26 +83,24 @@ function drawRect(ctx, element) {
 }
 
 function drawText(ctx, element) {
-    ctx.shadowColor = 'transparent'
-    ctx.shadowOffsetX = 0
-    ctx.shadowOffsetY = 0
-    ctx.shadowBlur = 0
+    ctx.shadowColor = element.shadow?.color || 'transparent'
+    ctx.shadowOffsetX = element.shadow?.offsetX || 0
+    ctx.shadowOffsetY = element.shadow?.offsetY || 0
+    ctx.shadowBlur = element.shadow?.blur || 0
 
     ctx.font = element.font || '16px sans-serif'
     ctx.fillStyle = element.fillStyle || 'black'
     ctx.textAlign = element.align || 'left'
 
-    if (element.shadow) {
-        ctx.shadowColor = element.shadow.color
-        ctx.shadowOffsetX = element.shadow.offsetX
-        ctx.shadowOffsetY = element.shadow.offsetY
-        ctx.shadowBlur = element.shadow.blur
-    }
-
     const lines = wrapText(ctx, element.text, element.maxWidth)
     lines.forEach((line, i) => {
         ctx.fillText(line, element.x, element.y - (lines.length - 1 - i) * element.lineHeight)
     })
+
+    ctx.shadowColor = 'transparent'
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 0
+    ctx.shadowBlur = 0
 }
 
 async function renderCanvas(data) {
@@ -127,7 +125,7 @@ async function renderCanvas(data) {
         }
     }
 
-    const canvaBuffer = canvas.toBuffer('image/jpeg')
+    const canvaBuffer = await canvas.encode('jpeg')
     return canvaBuffer
 }
 

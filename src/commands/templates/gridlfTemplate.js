@@ -137,7 +137,7 @@ function generateScrobbleImage(item, x, y, width, height, param, config, media_t
                 font,
                 fillStyle: '#ffffff',
                 shadow: {
-                    color: 'rgba(0, 0, 0, 0.5)',
+                    color: 'rgba(0, 0, 0, 1.0)',
                     offsetX: 2,
                     offsetY: 2,
                     blur: 4
