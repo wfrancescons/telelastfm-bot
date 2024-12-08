@@ -1,9 +1,9 @@
-import { Canvas, FontLibrary, loadImage } from '@mpaperno/skia-canvas'
 import Bottleneck from 'bottleneck'
+import { Canvas, FontLibrary, loadImage } from 'skia-canvas'
 
 // Registrar fontes
-FontLibrary.use('Noto Sans JP', ['./src/rendering/fonts/NotoSansJP/*.ttf'])
-FontLibrary.use('Train One', ['./src/rendering/fonts/TrainOne/*.ttf'])
+FontLibrary.use('Noto Sans JP', './src/rendering/fonts/NotoSansJP/*.ttf')
+FontLibrary.use('Train One', './src/rendering/fonts/TrainOne/*.ttf')
 
 const limiter = new Bottleneck({
     maxConcurrent: 4,
@@ -115,9 +115,7 @@ async function renderCanvas(data) {
         }
     }
 
-    const canva_buffer = canvas.toBufferSync('jpeg')
-
-    canvas = null // explicit for GC
+    const canva_buffer = await canvas.toBuffer('jpeg')
 
     return canva_buffer
 }
