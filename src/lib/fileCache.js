@@ -109,11 +109,17 @@ class FileCache {
     async isFileOlderThan(fileName, days) {
         const baseFileName = path.basename(fileName)
         const metadata = this.cacheFiles.get(baseFileName)
-        console.log({ metadata })
+
         if (!metadata) return true // Retorna true se o arquivo não for encontrado
 
         const fileAgeInDays = (Date.now() - metadata.creationTime) / (1000 * 60 * 60 * 24)
-        return fileAgeInDays > days
+        if (fileAgeInDays > days) {
+            console.log(`File ${baseFileName} is older than ${days} days. Deleting...`)
+            await this.delete(baseFileName) // Deleta o arquivo
+            return true // Indica que o arquivo foi deletado por ser muito antigo
+        }
+
+        return false // Arquivo ainda válido
     }
 
     async get(fileName) {
