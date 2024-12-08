@@ -5,7 +5,7 @@ import updateValidUsers from './updateValidUsers.js'
 
 // '0 30 19 * * 0' - todo domingo às 19h30
 // '0 12 * * *' - todo dia às 12h
-export default Cron('0 30 19 * * 0', { timezone: 'America/Sao_Paulo' }, async () => {
+export default Cron('0 0 20 * * 0', { timezone: 'America/Sao_Paulo' }, async () => {
     try {
 
         console.log('CRONJOB: Task started')
