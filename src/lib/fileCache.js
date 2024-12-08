@@ -106,6 +106,15 @@ class FileCache {
         return null
     }
 
+    async isFileOlderThan(fileName, days) {
+        const baseFileName = path.basename(fileName)
+        const metadata = this.cacheFiles.get(baseFileName)
+        if (!metadata) return true // Retorna true se o arquivo não for encontrado
+
+        const fileAgeInDays = (Date.now() - metadata.creationTime) / (1000 * 60 * 60 * 24)
+        return fileAgeInDays > days
+    }
+
     async get(fileName) {
         const metadata = this.cacheFiles.get(fileName)
         if (metadata) {

@@ -109,6 +109,11 @@ async function findCachedImage(media_type, { track, album, artist }) {
         if (!base_filename) return null
 
         const cached_file = await cache.findImage(base_filename)
+
+        // Verificar a data de modificação do arquivo
+        const isOld = await cache.isFileOlderThan(cached_file, 30) //30 dias
+        if (isOld) return null
+
         //if (cached_file) console.log('-> 🗃️ Imagem em cache:', cached_file)
         return cached_file
     } catch (error) {
