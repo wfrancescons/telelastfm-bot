@@ -1,9 +1,23 @@
+import { createCanvas, GlobalFonts, loadImage } from '@napi-rs/canvas'
 import Bottleneck from 'bottleneck'
-import { Canvas, FontLibrary, loadImage } from 'skia-canvas'
+import { readdir } from 'node:fs/promises'
+import { join } from 'node:path'
 
-// Registrar fontes
-FontLibrary.use('Noto Sans JP', './src/rendering/fonts/NotoSansJP/*.ttf')
-FontLibrary.use('Train One', './src/rendering/fonts/TrainOne/*.ttf')
+const fonts_dir = './src/rendering/fonts/'
+const loadAllFontsFromDirectory = async (dir) => {
+    const files = await readdir(dir, { withFileTypes: true })
+    for (const file of files) {
+        const filePath = join(dir, file.name)
+        if (file.isDirectory()) {
+            await loadAllFontsFromDirectory(filePath)
+        } else if (file.isFile() && (file.name.endsWith('.ttf') || file.name.endsWith('.otf'))) {
+            const fontFamilyName = file.name.replace(/\.(ttf|otf)$/, '')
+            GlobalFonts.registerFromPath(filePath, fontFamilyName)
+            console.log(`Fonte registrada: ${fontFamilyName}`)
+        }
+    }
+}
+await loadAllFontsFromDirectory(fonts_dir)
 
 const limiter = new Bottleneck({
     maxConcurrent: 4,
@@ -76,7 +90,7 @@ function drawText(ctx, element) {
 
     ctx.font = element.font || '16px sans-serif'
     ctx.fillStyle = element.fillStyle || 'black'
-    ctx.textAlign = element.align || 'left'  // Verifica o alinhamento do texto
+    ctx.textAlign = element.align || 'left'
 
     if (element.shadow) {
         ctx.shadowColor = element.shadow.color
@@ -92,10 +106,8 @@ function drawText(ctx, element) {
 }
 
 async function renderCanvas(data) {
-    let canvas = new Canvas(data.width, data.height)
+    const canvas = createCanvas(data.width, data.height)
     const ctx = canvas.getContext('2d')
-
-    canvas.gpu = false
 
     ctx.fillStyle = data.background || 'white'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -115,9 +127,8 @@ async function renderCanvas(data) {
         }
     }
 
-    const canva_buffer = await canvas.toBuffer('jpeg')
-
-    return canva_buffer
+    const canvaBuffer = canvas.toBuffer('image/jpeg')
+    return canvaBuffer
 }
 
 const wrapped = limiter.wrap(renderCanvas)
