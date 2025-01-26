@@ -10,80 +10,87 @@ export default async function () {
         const { id: bot_id } = await bot.telegram.getMe()
 
         for (const chat_id of groups) {
-            if (!await canSendMessage(chat_id, bot_id)) continue
+            try {
+                if (!await canSendMessage(chat_id, bot_id)) continue
 
-            const users = await getUsersByChatId(chat_id) // array com os ids dos usuários [1234, 5647, ...]
+                const users = await getUsersByChatId(chat_id) // array com os ids dos usuários [1234, 5647, ...]
+                console.log(`CRONJOB: Enviando mensagens para o grupo ${chat_id} com ${users.length} participantes`)
 
-            const result = []
-            for (const telegram_id of users) {
+                const result = []
+                for (const telegram_id of users) {
+                    try {
+                        const member_info = await bot.telegram.getChatMember(chat_id, telegram_id)
+                        const member_scrobbles_info = await getUserScrobblesPlaycount(telegram_id)
 
-                const member_info = await bot.telegram.getChatMember(chat_id, telegram_id)
-                const member_scrobbles_info = await getUserScrobblesPlaycount(telegram_id)
+                        const user = {
+                            telegram_id,
+                            first_name: member_info.user.first_name || '',
+                            username: member_info.user.username || '',
+                            scrobbles_playcount: member_scrobbles_info.scrobbles_playcount
+                        }
 
-                const user = {
-                    telegram_id,
-                    first_name: member_info.user.first_name || '',
-                    username: member_info.user.username || '',
-                    scrobbles_playcount: member_scrobbles_info.scrobbles_playcount
-                }
-
-                result.push(user)
-            }
-
-            result.sort((a, b) => b.scrobbles_playcount - a.scrobbles_playcount)
-
-            const text = [
-                `🏆 Weekly Tracks Chart 🏆\n`,
-            ]
-
-            const entities = [
-                {
-                    offset: 0,
-                    length: text[0].length,
-                    type: 'bold',
-                }
-            ]
-
-            const medal = (index) => {
-                const medals = ['🥇', '🥈', '🥉', '🏅']
-                return medals[index] || medals[3]
-            }
-
-            result.slice(0, 10).reduce((sum, item, index) => {
-
-                // Adiciona uma quebra de linha após a terceira iteração
-                if (index === 3) {
-                    text.push('\n')
-                }
-
-                const mention_index = text.reduce((sumIndex, current) => sumIndex + current.length, 0) + 4
-
-                const mention = item.first_name ? item.first_name : item.username ? `@${item.username}` : item.telegram_id
-
-                text.push(
-                    `\n${medal(sum)} ${mention} - ${Number(item.scrobbles_playcount).toLocaleString('pt-BR')} ${item.scrobbles_playcount != 1 ? 'scrobbles' : 'scrobble'}`
-                )
-
-                entities.push({
-                    offset: mention_index,
-                    length: mention.length,
-                    type: 'text_mention',
-                    user: {
-                        id: item.telegram_id,
-                        first_name: item.first_name
+                        result.push(user)
+                    } catch (userError) {
+                        console.error(`Erro ao processar o usuário ${telegram_id} no grupo ${chat_id}:`, userError)
+                        continue
                     }
-                })
+                }
 
-                return sum + 1
-            }, 0)
+                result.sort((a, b) => b.scrobbles_playcount - a.scrobbles_playcount)
 
+                const text = [
+                    `🏆 Weekly Tracks Chart 🏆\n`,
+                ]
 
-            text.push(`\n\nUse /rankinlf to join or /rankoutlf to quit the race.`)
+                const entities = [
+                    {
+                        offset: 0,
+                        length: text[0].length,
+                        type: 'bold',
+                    }
+                ]
 
-            await bot.telegram.sendMessage(chat_id, text.join(''), { entities })
+                const medal = (index) => {
+                    const medals = ['🥇', '🥈', '🥉', '🏅']
+                    return medals[index] || medals[3]
+                }
 
+                result.slice(0, 10).reduce((sum, item, index) => {
+                    if (index === 3) {
+                        text.push('\n')
+                    }
+
+                    const mention_index = text.reduce((sumIndex, current) => sumIndex + current.length, 0) + 4
+
+                    const mention = item.first_name ? item.first_name : item.username ? `@${item.username}` : item.telegram_id
+
+                    text.push(
+                        `\n${medal(sum)} ${mention} - ${Number(item.scrobbles_playcount).toLocaleString('pt-BR')} ${item.scrobbles_playcount != 1 ? 'scrobbles' : 'scrobble'}`
+                    )
+
+                    entities.push({
+                        offset: mention_index,
+                        length: mention.length,
+                        type: 'text_mention',
+                        user: {
+                            id: item.telegram_id,
+                            first_name: item.first_name
+                        }
+                    })
+
+                    return sum + 1
+                }, 0)
+
+                text.push(`\n\nUse /rankinlf to join or /rankoutlf to quit the race.`)
+
+                await bot.telegram.sendMessage(chat_id, text.join(''), { entities })
+
+            } catch (groupError) {
+                console.error(`Erro ao processar o grupo ${chat_id}:`, groupError)
+                continue
+            }
         }
     } catch (error) {
-        console.error(error)
+        console.error('Erro inesperado no processamento:', error)
     }
 }
