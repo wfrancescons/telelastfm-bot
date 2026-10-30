@@ -4,6 +4,7 @@ import {
   getCommandRankByDateRange,
   getUsageStatsByDateRange,
 } from "@/database/services/commandLogs.ts";
+import { getImageBlobStats } from "@/database/imageBlobStore.ts";
 import { countCachedImages } from "@/database/services/imageCache.ts";
 import { countUsers } from "@/database/services/users.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
@@ -194,6 +195,8 @@ export default async function handleBotStatus(ctx: BotContext) {
 
     const uptime = formatUptime(Date.now() - startTime);
     const memoryRssMb = (process.memoryUsage().rss / 1024 / 1024).toFixed(2);
+    const blobStats = getImageBlobStats();
+    const blobSizeMb = (blobStats.bytes / 1024 / 1024).toFixed(1);
     const botName = config.bot.username
       ? `@${config.bot.username.replace("@", "")}`
       : "telelastfm";
@@ -204,7 +207,12 @@ export default async function handleBotStatus(ctx: BotContext) {
         `👥 Total Registered Users: ${usersCount.toLocaleString("pt-BR")}\n`,
       )
       .plain(
-        `🖼️ Cached Image Links: ${cachedImagesCount.toLocaleString("pt-BR")}\n\n`,
+        `🖼️ Cached Image Links: ${cachedImagesCount.toLocaleString("pt-BR")}\n`,
+      )
+      .plain(
+        `💾 Cached Image Files: ${
+          blobStats.count.toLocaleString("pt-BR")
+        } (${blobSizeMb} MB / ${config.imageCache.maxSizeMb} MB)\n\n`,
       );
 
     msg = appendStatsBlock(msg, "📅 Today's Usage:", todayStats);

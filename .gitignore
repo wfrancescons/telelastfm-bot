@@ -3,3 +3,4 @@
 /tests
 .cache
 database.sqlite*
+image-cache.sqlite*

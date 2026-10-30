@@ -1,6 +1,6 @@
 import Bottleneck from "bottleneck";
 import { Canvas } from "skia-canvas";
-import { drawImage } from "./drawers/drawImage.ts";
+import { drawImage, preloadImages } from "./drawers/drawImage.ts";
 import {
   drawCircle,
   drawMediaControlIcon,
@@ -8,7 +8,7 @@ import {
 } from "./drawers/drawShape.ts";
 import { drawText } from "./drawers/drawText.ts";
 import { ensureFontsRegistered } from "./fonts.ts";
-import type { CanvasTemplateData } from "./types.ts";
+import type { CanvasTemplateData, ImageElement } from "./types.ts";
 
 export * from "./drawers/drawText.ts";
 export * from "./types.ts";
@@ -30,11 +30,18 @@ async function renderCanvasInternal(
   ctx.fillStyle = data.background || "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // Fetch every image in parallel up-front; drawing stays sequential (z-order)
+  const preloaded = await preloadImages(
+    data.elements
+      .filter((el) => el.type === "image" || el.type === "icon")
+      .map((el) => (el as ImageElement).src),
+  );
+
   for (const element of data.elements) {
     switch (element.type) {
       case "image":
       case "icon":
-        await drawImage(ctx, element);
+        await drawImage(ctx, element, preloaded);
         break;
       case "rectangle":
         await drawRect(ctx, element);

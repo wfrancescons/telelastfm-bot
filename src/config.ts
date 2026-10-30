@@ -30,6 +30,12 @@ const config = {
   database: {
     path: dbPath,
   },
+  imageCache: {
+    // Separate SQLite file holding downloaded image bytes (BLOBs)
+    path: getEnv("IMAGE_CACHE_PATH", "./image-cache.sqlite"),
+    // Max total size of cached image bytes, in MB (LRU eviction above this)
+    maxSizeMb: Number(getEnv("IMAGE_CACHE_MAX_MB", "1024")) || 1024,
+  },
 } as const;
 
 export default config;

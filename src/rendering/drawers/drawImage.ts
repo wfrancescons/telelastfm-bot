@@ -1,4 +1,9 @@
 import {
+  deleteImageBlob,
+  getImageBlob,
+  setImageBlob,
+} from "@/database/imageBlobStore.ts";
+import {
   deleteCachedImageByUrl,
   updateCachedImageUrl,
 } from "@/database/services/imageCache.ts";
@@ -15,32 +20,11 @@ import { withContextEffects } from "../effects/contextEffects.ts";
 import type { ImageElement } from "../types.ts";
 import { drawRect } from "./drawShape.ts";
 
-// Static local image cache (icons, logos)
+// Static local image cache (icons, logos) — tiny, fixed set of files
 const localImageCache = new Map<string, Image>();
 
-// Bounded LRU in-memory cache for decoded remote images
-const MAX_REMOTE_CACHE_ENTRIES = 150;
-const remoteImageCache = new Map<string, Image>();
-
-function getFromRemoteCache(key: string): Image | undefined {
-  const existing = remoteImageCache.get(key);
-  if (existing) {
-    // Refresh LRU order
-    remoteImageCache.delete(key);
-    remoteImageCache.set(key, existing);
-  }
-  return existing;
-}
-
-function setInRemoteCache(key: string, image: Image): void {
-  if (remoteImageCache.has(key)) {
-    remoteImageCache.delete(key);
-  } else if (remoteImageCache.size >= MAX_REMOTE_CACHE_ENTRIES) {
-    const oldestKey = remoteImageCache.keys().next().value;
-    if (oldestKey) remoteImageCache.delete(oldestKey);
-  }
-  remoteImageCache.set(key, image);
-}
+// In-flight downloads, so concurrent renders of the same cover share one request
+const pendingDownloads = new Map<string, Promise<Uint8Array | null>>();
 
 function buildLastfmFallbackCandidates(rawUrl: string): string[] {
   const normalized = rawUrl
@@ -98,6 +82,28 @@ async function fetchRemoteImageBuffer(url: string): Promise<Buffer | null> {
   }
 }
 
+/**
+ * Returns image bytes for a URL: persistent SQLite blob cache first,
+ * then network (deduplicated across concurrent renders) and stores the result.
+ */
+function getImageBytes(url: string): Promise<Uint8Array | null> {
+  const cached = getImageBlob(url);
+  if (cached) return Promise.resolve(cached);
+
+  const pending = pendingDownloads.get(url);
+  if (pending) return pending;
+
+  const download = fetchRemoteImageBuffer(url)
+    .then((buffer) => {
+      if (buffer) setImageBlob(url, buffer);
+      return buffer;
+    })
+    .finally(() => pendingDownloads.delete(url));
+
+  pendingDownloads.set(url, download);
+  return download;
+}
+
 async function loadCachedImage(src: string): Promise<Image> {
   if (src.startsWith("./src/")) {
     const resolved = resolve(process.cwd(), src);
@@ -109,54 +115,69 @@ async function loadCachedImage(src: string): Promise<Image> {
     return img;
   }
 
-  const cachedRemote = getFromRemoteCache(src);
-  if (cachedRemote) return cachedRemote;
-
   const candidates = buildLastfmFallbackCandidates(src);
 
   for (const candidateUrl of candidates) {
-    const cachedCandidate = getFromRemoteCache(candidateUrl);
-    if (cachedCandidate) {
-      setInRemoteCache(src, cachedCandidate);
-      return cachedCandidate;
-    }
+    const bytes = await getImageBytes(candidateUrl);
+    if (!bytes) continue;
 
-    const buffer = await fetchRemoteImageBuffer(candidateUrl);
-    if (buffer) {
-      const img = await loadImage(buffer);
-      setInRemoteCache(candidateUrl, img);
-      setInRemoteCache(src, img);
+    try {
+      const img = await loadImage(Buffer.from(bytes));
       if (candidateUrl !== src) {
         await updateCachedImageUrl(src, candidateUrl);
       }
       return img;
+    } catch {
+      // Corrupted/undecodable bytes: drop them and try the next candidate
+      deleteImageBlob(candidateUrl);
     }
   }
 
-  // Self-healing: remove broken URL from SQLite cache so next run re-resolves it
+  // Self-healing: remove broken URL from the URL cache so next run re-resolves it
   await deleteCachedImageByUrl(src);
   if (candidates[0] && candidates[0] !== src) {
     await deleteCachedImageByUrl(candidates[0]);
   }
 
   if (src !== DEFAULT_IMAGE) {
-    const fallbackBuf = await fetchRemoteImageBuffer(DEFAULT_IMAGE);
-    if (fallbackBuf) {
-      const fallbackImg = await loadImage(fallbackBuf);
-      setInRemoteCache(DEFAULT_IMAGE, fallbackImg);
-      return fallbackImg;
+    const fallbackBytes = await getImageBytes(DEFAULT_IMAGE);
+    if (fallbackBytes) {
+      return await loadImage(Buffer.from(fallbackBytes));
     }
   }
 
   throw new Error(`Failed to load remote image after fallbacks: ${src}`);
 }
 
+/**
+ * Loads (cache → network) all images of a template in parallel.
+ * The returned map lives only for the duration of a single render.
+ */
+export async function preloadImages(
+  srcs: string[],
+): Promise<Map<string, Image | Error>> {
+  const unique = [...new Set(srcs)];
+  const entries = await Promise.all(
+    unique.map(async (src): Promise<[string, Image | Error]> => {
+      try {
+        return [src, await loadCachedImage(src)];
+      } catch (error) {
+        return [src, error instanceof Error ? error : new Error(String(error))];
+      }
+    }),
+  );
+  return new Map(entries);
+}
+
 export async function drawImage(
   ctx: CanvasRenderingContext2D,
   element: ImageElement,
+  preloaded?: Map<string, Image | Error>,
 ): Promise<void> {
   try {
-    const image = await loadCachedImage(element.src);
+    const pre = preloaded?.get(element.src);
+    if (pre instanceof Error) throw pre;
+    const image = pre ?? await loadCachedImage(element.src);
 
     await withContextEffects(ctx, element, (c) => {
       const radius = element.borderRadius ?? 0;
