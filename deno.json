@@ -1,0 +1,33 @@
+{
+  "tasks": {
+    "start": "deno run -P ./src/bot.ts",
+    "dev": "deno run --watch --watch-exclude=\"database.sqlite*\" -P ./src/bot.ts",
+    "check": "deno check ./src/bot.ts"
+  },
+  "imports": {
+    "@/": "./src/",
+    "@b-fuze/deno-dom": "jsr:@b-fuze/deno-dom@^0.1.56",
+    "@grammyjs/commands": "npm:@grammyjs/commands@^1.4.0",
+    "@grammyjs/hydrate": "npm:@grammyjs/hydrate@^1.7.0",
+    "@grammyjs/parse-mode": "npm:@grammyjs/parse-mode@^2.3.0",
+    "@grammyjs/ratelimiter": "npm:@grammyjs/ratelimiter@^1.2.0",
+    "@grammyjs/runner": "npm:@grammyjs/runner@^2.0.0",
+    "@std/dotenv": "jsr:@std/dotenv@^0.225.7",
+    "bottleneck": "npm:bottleneck@^2.19.5",
+    "croner": "npm:croner@^8.0.2",
+    "grammy": "npm:grammy@^1.46.0",
+    "kysely": "npm:kysely@^0.29.7",
+    "skia-canvas": "npm:skia-canvas@^4.0.0"
+  },
+  "permissions": {
+    "default": {
+      "net": true,
+      "env": true,
+      "read": true,
+      "write": true,
+      "sys": true,
+      "ffi": true
+    }
+  }
+}
+

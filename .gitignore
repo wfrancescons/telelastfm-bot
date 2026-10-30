@@ -2,4 +2,4 @@
 .env
 /tests
 .cache
-database.sqlite
+database.sqlite*
