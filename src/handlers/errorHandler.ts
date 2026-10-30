@@ -225,6 +225,47 @@ export async function errorHandler(
         break;
       }
 
+      case "CALENDAR_INVALID_DATE": {
+        const msg = new FormattedString("Invalid arguments 🤔\n\n")
+          .plain("✅ Valid Media Types: ")
+          .code("tracks")
+          .plain(", ")
+          .code("alb")
+          .plain(", ")
+          .code("art")
+          .plain("\n✅ Valid Date Format: ")
+          .code("MM/YYYY")
+          .plain(" (not in the future)\n\n➡️ Examples:\n")
+          .code("/calendarlf")
+          .plain("\n")
+          .code("/calendarlf alb 08/2025")
+          .plain("\n")
+          .code("/calendarlf tracks notitles 12/2025")
+          .plain("\n")
+          .code("/calendarlf art clean");
+
+        await ctx.reply(msg.text, {
+          entities: msg.entities,
+          reply_parameters: replyParams,
+        });
+        break;
+      }
+
+      case "CALENDAR_NO_DATA": {
+        const msg = new FormattedString(
+          "No scrobbles found for that month and year 🙁\n\n",
+        )
+          .plain("Try choosing another month where you have listening history:\n")
+          .plain("➡️ Example: ")
+          .code("/calendarlf alb 08/2025");
+
+        await ctx.reply(msg.text, {
+          entities: msg.entities,
+          reply_parameters: replyParams,
+        });
+        break;
+      }
+
       case "NOT_A_VALID_LASTFM_USER": {
         const targetUser = info || "That";
         const msg = FormattedString

@@ -3,7 +3,7 @@ import {
   isPlaceholderImageUrl,
   setCachedImageUrl,
 } from "@/database/services/imageCache.ts";
-import type { LastfmPeriod } from "@/utils/validValuesMap.ts";
+import type { LastfmPeriod, MediaType } from "@/utils/validValuesMap.ts";
 import {
   buildImagesFromUrl,
   DEFAULT_IMAGE,
@@ -14,6 +14,7 @@ import {
 import type {
   AlbumInfoData,
   ArtistInfoData,
+  CalendarDayItem,
   LastfmTag,
   RecentTrackItem,
   TopAlbumItem,
@@ -441,6 +442,16 @@ export async function resolveAlbumImageUrl({
   const cached = await getCachedImageUrl("albums", { album, artist });
   if (cached) return cached;
 
+  try {
+    const info = await getAlbumInfo({ album, artist });
+    if (info.image?.large && !isPlaceholderImageUrl(info.image.large)) {
+      await setCachedImageUrl("albums", { album, artist }, info.image.large);
+      return info.image.large;
+    }
+  } catch {
+    // Fallback to albumUrl og:image if getAlbumInfo fails
+  }
+
   if (albumUrl) {
     const og = await getOgImage(albumUrl);
     const large = buildImagesFromUrl(og).large;
@@ -635,4 +646,233 @@ export async function getWeeklyTrackChart(username: string) {
     handleRequestError(error);
   }
 }
+
+const MAX_MONTHLY_PAGES = 30;
+
+export async function getUserMonthlyCalendarData(
+  username: string,
+  year: number,
+  monthIndex: number,
+  mediaType: MediaType,
+): Promise<Map<number, CalendarDayItem>> {
+  try {
+    const from = Math.floor(
+      new Date(year, monthIndex, 1, 0, 0, 0, 0).getTime() / 1000,
+    );
+    const to = Math.floor(
+      new Date(year, monthIndex + 1, 0, 23, 59, 59, 999).getTime() / 1000,
+    );
+
+    const firstPage = await makeRequest({
+      method: "user.getRecentTracks",
+      username,
+      from,
+      to,
+      limit: 200,
+      page: 1,
+    });
+
+    const rawFirstTracks = firstPage.recenttracks?.track;
+    const firstTracks = Array.isArray(rawFirstTracks)
+      ? rawFirstTracks
+      : rawFirstTracks
+      ? [rawFirstTracks]
+      : [];
+
+    if (firstTracks.length === 0) {
+      throw "ZERO_SCROBBLES";
+    }
+
+    const totalPages = Math.min(
+      Number(firstPage.recenttracks?.["@attr"]?.totalPages) || 1,
+      MAX_MONTHLY_PAGES,
+    );
+
+    // deno-lint-ignore no-explicit-any
+    const allTracks: any[] = [...firstTracks];
+
+    if (totalPages > 1) {
+      const pageNumbers = Array.from(
+        { length: totalPages - 1 },
+        (_, idx) => idx + 2,
+      );
+      const remainingPages = await Promise.all(
+        pageNumbers.map(async (page) => {
+          try {
+            const pageData = await makeRequest({
+              method: "user.getRecentTracks",
+              username,
+              from,
+              to,
+              limit: 200,
+              page,
+            });
+            const raw = pageData.recenttracks?.track;
+            return Array.isArray(raw) ? raw : raw ? [raw] : [];
+          } catch {
+            return [];
+          }
+        }),
+      );
+
+      for (const pageTracks of remainingPages) {
+        allTracks.push(...pageTracks);
+      }
+    }
+
+    type BucketItem = {
+      key: string;
+      title: string;
+      subtitle?: string;
+      trackName: string;
+      albumName: string;
+      artistName: string;
+      count: number;
+      initialImageUrl?: string;
+      trackUrl?: string;
+    };
+
+    const dayBuckets = new Map<number, Map<string, BucketItem>>();
+
+    for (const rawTrack of allTracks) {
+      const uts = Number(rawTrack?.date?.uts);
+      if (!uts || Number.isNaN(uts)) continue;
+      if (uts < from || uts > to) continue;
+
+      const dateObj = new Date(uts * 1000);
+      if (
+        dateObj.getFullYear() !== year ||
+        dateObj.getMonth() !== monthIndex
+      ) {
+        continue;
+      }
+
+      const day = dateObj.getDate();
+      const trackName = String(rawTrack.name || "").trim();
+      const artistName = String(
+        rawTrack.artist?.["#text"] || rawTrack.artist?.name || "",
+      ).trim();
+      const albumName = String(rawTrack.album?.["#text"] || "").trim();
+
+      if (!artistName) continue;
+
+      let key = "";
+      let title = "";
+      let subtitle: string | undefined;
+
+      if (mediaType === "tracks") {
+        if (!trackName) continue;
+        key = `${trackName.toLowerCase()}|||${artistName.toLowerCase()}`;
+        title = trackName;
+        subtitle = artistName;
+      } else if (mediaType === "albums") {
+        const effectiveAlbum = albumName || trackName;
+        if (!effectiveAlbum) continue;
+        key = `${effectiveAlbum.toLowerCase()}|||${artistName.toLowerCase()}`;
+        title = effectiveAlbum;
+        subtitle = artistName;
+      } else {
+        key = artistName.toLowerCase();
+        title = artistName;
+      }
+
+      const extractedImg = extractImage(rawTrack.image).large;
+      const validImg = !isPlaceholderImageUrl(extractedImg)
+        ? extractedImg
+        : undefined;
+
+      let bucket = dayBuckets.get(day);
+      if (!bucket) {
+        bucket = new Map();
+        dayBuckets.set(day, bucket);
+      }
+
+      const existing = bucket.get(key);
+      if (existing) {
+        existing.count += 1;
+        if (!existing.initialImageUrl && validImg) {
+          existing.initialImageUrl = validImg;
+        }
+      } else {
+        bucket.set(key, {
+          key,
+          title,
+          subtitle,
+          trackName,
+          albumName: albumName || trackName,
+          artistName,
+          count: 1,
+          initialImageUrl: validImg,
+          trackUrl: rawTrack.url || undefined,
+        });
+      }
+    }
+
+    if (dayBuckets.size === 0) {
+      throw "ZERO_SCROBBLES";
+    }
+
+    const winningByDay = new Map<number, BucketItem>();
+    const uniqueWinners = new Map<string, BucketItem>();
+
+    for (const [day, bucket] of dayBuckets.entries()) {
+      let best: BucketItem | null = null;
+      for (const candidate of bucket.values()) {
+        if (!best || candidate.count > best.count) {
+          best = candidate;
+        }
+      }
+      if (best) {
+        winningByDay.set(day, best);
+        const prev = uniqueWinners.get(best.key);
+        if (!prev || (!prev.initialImageUrl && best.initialImageUrl)) {
+          uniqueWinners.set(best.key, best);
+        }
+      }
+    }
+
+    const resolvedImages = new Map<string, string>();
+    await Promise.all(
+      [...uniqueWinners.values()].map(async (winner) => {
+        let imageUrl = DEFAULT_IMAGE;
+        if (mediaType === "tracks") {
+          imageUrl = await resolveTrackImageUrl({
+            track: winner.trackName,
+            artist: winner.artistName,
+            username,
+            initialImageUrl: winner.initialImageUrl,
+            trackUrl: winner.trackUrl,
+          });
+        } else if (mediaType === "albums") {
+          imageUrl = await resolveAlbumImageUrl({
+            album: winner.albumName,
+            artist: winner.artistName,
+            initialImageUrl: winner.initialImageUrl,
+          });
+        } else {
+          imageUrl = await resolveArtistImageUrl({
+            artist: winner.artistName,
+          });
+        }
+        resolvedImages.set(winner.key, imageUrl);
+      }),
+    );
+
+    const calendarMap = new Map<number, CalendarDayItem>();
+    for (const [day, winner] of winningByDay.entries()) {
+      calendarMap.set(day, {
+        day,
+        title: winner.title,
+        subtitle: winner.subtitle,
+        scrobbles: winner.count,
+        image: resolvedImages.get(winner.key) || DEFAULT_IMAGE,
+      });
+    }
+
+    return calendarMap;
+  } catch (error) {
+    handleRequestError(error);
+  }
+}
+
 

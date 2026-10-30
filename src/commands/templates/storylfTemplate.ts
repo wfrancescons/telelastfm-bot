@@ -5,12 +5,14 @@ import type {
   ImageElement,
   MediaControlIconElement,
   RectangleElement,
+  ShadowStyle,
   TextElement,
 } from "@/rendering/renderCanvas.ts";
 import { getTextLines, measureText } from "@/rendering/renderCanvas.ts";
 import type { MediaType } from "@/utils/validValuesMap.ts";
 import {
   createGlassCircleElement,
+  createGlassPillElement,
   DEFAULT_GLASS_OPTIONS,
 } from "./gridlfTemplate.ts";
 
@@ -28,26 +30,27 @@ export type StorylfTemplateParams = {
   glassOptions?: GlassEffectOptions;
 };
 
+// Softer, more refined glass options for Apple Music style
 const STORY_GLASS_OPTIONS: GlassEffectOptions = {
   ...DEFAULT_GLASS_OPTIONS,
   light: {
     angle: -45,
-    intensity: 0.7,
+    intensity: 0.6,
   },
-  refraction: 2.5,
-  depth: 9,
-  dispersion: 0.45,
-  frost: 2.8,
+  refraction: 2.0,
+  depth: 6,
+  dispersion: 0.35,
+  frost: 2.2,
   tint: {
-    color: "#000000",
-    opacity: 0.22,
+    color: "#ffffff",
+    opacity: 0.08,
   },
   shadow: {
-    color: "#000000",
-    opacity: 0.4,
-    blur: 20,
+    color: "rgba(0, 0, 0, 0.22)",
+    opacity: 0.22,
+    blur: 16,
     offsetX: 0,
-    offsetY: 8,
+    offsetY: 5,
   },
 };
 
@@ -58,6 +61,9 @@ function createImageElement(params: {
   width: number;
   height: number;
   objectFit?: "fill" | "cover";
+  borderRadius?: number;
+  filter?: string;
+  shadow?: ShadowStyle;
 }): ImageElement {
   return { type: "image", ...params };
 }
@@ -70,6 +76,7 @@ function createRectangleElement(params: {
   y: number;
   width: number;
   height: number;
+  shadow?: ShadowStyle;
 }): RectangleElement {
   return { type: "rectangle", ...params };
 }
@@ -106,10 +113,10 @@ function createMediaControlIcon(params: {
     ...params,
     fillStyle: params.fillStyle ?? "#ffffff",
     shadow: {
-      color: "rgba(0, 0, 0, 0.45)",
+      color: "rgba(0, 0, 0, 0.25)",
       offsetX: 0,
       offsetY: 2,
-      blur: 6,
+      blur: 4,
     },
   };
 }
@@ -122,7 +129,7 @@ export function storylfTemplate({
   const width = 1080;
   const height = 1920;
   const centerX = width / 2;
-  const contentWidth = 900;
+  const contentWidth = 860;
   const mergedGlassOptions: GlassEffectOptions = {
     ...STORY_GLASS_OPTIONS,
     ...glassOptions,
@@ -130,49 +137,86 @@ export function storylfTemplate({
 
   const elements: CanvasElement[] = [];
 
-  // 1. Full-screen cover / artist image (1080x1920 center-cropped)
+  // 1. Dynamic background: heavily blurred cover (fluid mesh gradient effect)
   if (lastfm_data.image) {
     elements.push(
       createImageElement({
         src: lastfm_data.image,
-        x: 0,
-        y: 0,
-        width,
-        height,
+        x: -80,
+        y: -80,
+        width: 1240,
+        height: 2080,
         objectFit: "cover",
+        filter: "blur(90px) saturate(1.8) brightness(0.72)",
       }),
     );
   }
 
-  // 2. Smooth neutral dark-gray gradient overlay (Apple Music dark player feel)
-  const gradientHeight = 1300;
-  const gradientTopY = height - gradientHeight;
+  // 2. Smooth Apple Music dark scrim overlay
   elements.push(
     createRectangleElement({
       fillStyle: {
         type: "linearGradient",
         colors: [
-          { stop: 0, color: "rgba(14, 14, 14, 0)" },
-          { stop: 0.25, color: "rgba(14, 14, 14, 0.42)" },
-          { stop: 0.55, color: "rgba(14, 14, 14, 0.8)" },
-          { stop: 0.82, color: "rgba(14, 14, 14, 0.95)" },
-          { stop: 1, color: "rgba(14, 14, 14, 0.98)" },
+          { stop: 0, color: "rgba(0, 0, 0, 0.1)" },
+          { stop: 0.35, color: "rgba(0, 0, 0, 0.2)" },
+          { stop: 0.65, color: "rgba(10, 10, 10, 0.65)" },
+          { stop: 0.88, color: "rgba(10, 10, 10, 0.88)" },
+          { stop: 1, color: "rgba(10, 10, 10, 0.96)" },
         ],
         x0: 0,
-        y0: gradientTopY,
+        y0: 0,
         x1: 0,
         y1: height,
       },
       x: 0,
-      y: gradientTopY,
+      y: 0,
       width,
-      height: gradientHeight,
+      height,
     }),
   );
 
-  // 3. Track / Album / Artist metadata (Apple Music Player hierarchy)
-  const titleFontSize = 58;
-  const titleLineHeight = 66;
+  // 3. Floating album artwork card (Apple Music square with soft diffuse shadow)
+  const cardSize = 740;
+  const cardX = (width - cardSize) / 2;
+  const cardY = 230;
+
+  if (lastfm_data.image) {
+    // Soft ambient shadow behind artwork card
+    elements.push(
+      createRectangleElement({
+        x: cardX,
+        y: cardY,
+        width: cardSize,
+        height: cardSize,
+        borderRadius: 38,
+        fillStyle: "rgba(0, 0, 0, 0.25)",
+        shadow: {
+          color: "rgba(0, 0, 0, 0.3)",
+          blur: 50,
+          offsetX: 0,
+          offsetY: 24,
+        },
+      }),
+    );
+
+    // Floating cover image with rounded corners
+    elements.push(
+      createImageElement({
+        src: lastfm_data.image,
+        x: cardX,
+        y: cardY,
+        width: cardSize,
+        height: cardSize,
+        borderRadius: 38,
+        objectFit: "cover",
+      }),
+    );
+  }
+
+  // 4. Track / Album / Artist metadata (Apple Music typography)
+  const titleFontSize = 50;
+  const titleLineHeight = 58;
   const titleFont = `${titleFontSize}px "NotoSans-Bold", sans-serif`;
 
   let primaryTitle = "";
@@ -195,8 +239,7 @@ export function storylfTemplate({
     getTextLines(primaryTitle, contentWidth, 2, titleFont).length,
   );
 
-  // Anchor title position
-  const titleFirstLineY = 1110;
+  const titleFirstLineY = 1055;
   const titleBaselineY = titleFirstLineY + (titleLines - 1) * titleLineHeight;
 
   elements.push(
@@ -208,7 +251,7 @@ export function storylfTemplate({
       fillStyle: "#ffffff",
       align: "center",
       shadow: {
-        color: "rgba(0, 0, 0, 0.65)",
+        color: "rgba(0, 0, 0, 0.28)",
         offsetX: 0,
         offsetY: 2,
         blur: 8,
@@ -223,14 +266,14 @@ export function storylfTemplate({
 
   // Subtitle (Artist — Album)
   if (secondarySubtitle) {
-    const subtitleFontSize = 32;
-    const subtitleLineHeight = 40;
+    const subtitleFontSize = 30;
+    const subtitleLineHeight = 38;
     const subtitleFont = `${subtitleFontSize}px "NotoSans-Regular", sans-serif`;
     const subtitleLines = Math.max(
       1,
       getTextLines(secondarySubtitle, contentWidth, 2, subtitleFont).length,
     );
-    const subtitleFirstLineY = currentY + 44;
+    const subtitleFirstLineY = currentY + 42;
     const subtitleBaselineY =
       subtitleFirstLineY + (subtitleLines - 1) * subtitleLineHeight;
 
@@ -243,9 +286,9 @@ export function storylfTemplate({
         fillStyle: "rgba(255, 255, 255, 0.72)",
         align: "center",
         shadow: {
-          color: "rgba(0, 0, 0, 0.55)",
+          color: "rgba(0, 0, 0, 0.22)",
           offsetX: 0,
-          offsetY: 2,
+          offsetY: 1,
           blur: 6,
         },
         maxWidth: contentWidth,
@@ -257,95 +300,56 @@ export function storylfTemplate({
     currentY = subtitleBaselineY;
   }
 
-  // 4. Scrobbles em GRANDE DESTAQUE (Opção B: Bloco/Widget com Número Gigante)
+  // 5. Scrobbles Capsule (Apple Music Audio Badge Style)
   const scrobbles = (Number(lastfm_data.userplaycount) || 0) + 1;
-  const countText = scrobbles.toLocaleString("pt-BR");
-  const labelText = scrobbles === 1 ? "SCROBBLE" : "SCROBBLES";
+  const scrobblesText = `${scrobbles.toLocaleString("pt-BR")} ${
+    scrobbles === 1 ? "scrobble" : "scrobbles"
+  }`;
+  const pillFontSize = 26;
+  const pillFont = `${pillFontSize}px "NotoSans-Medium", sans-serif`;
+  const pillTextWidth = measureText(scrobblesText, pillFont).width;
+  const pillHeight = 58;
+  const pillPaddingX = 32;
+  const pillWidth = Math.max(160, pillTextWidth + pillPaddingX * 2);
+  const pillCenterY = currentY + 58;
+  const pillX = centerX - pillWidth / 2;
+  const pillY = pillCenterY - pillHeight / 2;
 
-  const numFontSize = 62;
-  const numFont = `${numFontSize}px "NotoSans-Bold", sans-serif`;
-  const numTextWidth = measureText(countText, numFont).width;
-
-  const labelFontSize = 18;
-  const labelFont = `${labelFontSize}px "NotoSans-Medium", sans-serif`;
-  const labelTextWidth = measureText(labelText, labelFont).width;
-
-  const cardHeight = 138;
-  const cardPaddingX = 48;
-  const cardWidth = Math.max(
-    260,
-    Math.max(numTextWidth, labelTextWidth) + cardPaddingX * 2,
-  );
-  const cardX = centerX - cardWidth / 2;
-  const cardY = currentY + 46;
-
-  // Glass card widget
   elements.push(
-    createRectangleElement({
-      x: cardX,
-      y: cardY,
-      width: cardWidth,
-      height: cardHeight,
-      borderRadius: 32,
-      style: {
-        type: "glass",
-        options: {
-          ...mergedGlassOptions,
-          depth: 10,
-          refraction: 2.6,
-          frost: 3,
-        },
-      },
+    createGlassPillElement({
+      x: pillX,
+      y: pillY,
+      width: pillWidth,
+      height: pillHeight,
+      options: mergedGlassOptions,
     }),
   );
 
-  // Big number
   elements.push(
     createTextElement({
-      text: countText,
+      text: scrobblesText,
       x: centerX,
-      y: cardY + 70,
-      font: numFont,
-      fillStyle: "#ffffff",
+      y: pillCenterY + pillFontSize * 0.35,
+      font: pillFont,
+      fillStyle: "rgba(255, 255, 255, 0.92)",
       align: "center",
       shadow: {
-        color: "rgba(0, 0, 0, 0.45)",
-        offsetX: 0,
-        offsetY: 2,
-        blur: 6,
-      },
-      maxWidth: cardWidth - 20,
-      maxLines: 1,
-      lineHeight: numFontSize,
-    }),
-  );
-
-  // Subtitle label (SCROBBLES)
-  elements.push(
-    createTextElement({
-      text: labelText,
-      x: centerX,
-      y: cardY + 110,
-      font: labelFont,
-      fillStyle: "rgba(255, 255, 255, 0.72)",
-      align: "center",
-      shadow: {
-        color: "rgba(0, 0, 0, 0.4)",
+        color: "rgba(0, 0, 0, 0.25)",
         offsetX: 0,
         offsetY: 1,
         blur: 4,
       },
-      maxWidth: cardWidth - 20,
+      maxWidth: pillWidth - 16,
       maxLines: 1,
-      lineHeight: labelFontSize,
+      lineHeight: pillFontSize,
     }),
   );
 
-  // 5. Apple Music clean progress bar (sem minutagem abaixo)
-  const barWidth = 860;
+  // 6. Apple Music progress bar (clean, sleek)
+  const barWidth = 840;
   const barHeight = 8;
   const barX = centerX - barWidth / 2;
-  const barY = cardY + cardHeight + 56;
+  const barY = pillY + pillHeight + 54;
   const progressRatio = 0.42;
 
   // Background track
@@ -356,7 +360,7 @@ export function storylfTemplate({
       width: barWidth,
       height: barHeight,
       borderRadius: barHeight / 2,
-      fillStyle: "rgba(255, 255, 255, 0.25)",
+      fillStyle: "rgba(255, 255, 255, 0.22)",
     }),
   );
 
@@ -372,11 +376,11 @@ export function storylfTemplate({
     }),
   );
 
-  // 6. Media controls with circular glass shapes (Apple Music layout)
-  const controlsY = barY + 130;
+  // 7. Media controls with circular glass shapes (Apple Music layout with soft shadows)
+  const controlsY = barY + 120;
   const sideControlOffset = 210;
-  const sideDiameter = 112;
-  const centerDiameter = 154;
+  const sideDiameter = 104;
+  const centerDiameter = 146;
 
   // Previous button (left glass circle + icon)
   elements.push(
@@ -392,7 +396,7 @@ export function storylfTemplate({
       icon: "prev",
       cx: centerX - sideControlOffset,
       cy: controlsY,
-      size: 40,
+      size: 38,
     }),
   );
 
@@ -410,7 +414,7 @@ export function storylfTemplate({
       icon: "pause",
       cx: centerX,
       cy: controlsY,
-      size: 58,
+      size: 54,
     }),
   );
 
@@ -428,21 +432,21 @@ export function storylfTemplate({
       icon: "next",
       cx: centerX + sideControlOffset,
       cy: controlsY,
-      size: 40,
+      size: 38,
     }),
   );
 
-  // 7. Watermark at the bottom
+  // 8. Watermark at the bottom
   elements.push(
     createTextElement({
       text: "@telelastfmbot",
       x: centerX,
-      y: 1845,
-      font: `24px "NotoSans-Regular", sans-serif`,
-      fillStyle: "rgba(255, 255, 255, 0.45)",
+      y: 1780,
+      font: `22px "NotoSans-Regular", sans-serif`,
+      fillStyle: "rgba(255, 255, 255, 0.4)",
       align: "center",
       shadow: {
-        color: "rgba(0, 0, 0, 0.5)",
+        color: "rgba(0, 0, 0, 0.3)",
         offsetX: 0,
         offsetY: 1,
         blur: 4,

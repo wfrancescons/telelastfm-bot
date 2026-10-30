@@ -6,6 +6,7 @@ import handleBotStatus from "@/commands/dev/handleBotStatus.ts";
 import handleUserInfo from "@/commands/dev/handleUserInfo.ts";
 import handleAlblf from "@/commands/handleAlblf.ts";
 import handleArtlf from "@/commands/handleArtlf.ts";
+import handleCalendarlf from "@/commands/handleCalendarlf.ts";
 import handleGridlf from "@/commands/handleGridlf.ts";
 import handleHelp from "@/commands/handleHelp.ts";
 import handleLf from "@/commands/handleLf.ts";
@@ -26,6 +27,11 @@ userCommands.command("alblf", "Send your last album scrobble", handleAlblf);
 userCommands.command("artlf", "Send your last artist scrobble", handleArtlf);
 userCommands.command("gridlf", "Generate a grid collage", handleGridlf);
 userCommands.command("storylf", "Generate a story collage", handleStorylf);
+userCommands.command(
+  "calendarlf",
+  "Generate a monthly calendar collage",
+  handleCalendarlf,
+);
 userCommands.command(
   "melf",
   "See your scrobbles for what the user you replied to is listening to",
@@ -77,6 +83,11 @@ if (adminChatIds.length > 0) {
   registerForAdmins("artlf", "Send your last artist scrobble", handleArtlf);
   registerForAdmins("gridlf", "Generate a grid collage", handleGridlf);
   registerForAdmins("storylf", "Generate a story collage", handleStorylf);
+  registerForAdmins(
+    "calendarlf",
+    "Generate a monthly calendar collage",
+    handleCalendarlf,
+  );
   registerForAdmins(
     "melf",
     "See your scrobbles for what the user you replied to is listening to",

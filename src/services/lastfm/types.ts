@@ -84,3 +84,12 @@ export type TopArtistItem = {
 
 export type TopGridItem = TopTrackItem | TopAlbumItem | TopArtistItem;
 
+export type CalendarDayItem = {
+  day: number;
+  title: string;
+  subtitle?: string;
+  scrobbles: number;
+  image: string;
+};
+
+
