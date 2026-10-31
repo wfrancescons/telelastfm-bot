@@ -62,6 +62,33 @@ export function createMockBot(): TestBotInstance {
       });
     }
 
+    if (method === "sendDocument") {
+      const p = payload as Record<string, unknown>;
+      return Promise.resolve({
+        ok: true,
+        result: {
+          message_id: Math.floor(Math.random() * 10000) + 1,
+          date: Math.floor(Date.now() / 1000),
+          chat: { id: p?.chat_id ?? 1, type: "private" },
+          document: { file_id: "test-doc" },
+          caption: p?.caption,
+        },
+      });
+    }
+
+    if (method === "editMessageText") {
+      const p = payload as Record<string, unknown>;
+      return Promise.resolve({
+        ok: true,
+        result: {
+          message_id: p?.message_id ?? 1,
+          date: Math.floor(Date.now() / 1000),
+          chat: { id: p?.chat_id ?? 1, type: "private" },
+          text: p?.text ?? "",
+        },
+      });
+    }
+
     if (method === "deleteMessage") {
       return Promise.resolve({ ok: true, result: true });
     }

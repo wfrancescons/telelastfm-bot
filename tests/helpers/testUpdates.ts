@@ -30,6 +30,14 @@ export function createTestUpdate(
     username?: string;
     chatType?: "private" | "group" | "supergroup";
     messageId?: number;
+    replyToMessage?: {
+      messageId?: number;
+      userId?: number;
+      firstName?: string;
+      username?: string;
+      text?: string;
+      isBot?: boolean;
+    };
   } = {},
 ): Update {
   const userId = options.userId ?? 999001;
@@ -49,6 +57,22 @@ export function createTestUpdate(
       username: options.username ?? "testuser",
     };
 
+  const reply_to_message = options.replyToMessage
+    ? {
+      message_id: options.replyToMessage.messageId ?? 100,
+      date: Math.floor(Date.now() / 1000) - 10,
+      chat,
+      from: {
+        id: options.replyToMessage.userId ?? 888001,
+        is_bot: options.replyToMessage.isBot ?? false,
+        first_name: options.replyToMessage.firstName ?? "RepliedUser",
+        username: options.replyToMessage.username ?? "replieduser",
+      },
+      text: options.replyToMessage.text ?? "Hello",
+      reply_to_message: undefined,
+    }
+    : undefined;
+
   return {
     update_id: Math.floor(Math.random() * 100000) + 1,
     message: {
@@ -62,6 +86,7 @@ export function createTestUpdate(
         username: options.username ?? "testuser",
       },
       text,
+      reply_to_message,
       entities: text.startsWith("/")
         ? [
           {
