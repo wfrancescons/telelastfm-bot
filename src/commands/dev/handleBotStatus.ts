@@ -8,6 +8,7 @@ import { getImageBlobStats } from "@/database/imageBlobStore.ts";
 import { countCachedImages } from "@/database/services/imageCache.ts";
 import { countUsers } from "@/database/services/users.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
+import { getCollageQueueStatus } from "@/services/collageQueue.ts";
 import type { BotContext } from "@/types/context.ts";
 import { FormattedString } from "@grammyjs/parse-mode";
 import process from "node:process";
@@ -218,10 +219,15 @@ export default async function handleBotStatus(ctx: BotContext) {
     msg = appendStatsBlock(msg, "📅 Today's Usage:", todayStats);
     msg = appendStatsBlock(msg, "⏮️ Yesterday's Usage:", yesterdayStats);
 
+    const queueStatus = getCollageQueueStatus();
+
     msg = msg
       .bold("🖥️ Server Health:\n")
       .plain(` • Uptime: ${uptime}\n`)
-      .plain(` • Memory: ${memoryRssMb} MB\n`);
+      .plain(` • Memory: ${memoryRssMb} MB\n`)
+      .plain(
+        ` • Collage Queue: ${queueStatus.active}/${queueStatus.maxConcurrent} active (${queueStatus.waiting} queued)\n`,
+      );
 
     await ctx.reply(msg.text, {
       entities: msg.entities,

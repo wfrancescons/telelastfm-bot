@@ -3,6 +3,7 @@ import { logCommand } from "@/database/services/commandLogs.ts";
 import { getLastfmUser } from "@/database/services/users.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
 import renderCanvas from "@/rendering/renderCanvas.ts";
+import runWithCollageQueue from "@/services/collageQueue.ts";
 import { getUserProfileData } from "@/services/lastfm/index.ts";
 import type { BotContext } from "@/types/context.ts";
 import {
@@ -63,50 +64,25 @@ export default async function handleToplf(ctx: BotContext) {
       .plain("\n")
       .code("/toplf all hd");
 
-    const progressMsg = await ctx.reply(tip.text, {
-      entities: tip.entities,
-      reply_parameters: ctx.message
-        ? { message_id: ctx.message.message_id }
-        : undefined,
-    });
+    await runWithCollageQueue(ctx, tip, async () => {
+      const profileData = await getUserProfileData(lastfm_user, period);
 
-    let profileData;
-    try {
-      profileData = await getUserProfileData(lastfm_user, period);
-    } catch (err) {
-      try {
-        await progressMsg.delete();
-      } catch {
-        // Ignore if message cannot be deleted
-      }
-      throw err;
-    }
+      await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
 
-    await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
-
-    const template = toplfTemplate({
-      profileData,
-      period,
-    });
-
-    const canvasBuffer = await renderCanvas(template);
-
-    const displayName = ctx.from?.first_name || ctx.from?.username || "User";
-    const caption = `${displayName}, your tops of the ${periodLabel}`;
-
-    const ext = template.format === "png" ? "png" : "jpg";
-    const filename = `top_${profileData.username}_${period}.${ext}`;
-
-    if (isHd) {
-      await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
-        caption,
-        reply_parameters: ctx.message
-          ? { message_id: ctx.message.message_id }
-          : undefined,
+      const template = toplfTemplate({
+        profileData,
+        period,
       });
-    } else {
-      const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
-      if (canvasBuffer.byteLength > MAX_PHOTO_BYTES) {
+
+      const canvasBuffer = await renderCanvas(template);
+
+      const displayName = ctx.from?.first_name || ctx.from?.username || "User";
+      const caption = `${displayName}, your tops of the ${periodLabel}`;
+
+      const ext = template.format === "png" ? "png" : "jpg";
+      const filename = `top_${profileData.username}_${period}.${ext}`;
+
+      if (isHd) {
         await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
           caption,
           reply_parameters: ctx.message
@@ -114,20 +90,24 @@ export default async function handleToplf(ctx: BotContext) {
             : undefined,
         });
       } else {
-        await ctx.replyWithPhoto(new InputFile(canvasBuffer, filename), {
-          caption,
-          reply_parameters: ctx.message
-            ? { message_id: ctx.message.message_id }
-            : undefined,
-        });
+        const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+        if (canvasBuffer.byteLength > MAX_PHOTO_BYTES) {
+          await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
+            caption,
+            reply_parameters: ctx.message
+              ? { message_id: ctx.message.message_id }
+              : undefined,
+          });
+        } else {
+          await ctx.replyWithPhoto(new InputFile(canvasBuffer, filename), {
+            caption,
+            reply_parameters: ctx.message
+              ? { message_id: ctx.message.message_id }
+              : undefined,
+          });
+        }
       }
-    }
-
-    try {
-      await progressMsg.delete();
-    } catch {
-      // Ignore if message cannot be deleted
-    }
+    });
   } catch (error) {
     await errorHandler(ctx, error);
   }

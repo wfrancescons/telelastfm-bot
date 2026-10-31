@@ -3,6 +3,7 @@ import { logCommand } from "@/database/services/commandLogs.ts";
 import { getLastfmUser } from "@/database/services/users.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
 import renderCanvas from "@/rendering/renderCanvas.ts";
+import runWithCollageQueue from "@/services/collageQueue.ts";
 import {
   getUserTopAlbums,
   getUserTopArtists,
@@ -142,57 +143,41 @@ export default async function handleGridlf(ctx: BotContext) {
       .plain("\n")
       .code("/gridlf 5x5 noplays nomain 1y");
 
-    const progressMsg = await ctx.reply(tip.text, {
-      entities: tip.entities,
-      reply_parameters: ctx.message
-        ? { message_id: ctx.message.message_id }
-        : undefined,
-    });
+    await runWithCollageQueue(ctx, tip, async () => {
+      const lastfm_data = await fetchTopGridData(
+        lastfm_user,
+        media_type,
+        period,
+        itemsNeeded,
+      );
 
-    const lastfm_data = await fetchTopGridData(
-      lastfm_user,
-      media_type,
-      period,
-      itemsNeeded,
-    );
+      if (!lastfm_data || lastfm_data.length === 0) {
+        throw "ZERO_SCROBBLES";
+      }
 
-    if (!lastfm_data || lastfm_data.length === 0) {
-      throw "ZERO_SCROBBLES";
-    }
+      const isHd = hasHdParam(ctx.message?.text || "");
+      await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
 
-    const isHd = hasHdParam(ctx.message?.text || "");
-    await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
-
-    const template = gridlfTemplate({
-      lastfm_data,
-      columns,
-      rows,
-      media_type,
-      param,
-      firstLarge,
-    });
-
-    const canvasBuffer = await renderCanvas(template);
-
-    const displayName = ctx.from?.first_name || ctx.from?.username || "User";
-    const periodLabel = periodInTextMap[period] || period;
-    const caption =
-      `${displayName}, your ${grid} ${media_type} grid of ${periodLabel}`;
-
-    const ext = template.format === "png" ? "png" : "jpg";
-    const filename = `grid_${grid}_${media_type}.${ext}`;
-
-    if (isHd) {
-      await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
-        caption,
-        reply_parameters: ctx.message
-          ? { message_id: ctx.message.message_id }
-          : undefined,
+      const template = gridlfTemplate({
+        lastfm_data,
+        columns,
+        rows,
+        media_type,
+        param,
+        firstLarge,
       });
-    } else {
-      // Telegram sendPhoto has a strict 10MB limit. Fallback to sendDocument if it exceeds 10MB.
-      const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
-      if (canvasBuffer.byteLength > MAX_PHOTO_BYTES) {
+
+      const canvasBuffer = await renderCanvas(template);
+
+      const displayName = ctx.from?.first_name || ctx.from?.username || "User";
+      const periodLabel = periodInTextMap[period] || period;
+      const caption =
+        `${displayName}, your ${grid} ${media_type} grid of ${periodLabel}`;
+
+      const ext = template.format === "png" ? "png" : "jpg";
+      const filename = `grid_${grid}_${media_type}.${ext}`;
+
+      if (isHd) {
         await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
           caption,
           reply_parameters: ctx.message
@@ -200,20 +185,25 @@ export default async function handleGridlf(ctx: BotContext) {
             : undefined,
         });
       } else {
-        await ctx.replyWithPhoto(new InputFile(canvasBuffer, filename), {
-          caption,
-          reply_parameters: ctx.message
-            ? { message_id: ctx.message.message_id }
-            : undefined,
-        });
+        // Telegram sendPhoto has a strict 10MB limit. Fallback to sendDocument if it exceeds 10MB.
+        const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+        if (canvasBuffer.byteLength > MAX_PHOTO_BYTES) {
+          await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
+            caption,
+            reply_parameters: ctx.message
+              ? { message_id: ctx.message.message_id }
+              : undefined,
+          });
+        } else {
+          await ctx.replyWithPhoto(new InputFile(canvasBuffer, filename), {
+            caption,
+            reply_parameters: ctx.message
+              ? { message_id: ctx.message.message_id }
+              : undefined,
+          });
+        }
       }
-    }
-
-    try {
-      await progressMsg.delete();
-    } catch {
-      // Ignore if message cannot be deleted
-    }
+    });
   } catch (error) {
     await errorHandler(ctx, error);
   }

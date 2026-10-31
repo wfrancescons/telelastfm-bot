@@ -3,6 +3,7 @@ import { logCommand } from "@/database/services/commandLogs.ts";
 import { getLastfmUser } from "@/database/services/users.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
 import renderCanvas from "@/rendering/renderCanvas.ts";
+import runWithCollageQueue from "@/services/collageQueue.ts";
 import { getUserMonthlyCalendarData } from "@/services/lastfm/index.ts";
 import type { BotContext } from "@/types/context.ts";
 import {
@@ -242,61 +243,41 @@ export default async function handleCalendarlf(ctx: BotContext) {
       .plain("\n")
       .code("/calendarlf alb clean");
 
-    const progressMsg = await ctx.reply(tip.text, {
-      entities: tip.entities,
-      reply_parameters: ctx.message
-        ? { message_id: ctx.message.message_id }
-        : undefined,
-    });
+    await runWithCollageQueue(ctx, tip, async () => {
+      let daysData;
+      try {
+        daysData = await getUserMonthlyCalendarData(
+          lastfm_user,
+          year,
+          monthIndex,
+          media_type,
+        );
+      } catch (err) {
+        if (err === "ZERO_SCROBBLES") {
+          throw "CALENDAR_NO_DATA";
+        }
+        throw err;
+      }
 
-    let daysData;
-    try {
-      daysData = await getUserMonthlyCalendarData(
-        lastfm_user,
+      const isHd = hasHdParam(ctx.message?.text || "");
+      await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
+
+      const template = calendarlfTemplate({
         year,
         monthIndex,
         media_type,
-      );
-    } catch (err) {
-      try {
-        await progressMsg.delete();
-      } catch {
-        // Ignore if message cannot be deleted
-      }
-      if (err === "ZERO_SCROBBLES") {
-        throw "CALENDAR_NO_DATA";
-      }
-      throw err;
-    }
-
-    const isHd = hasHdParam(ctx.message?.text || "");
-    await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
-
-    const template = calendarlfTemplate({
-      year,
-      monthIndex,
-      media_type,
-      daysData,
-      param,
-    });
-
-    const canvasBuffer = await renderCanvas(template);
-
-    const displayName = ctx.from?.first_name || ctx.from?.username || "User";
-    const caption = `${displayName}, your ${media_type} calendar (${monthLabel})`;
-    const ext = template.format === "png" ? "png" : "jpg";
-    const filename = `calendar_${monthLabel.replace(/\s+/g, "_")}_${media_type}.${ext}`;
-
-    if (isHd) {
-      await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
-        caption,
-        reply_parameters: ctx.message
-          ? { message_id: ctx.message.message_id }
-          : undefined,
+        daysData,
+        param,
       });
-    } else {
-      const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
-      if (canvasBuffer.byteLength > MAX_PHOTO_BYTES) {
+
+      const canvasBuffer = await renderCanvas(template);
+
+      const displayName = ctx.from?.first_name || ctx.from?.username || "User";
+      const caption = `${displayName}, your ${media_type} calendar (${monthLabel})`;
+      const ext = template.format === "png" ? "png" : "jpg";
+      const filename = `calendar_${monthLabel.replace(/\s+/g, "_")}_${media_type}.${ext}`;
+
+      if (isHd) {
         await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
           caption,
           reply_parameters: ctx.message
@@ -304,20 +285,24 @@ export default async function handleCalendarlf(ctx: BotContext) {
             : undefined,
         });
       } else {
-        await ctx.replyWithPhoto(new InputFile(canvasBuffer, filename), {
-          caption,
-          reply_parameters: ctx.message
-            ? { message_id: ctx.message.message_id }
-            : undefined,
-        });
+        const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+        if (canvasBuffer.byteLength > MAX_PHOTO_BYTES) {
+          await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
+            caption,
+            reply_parameters: ctx.message
+              ? { message_id: ctx.message.message_id }
+              : undefined,
+          });
+        } else {
+          await ctx.replyWithPhoto(new InputFile(canvasBuffer, filename), {
+            caption,
+            reply_parameters: ctx.message
+              ? { message_id: ctx.message.message_id }
+              : undefined,
+          });
+        }
       }
-    }
-
-    try {
-      await progressMsg.delete();
-    } catch {
-      // Ignore if message cannot be deleted
-    }
+    });
   } catch (error) {
     await errorHandler(ctx, error);
   }
