@@ -6,6 +6,8 @@ import type { LastfmImages } from "./types.ts";
 const LASTFM_API_URL = "https://ws.audioscrobbler.com/2.0/";
 export const DEFAULT_IMAGE =
   "https://lastfm.freetls.fastly.net/i/u/500x500/2a96cbd8b46e442fc41c2b86b821562f.png";
+export const DEFAULT_AVATAR_IMAGE =
+  "https://lastfm.freetls.fastly.net/i/u/500x500/818148bf682d429dc215c1705eb27b98.png";
 
 const REQUEST_TIMEOUT_MS = 5000;
 
@@ -135,7 +137,7 @@ export function buildImagesFromUrl(rawUrl?: string | null): LastfmImages {
       .trim()
       .replace("lastfm-img.freetls.fastly.net", "lastfm.freetls.fastly.net")
     : DEFAULT_IMAGE;
-  const cropRegex = /\/(?:\d+x\d+|\d+s|ar0)\//;
+  const cropRegex = /\/(?:\d+x\d+|\d+s|avatar\d+s|ar0)\//;
 
   if (!cropRegex.test(base)) {
     return {

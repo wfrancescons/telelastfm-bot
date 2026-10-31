@@ -64,6 +64,7 @@ describe("GrammY Bot Commands (Update Handling & API Transformers)", () => {
       assert.match(text, /\/gridlf/);
       assert.match(text, /\/vinyllf/);
       assert.match(text, /\/calendarlf/);
+      assert.match(text, /\/profilelf/);
     });
   });
 

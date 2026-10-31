@@ -6,6 +6,7 @@ import {
 import type { LastfmPeriod, MediaType } from "@/utils/validValuesMap.ts";
 import {
   buildImagesFromUrl,
+  DEFAULT_AVATAR_IMAGE,
   DEFAULT_IMAGE,
   extractImage,
   getOgImage,
@@ -21,8 +22,10 @@ import type {
   TopArtistItem,
   TopTrackItem,
   TrackInfoData,
+  UserProfileData,
 } from "./types.ts";
 
+export { DEFAULT_AVATAR_IMAGE, DEFAULT_IMAGE };
 export * from "./types.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -906,6 +909,204 @@ export async function getUserMonthlyCalendarData(
 
     return calendarMap;
   } catch (error) {
+    handleRequestError(error);
+  }
+}
+
+export async function getUserProfileData(
+  username: string,
+  period: LastfmPeriod = "overall",
+): Promise<UserProfileData> {
+  try {
+    const [
+      userInfoRes,
+      lovedRes,
+      topArtistsRes,
+      topTracksRes,
+      topAlbumsRes,
+    ] = await Promise.all([
+      makeRequest({
+        method: "user.getInfo",
+        user: username,
+      }),
+      makeRequest({
+        method: "user.getLovedTracks",
+        user: username,
+        limit: 1,
+      }).catch(() => null),
+      makeRequest({
+        method: "user.getTopArtists",
+        username,
+        period,
+        limit: 3,
+      }).catch(() => null),
+      makeRequest({
+        method: "user.getTopTracks",
+        username,
+        period,
+        limit: 3,
+      }).catch(() => null),
+      makeRequest({
+        method: "user.getTopAlbums",
+        username,
+        period,
+        limit: 3,
+      }).catch(() => null),
+    ]);
+
+    const userObj = userInfoRes?.user;
+    if (!userObj) {
+      throw "NOT_A_VALID_LASTFM_USER";
+    }
+
+    const canonicalUsername = String(userObj.name || username).trim();
+    const rawRealname = String(userObj.realname || "").trim();
+    const realname = rawRealname.length > 0 ? rawRealname : null;
+
+    const scrobbles = Number(userObj.playcount) || 0;
+    let artistsCount = Number(userObj.artist_count) || 0;
+    if (artistsCount === 0 && period === "overall") {
+      artistsCount = Number(topArtistsRes?.topartists?.["@attr"]?.total) || 0;
+    } else if (artistsCount === 0) {
+      const overallArtists = await makeRequest({
+        method: "user.getTopArtists",
+        username,
+        period: "overall",
+        limit: 1,
+      }).catch(() => null);
+      artistsCount = Number(overallArtists?.topartists?.["@attr"]?.total) || 0;
+    }
+
+    const lovedTracksCount =
+      Number(lovedRes?.lovedtracks?.["@attr"]?.total) || 0;
+
+    // Extract user avatar (can be .png, .jpg, or .gif on Last.fm)
+    const extractedAvatar = extractImage(userObj.image);
+    const avatar = !isPlaceholderImageUrl(extractedAvatar.large)
+      ? extractedAvatar.large
+      : null;
+
+    const rawArtists = topArtistsRes?.topartists?.artist;
+    const artistsArray = Array.isArray(rawArtists)
+      ? rawArtists
+      : rawArtists
+      ? [rawArtists]
+      : [];
+
+    const rawTracks = topTracksRes?.toptracks?.track;
+    const tracksArray = Array.isArray(rawTracks)
+      ? rawTracks
+      : rawTracks
+      ? [rawTracks]
+      : [];
+
+    const rawAlbums = topAlbumsRes?.topalbums?.album;
+    const albumsArray = Array.isArray(rawAlbums)
+      ? rawAlbums
+      : rawAlbums
+      ? [rawAlbums]
+      : [];
+
+    if (
+      scrobbles === 0 &&
+      artistsArray.length === 0 &&
+      tracksArray.length === 0 &&
+      albumsArray.length === 0
+    ) {
+      throw "ZERO_SCROBBLES";
+    }
+
+    // Only resolve cover images for the #1 item of each category (the only ones drawn on the profile card)
+    const [topArtists, topTracks, topAlbums] = await Promise.all([
+      Promise.all(
+        artistsArray.slice(0, 3).map(async (item, idx): Promise<TopArtistItem> => {
+          const artistName = String(item.name || "").trim();
+          const image = idx === 0 && artistName
+            ? await resolveArtistImageUrl({
+              artist: artistName,
+              artistUrl: item.url,
+            })
+            : DEFAULT_IMAGE;
+
+          return {
+            rank: item["@attr"]?.rank ?? idx + 1,
+            image,
+            artist: {
+              name: artistName,
+            },
+            scrobbles: Number(item.playcount) || 0,
+          };
+        }),
+      ),
+      Promise.all(
+        tracksArray.slice(0, 3).map(async (item, idx): Promise<TopTrackItem> => {
+          const trackName = String(item.name || "").trim();
+          const artistName = String(item.artist?.name || "").trim();
+          const extracted = extractImage(item.image);
+          const image = idx === 0 && trackName
+            ? await resolveTrackImageUrl({
+              track: trackName,
+              artist: artistName,
+              username,
+              initialImageUrl: extracted.large,
+              trackUrl: item.url,
+            })
+            : DEFAULT_IMAGE;
+
+          return {
+            rank: item["@attr"]?.rank ?? idx + 1,
+            image,
+            track: {
+              name: trackName,
+              artist: artistName,
+            },
+            scrobbles: Number(item.playcount) || 0,
+          };
+        }),
+      ),
+      Promise.all(
+        albumsArray.slice(0, 3).map(async (item, idx): Promise<TopAlbumItem> => {
+          const albumName = String(item.name || "").trim();
+          const artistName = String(item.artist?.name || "").trim();
+          const extracted = extractImage(item.image);
+          const image = idx === 0 && albumName
+            ? await resolveAlbumImageUrl({
+              album: albumName,
+              artist: artistName,
+              initialImageUrl: extracted.large,
+              albumUrl: item.url,
+            })
+            : DEFAULT_IMAGE;
+
+          return {
+            rank: item["@attr"]?.rank ?? idx + 1,
+            image,
+            album: {
+              name: albumName,
+              artist: artistName,
+            },
+            scrobbles: Number(item.playcount) || 0,
+          };
+        }),
+      ),
+    ]);
+
+    return {
+      username: canonicalUsername,
+      realname,
+      avatar,
+      scrobbles,
+      artistsCount,
+      lovedTracksCount,
+      topArtists,
+      topTracks,
+      topAlbums,
+    };
+  } catch (error) {
+    // deno-lint-ignore no-explicit-any
+    if ((error as any)?.status === 404) {
+      throw "USER_CHANGED_USERNAME";
+    }
     handleRequestError(error);
   }
 }

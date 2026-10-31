@@ -92,4 +92,16 @@ export type CalendarDayItem = {
   image: string;
 };
 
+export type UserProfileData = {
+  username: string;
+  realname: string | null;
+  avatar: string | null;
+  scrobbles: number;
+  artistsCount: number;
+  lovedTracksCount: number;
+  topArtists: TopArtistItem[];
+  topTracks: TopTrackItem[];
+  topAlbums: TopAlbumItem[];
+};
+
 

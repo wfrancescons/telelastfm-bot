@@ -2,6 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { calendarlfTemplate } from "@/commands/templates/calendarlfTemplate.ts";
 import { parseCalendarArgs } from "@/commands/handleCalendarlf.ts";
+import { parseProfileArgs } from "@/commands/handleProfilelf.ts";
+import { profilelfTemplate } from "@/commands/templates/profilelfTemplate.ts";
 import { vinyllfTemplate } from "@/commands/templates/vinyllfTemplate.ts";
 import { gridlfTemplate } from "@/commands/templates/gridlfTemplate.ts";
 import type { TopAlbumItem } from "@/services/lastfm/types.ts";
@@ -114,6 +116,54 @@ describe("Templates Generation", () => {
       assert.equal(template.height, 3 * 420);
       assert.equal(template.type, "lastfm-grid");
       assert.equal(template.elements.length > 0, true);
+    });
+  });
+
+  describe("profilelfTemplate", () => {
+    it("should build 760x1350 profile template with stats cards, top lists, and fallback display name", () => {
+      const template = profilelfTemplate({
+        profileData: {
+          username: "usuariolastfm",
+          realname: null,
+          avatar: "https://lastfm.freetls.fastly.net/i/u/300x300/abc12345.gif",
+          scrobbles: 196689,
+          artistsCount: 4032,
+          lovedTracksCount: 431,
+          topArtists: [
+            { rank: 1, artist: { name: "Drake" }, scrobbles: 5000, image: "https://example.com/a1.jpg" },
+            { rank: 2, artist: { name: "Mac Miller" }, scrobbles: 4000, image: "https://example.com/a2.jpg" },
+            { rank: 3, artist: { name: "Kid Cudi" }, scrobbles: 3000, image: "https://example.com/a3.jpg" },
+          ],
+          topTracks: [
+            { rank: 1, track: { name: "Someone Like You", artist: "Mac Miller" }, scrobbles: 300, image: "https://example.com/t1.jpg" },
+          ],
+          topAlbums: [
+            { rank: 1, album: { name: "Melt", artist: "Not for Radio" }, scrobbles: 800, image: "https://example.com/alb1.jpg" },
+          ],
+        },
+        fallbackDisplayName: "Nome no Telegram",
+      });
+
+      assert.equal(template.width, 760);
+      assert.equal(template.height, 1350);
+      assert.equal(template.type, "lastfm-profile");
+
+      // Should use fallbackDisplayName when realname is null
+      const nameEl = template.elements.find(
+        (el) => el.type === "text" && el.text === "Nome no Telegram",
+      );
+      assert.notEqual(nameEl, undefined);
+
+      // Should render @username
+      const handleEl = template.elements.find(
+        (el) => el.type === "text" && el.text === "@usuariolastfm",
+      );
+      assert.notEqual(handleEl, undefined);
+
+      // Should parse profile args with period and hd
+      const parsed = parseProfileArgs("/profilelf 7d hd");
+      assert.equal(parsed.period, "7day");
+      assert.equal(parsed.isHd, true);
     });
   });
 });

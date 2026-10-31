@@ -2,6 +2,7 @@ import { db } from "../schema.ts";
 
 const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 export const LASTFM_PLACEHOLDER_HASH = "2a96cbd8b46e442fc41c2b86b821562f";
+export const LASTFM_DEFAULT_AVATAR_HASH = "818148bf682d429dc215c1705eb27b98";
 
 export type ImageCacheMediaInfo = {
   track?: string;
@@ -41,7 +42,10 @@ export function buildImageCacheKey(
 
 export function isPlaceholderImageUrl(url?: string | null): boolean {
   if (!url) return true;
-  return url.includes(LASTFM_PLACEHOLDER_HASH);
+  return (
+    url.includes(LASTFM_PLACEHOLDER_HASH) ||
+    url.includes(LASTFM_DEFAULT_AVATAR_HASH)
+  );
 }
 
 export async function getCachedImageUrl(

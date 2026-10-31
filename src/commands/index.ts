@@ -12,6 +12,7 @@ import handleHelp from "@/commands/handleHelp.ts";
 import handleLf from "@/commands/handleLf.ts";
 import handleMelf from "@/commands/handleMelf.ts";
 import handlePrivacy from "@/commands/handlePrivacy.ts";
+import handleProfilelf from "@/commands/handleProfilelf.ts";
 import handleRankinlf from "@/commands/handleRankinlf.ts";
 import handleRankoutlf from "@/commands/handleRankoutlf.ts";
 import handleSetlf from "@/commands/handleSetlf.ts";
@@ -31,6 +32,11 @@ userCommands.command(
   "calendarlf",
   "Generate a monthly calendar collage",
   handleCalendarlf,
+);
+userCommands.command(
+  "profilelf",
+  "Generate your Last.fm profile card",
+  handleProfilelf,
 );
 userCommands.command(
   "melf",
@@ -87,6 +93,11 @@ if (adminChatIds.length > 0) {
     "calendarlf",
     "Generate a monthly calendar collage",
     handleCalendarlf,
+  );
+  registerForAdmins(
+    "profilelf",
+    "Generate your Last.fm profile card",
+    handleProfilelf,
   );
   registerForAdmins(
     "melf",

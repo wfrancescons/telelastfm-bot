@@ -33,12 +33,24 @@ const imageDownloadLimiter = new Bottleneck({
   minTime: 40,
 });
 
-export function normalizeLastfmImageUrl(rawUrl: string): string {
-  const normalized = rawUrl
-    .trim()
-    .replace("lastfm-img.freetls.fastly.net", "lastfm.freetls.fastly.net");
+function isLocalOrDataUrl(src: string): boolean {
+  return (
+    src.startsWith("./") ||
+    src.startsWith("../") ||
+    src.startsWith("data:image/")
+  );
+}
 
-  const cropRegex = /\/(?:\d+x\d+|\d+s|ar0)\//;
+export function normalizeLastfmImageUrl(rawUrl: string): string {
+  const trimmed = rawUrl.trim();
+  if (isLocalOrDataUrl(trimmed)) return trimmed;
+
+  const normalized = trimmed.replace(
+    "lastfm-img.freetls.fastly.net",
+    "lastfm.freetls.fastly.net",
+  );
+
+  const cropRegex = /\/(?:\d+x\d+|\d+s|avatar\d+s|ar0)\//;
   if (cropRegex.test(normalized)) {
     return normalized.replace(cropRegex, "/500x500/");
   }
@@ -48,6 +60,15 @@ export function normalizeLastfmImageUrl(rawUrl: string): string {
 function buildLastfmFallbackCandidates(rawUrl: string): string[] {
   const canonical500 = normalizeLastfmImageUrl(rawUrl);
   const candidates = new Set<string>([canonical500]);
+
+  // Animated or static GIF avatars on Last.fm Fastly CDN can also be fetched
+  // as transcoded static PNG/JPG at 500x500 or original avatar170s if needed
+  if (/\.gif$/i.test(canonical500)) {
+    candidates.add(canonical500.replace(/\.gif$/i, ".png"));
+    candidates.add(canonical500.replace(/\.gif$/i, ".jpg"));
+    candidates.add(canonical500.replace("/500x500/", "/avatar170s/"));
+  }
+
   return [...candidates];
 }
 
@@ -106,7 +127,13 @@ function getImageBytes(url: string): Promise<Uint8Array | null> {
 }
 
 async function loadCachedImage(src: string): Promise<Image> {
-  if (src.startsWith("./src/")) {
+  if (src.startsWith("data:image/")) {
+    const commaIdx = src.indexOf(",");
+    const b64 = commaIdx >= 0 ? src.slice(commaIdx + 1) : src;
+    return await loadImage(Buffer.from(b64, "base64"));
+  }
+
+  if (src.startsWith("./") || src.startsWith("../")) {
     const resolved = resolve(process.cwd(), src);
     const cached = localImageCache.get(resolved);
     if (cached) return cached;
@@ -116,6 +143,7 @@ async function loadCachedImage(src: string): Promise<Image> {
     return img;
   }
 
+  const canonicalSrc = normalizeLastfmImageUrl(src);
   const candidates = buildLastfmFallbackCandidates(src);
 
   for (const candidateUrl of candidates) {
@@ -124,8 +152,9 @@ async function loadCachedImage(src: string): Promise<Image> {
 
     try {
       const img = await loadImage(Buffer.from(bytes));
-      if (candidateUrl !== src) {
-        await updateCachedImageUrl(src, candidateUrl);
+      if (candidateUrl !== canonicalSrc) {
+        setImageBlob(canonicalSrc, bytes);
+        await updateCachedImageUrl(src, canonicalSrc);
       }
       return img;
     } catch {
@@ -157,7 +186,11 @@ async function loadCachedImage(src: string): Promise<Image> {
 export async function preloadImages(
   srcs: string[],
 ): Promise<Map<string, Image | Error>> {
-  const unique = [...new Set(srcs.map((s) => (s.startsWith("./src/") ? s : normalizeLastfmImageUrl(s))))];
+  const unique = [
+    ...new Set(
+      srcs.map((s) => (isLocalOrDataUrl(s) ? s : normalizeLastfmImageUrl(s))),
+    ),
+  ];
   const entries = await Promise.all(
     unique.map(async (src): Promise<[string, Image | Error]> => {
       try {
@@ -176,7 +209,7 @@ export async function drawImage(
   preloaded?: Map<string, Image | Error>,
 ): Promise<void> {
   try {
-    const canonicalSrc = element.src.startsWith("./src/")
+    const canonicalSrc = isLocalOrDataUrl(element.src)
       ? element.src
       : normalizeLastfmImageUrl(element.src);
     const pre = preloaded?.get(canonicalSrc) ?? preloaded?.get(element.src);
