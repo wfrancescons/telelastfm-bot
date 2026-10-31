@@ -109,7 +109,10 @@ async function renderCanvasInternal(
   }
 
   await yieldToEventLoop();
-  const buffer = await canvas.toBuffer("jpeg", { quality: 0.95 });
+  const format = data.format || "jpeg";
+  const buffer = format === "png"
+    ? await canvas.toBuffer("png")
+    : await canvas.toBuffer("jpeg", { quality: 1.0 });
   return new Uint8Array(buffer);
 }
 

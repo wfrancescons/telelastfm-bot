@@ -2,9 +2,11 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   acceptedCollageParams,
+  acceptedHdParams,
   acceptedMedias,
   acceptedPeriods,
   collageParamMap,
+  hasHdParam,
   mediaMap,
   periodMap,
 } from "@/utils/validValuesMap.ts";
@@ -33,6 +35,17 @@ describe("validValuesMap", () => {
         assert.equal((acceptedMedias as readonly string[]).includes(alias), true, `Missing in acceptedMedias: ${alias}`);
         assert.equal(mediaMap[alias], "artists", `Wrong mapping for: ${alias}`);
       }
+    });
+  });
+
+  describe("hasHdParam & acceptedHdParams", () => {
+    it("should identify hd/document arguments in user text", () => {
+      assert.equal(acceptedHdParams.includes("hd"), true);
+      assert.equal(hasHdParam("/gridlf 3x3 hd"), true);
+      assert.equal(hasHdParam("/vinyllf alb doc"), true);
+      assert.equal(hasHdParam("/calendarlf hq"), true);
+      assert.equal(hasHdParam("/gridlf 3x3"), false);
+      assert.equal(hasHdParam("/gridlf"), false);
     });
   });
 

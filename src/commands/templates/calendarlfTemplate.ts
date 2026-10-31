@@ -497,6 +497,7 @@ export function calendarlfTemplate({
     width: canvasWidth,
     height: canvasHeight,
     background: "#0E0E0E",
+    format: "jpeg",
     elements,
   };
 }

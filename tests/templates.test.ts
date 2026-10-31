@@ -83,7 +83,7 @@ describe("Templates Generation", () => {
   });
 
   describe("gridlfTemplate", () => {
-    it("should build grid template for 3x3 posters", () => {
+    it("should build grid template for 3x3 posters with adaptive sizing", () => {
       const sampleItems: TopAlbumItem[] = Array.from({ length: 9 }, (_, i) => ({
         album: { name: `Album ${i + 1}`, artist: `Artist ${i + 1}` },
         image: "https://example.com/img.jpg",
@@ -98,8 +98,9 @@ describe("Templates Generation", () => {
         media_type: "albums",
       });
 
-      assert.equal(template.width, 3 * 250); // 750px
-      assert.equal(template.height, 3 * 250); // 750px
+      // 1800 / 3 = 600, clamped to max 420px -> 3 * 420 = 1260px
+      assert.equal(template.width, 3 * 420);
+      assert.equal(template.height, 3 * 420);
       assert.equal(template.type, "lastfm-grid");
       assert.equal(template.elements.length > 0, true);
     });

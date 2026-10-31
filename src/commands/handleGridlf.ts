@@ -15,6 +15,7 @@ import {
   acceptedMedias,
   acceptedPeriods,
   collageParamMap,
+  hasHdParam,
   type LastfmPeriod,
   mediaMap,
   type MediaType,
@@ -177,12 +178,36 @@ export default async function handleGridlf(ctx: BotContext) {
     const caption =
       `${displayName}, your ${grid} ${media_type} grid of ${periodLabel}`;
 
-    await ctx.replyWithPhoto(new InputFile(canvasBuffer, "grid.jpg"), {
-      caption,
-      reply_parameters: ctx.message
-        ? { message_id: ctx.message.message_id }
-        : undefined,
-    });
+    const isHd = hasHdParam(ctx.message?.text || "");
+    const ext = template.format === "png" ? "png" : "jpg";
+    const filename = `grid_${grid}_${media_type}.${ext}`;
+
+    if (isHd) {
+      await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
+        caption,
+        reply_parameters: ctx.message
+          ? { message_id: ctx.message.message_id }
+          : undefined,
+      });
+    } else {
+      // Telegram sendPhoto has a strict 10MB limit. Fallback to sendDocument if it exceeds 10MB.
+      const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+      if (canvasBuffer.byteLength > MAX_PHOTO_BYTES) {
+        await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
+          caption,
+          reply_parameters: ctx.message
+            ? { message_id: ctx.message.message_id }
+            : undefined,
+        });
+      } else {
+        await ctx.replyWithPhoto(new InputFile(canvasBuffer, filename), {
+          caption,
+          reply_parameters: ctx.message
+            ? { message_id: ctx.message.message_id }
+            : undefined,
+        });
+      }
+    }
 
     try {
       await progressMsg.delete();

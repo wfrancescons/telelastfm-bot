@@ -5,7 +5,7 @@ import type { LastfmImages } from "./types.ts";
 
 const LASTFM_API_URL = "https://ws.audioscrobbler.com/2.0/";
 export const DEFAULT_IMAGE =
-  "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png";
+  "https://lastfm.freetls.fastly.net/i/u/500x500/2a96cbd8b46e442fc41c2b86b821562f.png";
 
 const REQUEST_TIMEOUT_MS = 5000;
 

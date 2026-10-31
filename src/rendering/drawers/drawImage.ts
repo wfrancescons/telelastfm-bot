@@ -33,18 +33,21 @@ const imageDownloadLimiter = new Bottleneck({
   minTime: 40,
 });
 
-function buildLastfmFallbackCandidates(rawUrl: string): string[] {
+export function normalizeLastfmImageUrl(rawUrl: string): string {
   const normalized = rawUrl
     .trim()
     .replace("lastfm-img.freetls.fastly.net", "lastfm.freetls.fastly.net");
 
-  const candidates = new Set<string>([normalized]);
   const cropRegex = /\/(?:\d+x\d+|\d+s|ar0)\//;
-
   if (cropRegex.test(normalized)) {
-    candidates.add(normalized.replace(cropRegex, "/300x300/"));
+    return normalized.replace(cropRegex, "/500x500/");
   }
+  return normalized;
+}
 
+function buildLastfmFallbackCandidates(rawUrl: string): string[] {
+  const canonical500 = normalizeLastfmImageUrl(rawUrl);
+  const candidates = new Set<string>([canonical500]);
   return [...candidates];
 }
 
@@ -154,7 +157,7 @@ async function loadCachedImage(src: string): Promise<Image> {
 export async function preloadImages(
   srcs: string[],
 ): Promise<Map<string, Image | Error>> {
-  const unique = [...new Set(srcs)];
+  const unique = [...new Set(srcs.map((s) => (s.startsWith("./src/") ? s : normalizeLastfmImageUrl(s))))];
   const entries = await Promise.all(
     unique.map(async (src): Promise<[string, Image | Error]> => {
       try {
@@ -173,11 +176,17 @@ export async function drawImage(
   preloaded?: Map<string, Image | Error>,
 ): Promise<void> {
   try {
-    const pre = preloaded?.get(element.src);
+    const canonicalSrc = element.src.startsWith("./src/")
+      ? element.src
+      : normalizeLastfmImageUrl(element.src);
+    const pre = preloaded?.get(canonicalSrc) ?? preloaded?.get(element.src);
     if (pre instanceof Error) throw pre;
-    const image = pre ?? await loadCachedImage(element.src);
+    const image = pre ?? await loadCachedImage(canonicalSrc);
 
     await withContextEffects(ctx, element, (c) => {
+      c.imageSmoothingEnabled = true;
+      c.imageSmoothingQuality = "high";
+
       if (element.rotation) {
         const cx = element.x + element.width / 2;
         const cy = element.y + element.height / 2;

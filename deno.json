@@ -3,7 +3,8 @@
     "start": "deno run -P ./src/bot.ts",
     "dev": "deno run --watch --watch-exclude=\"database.sqlite*\" -P ./src/bot.ts",
     "check": "deno check ./src/bot.ts",
-    "test": "deno test -P"
+    "test": "deno test -P",
+    "bench": "deno run -P ./scripts/benchmark.ts"
   },
   "imports": {
     "@/": "./src/",

@@ -246,6 +246,7 @@ export type CanvasTemplateData = {
   width: number;
   height: number;
   background?: string;
+  format?: "png" | "jpeg" | "jpg";
   elements: CanvasElement[];
 };
 

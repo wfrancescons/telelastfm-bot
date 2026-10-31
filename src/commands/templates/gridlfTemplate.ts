@@ -328,20 +328,28 @@ export function gridlfTemplate({
   firstLarge = false,
   glassOptions,
 }: GridlfTemplateParams): CanvasTemplateData {
+  // Compute adaptive poster size so total dimensions stay between ~1000px and 2400px.
+  // Smaller grids (e.g. 3x3) use 380px posters (~1140px total), while 10x10 uses 200px (~2000px total).
+  const maxDim = Math.max(columns, rows);
+  const posterSize = Math.round(
+    Math.min(420, Math.max(180, 1800 / maxDim)),
+  );
+  const scale = posterSize / 250;
+
   const config: GridTemplateConfig = {
-    POSTER_WIDTH: 250,
-    POSTER_HEIGHT: 250,
-    GRADIENT_HEIGHT: 155,
-    TEXT_PADDING: 14,
-    TEXT_LINE_HEIGHT: 18,
-    SUBTITLE_LINE_HEIGHT: 17,
-    TITLE_FONT_SIZE: 14,
-    SUBTITLE_FONT_SIZE: 12,
-    SCROBBLE_FONT_SIZE: 13,
-    PILL_HEIGHT: 25,
-    PILL_PADDING_X: 11,
-    BOTTOM_MARGIN: 12,
-    PILL_TEXT_GAP: 10,
+    POSTER_WIDTH: posterSize,
+    POSTER_HEIGHT: posterSize,
+    GRADIENT_HEIGHT: Math.round(155 * scale),
+    TEXT_PADDING: Math.round(14 * scale),
+    TEXT_LINE_HEIGHT: Math.round(18 * scale),
+    SUBTITLE_LINE_HEIGHT: Math.round(17 * scale),
+    TITLE_FONT_SIZE: Math.round(14 * scale),
+    SUBTITLE_FONT_SIZE: Math.round(12 * scale),
+    SCROBBLE_FONT_SIZE: Math.round(13 * scale),
+    PILL_HEIGHT: Math.round(25 * scale),
+    PILL_PADDING_X: Math.round(11 * scale),
+    BOTTOM_MARGIN: Math.round(12 * scale),
+    PILL_TEXT_GAP: Math.round(10 * scale),
   };
 
   const data: CanvasTemplateData = {
@@ -349,6 +357,7 @@ export function gridlfTemplate({
     width: columns * config.POSTER_WIDTH,
     height: rows * config.POSTER_HEIGHT,
     background: "#0E0E0E",
+    format: "jpeg",
     elements: [],
   };
 

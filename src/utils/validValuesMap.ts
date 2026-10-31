@@ -125,6 +125,23 @@ export const collageParamMap: Record<string, CollageParam> = {
   semscrobbles: "noplays",
 };
 
+export const acceptedHdParams = [
+  "hd",
+  "hq",
+  "doc",
+  "document",
+  "documento",
+  "file",
+  "arquivo",
+] as const;
+
+export function hasHdParam(rawText: string): boolean {
+  const tokens = rawText.trim().toLowerCase().split(/\s+/).slice(1);
+  return tokens.some((token) =>
+    (acceptedHdParams as readonly string[]).includes(token),
+  );
+}
+
 export const acceptedPeriods = [
   "overall",
   "all",

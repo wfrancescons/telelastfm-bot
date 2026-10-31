@@ -9,6 +9,7 @@ import {
   acceptedCollageParams,
   acceptedMedias,
   collageParamMap,
+  hasHdParam,
   mediaMap,
   type MediaType,
 } from "@/utils/validValuesMap.ts";
@@ -278,13 +279,35 @@ export default async function handleCalendarlf(ctx: BotContext) {
 
     const displayName = ctx.from?.first_name || ctx.from?.username || "User";
     const caption = `${displayName}, your ${media_type} calendar (${monthLabel})`;
+    const isHd = hasHdParam(ctx.message?.text || "");
+    const ext = template.format === "png" ? "png" : "jpg";
+    const filename = `calendar_${monthLabel.replace(/\s+/g, "_")}_${media_type}.${ext}`;
 
-    await ctx.replyWithPhoto(new InputFile(canvasBuffer, "calendar.jpg"), {
-      caption,
-      reply_parameters: ctx.message
-        ? { message_id: ctx.message.message_id }
-        : undefined,
-    });
+    if (isHd) {
+      await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
+        caption,
+        reply_parameters: ctx.message
+          ? { message_id: ctx.message.message_id }
+          : undefined,
+      });
+    } else {
+      const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+      if (canvasBuffer.byteLength > MAX_PHOTO_BYTES) {
+        await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {
+          caption,
+          reply_parameters: ctx.message
+            ? { message_id: ctx.message.message_id }
+            : undefined,
+        });
+      } else {
+        await ctx.replyWithPhoto(new InputFile(canvasBuffer, filename), {
+          caption,
+          reply_parameters: ctx.message
+            ? { message_id: ctx.message.message_id }
+            : undefined,
+        });
+      }
+    }
 
     try {
       await progressMsg.delete();

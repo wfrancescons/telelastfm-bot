@@ -409,21 +409,26 @@ export async function resolveTrackImageUrl({
   initialImageUrl?: string;
   trackUrl?: string;
 }): Promise<string> {
-  if (initialImageUrl && !isPlaceholderImageUrl(initialImageUrl)) {
-    await setCachedImageUrl("tracks", { track, artist }, initialImageUrl);
-    return initialImageUrl;
+  const canonicalInitial = initialImageUrl
+    ? buildImagesFromUrl(initialImageUrl).large
+    : undefined;
+
+  if (canonicalInitial && !isPlaceholderImageUrl(canonicalInitial)) {
+    await setCachedImageUrl("tracks", { track, artist }, canonicalInitial);
+    return canonicalInitial;
   }
 
   const cached = await getCachedImageUrl("tracks", { track, artist });
-  if (cached) return cached;
+  if (cached) return buildImagesFromUrl(cached).large;
 
   const dedupKey = `track:${artist.toLowerCase()}|||${track.toLowerCase()}`;
   return deduplicateResolution(dedupKey, async () => {
     try {
       const info = await getTrackInfo({ track, artist, username });
       if (info.image?.large && !isPlaceholderImageUrl(info.image.large)) {
-        await setCachedImageUrl("tracks", { track, artist }, info.image.large);
-        return info.image.large;
+        const canonical = buildImagesFromUrl(info.image.large).large;
+        await setCachedImageUrl("tracks", { track, artist }, canonical);
+        return canonical;
       }
     } catch {
       // Fallback to trackUrl og:image if getTrackInfo fails
@@ -453,21 +458,26 @@ export async function resolveAlbumImageUrl({
   initialImageUrl?: string;
   albumUrl?: string;
 }): Promise<string> {
-  if (initialImageUrl && !isPlaceholderImageUrl(initialImageUrl)) {
-    await setCachedImageUrl("albums", { album, artist }, initialImageUrl);
-    return initialImageUrl;
+  const canonicalInitial = initialImageUrl
+    ? buildImagesFromUrl(initialImageUrl).large
+    : undefined;
+
+  if (canonicalInitial && !isPlaceholderImageUrl(canonicalInitial)) {
+    await setCachedImageUrl("albums", { album, artist }, canonicalInitial);
+    return canonicalInitial;
   }
 
   const cached = await getCachedImageUrl("albums", { album, artist });
-  if (cached) return cached;
+  if (cached) return buildImagesFromUrl(cached).large;
 
   const dedupKey = `album:${artist.toLowerCase()}|||${album.toLowerCase()}`;
   return deduplicateResolution(dedupKey, async () => {
     try {
       const info = await getAlbumInfo({ album, artist });
       if (info.image?.large && !isPlaceholderImageUrl(info.image.large)) {
-        await setCachedImageUrl("albums", { album, artist }, info.image.large);
-        return info.image.large;
+        const canonical = buildImagesFromUrl(info.image.large).large;
+        await setCachedImageUrl("albums", { album, artist }, canonical);
+        return canonical;
       }
     } catch {
       // Fallback to albumUrl og:image if getAlbumInfo fails
@@ -482,7 +492,7 @@ export async function resolveAlbumImageUrl({
       }
     }
 
-    return initialImageUrl || DEFAULT_IMAGE;
+    return canonicalInitial || DEFAULT_IMAGE;
   });
 }
 
@@ -494,7 +504,7 @@ export async function resolveArtistImageUrl({
   artistUrl?: string;
 }): Promise<string> {
   const cached = await getCachedImageUrl("artists", { artist });
-  if (cached) return cached;
+  if (cached) return buildImagesFromUrl(cached).large;
 
   const dedupKey = `artist:${artist.toLowerCase()}`;
   return deduplicateResolution(dedupKey, async () => {

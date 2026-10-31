@@ -348,6 +348,7 @@ export function vinyllfTemplate({
     width,
     height,
     background: "#080808",
+    format: "jpeg",
     elements,
   };
 }
