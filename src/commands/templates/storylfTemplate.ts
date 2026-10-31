@@ -9,6 +9,7 @@ import type {
   TextElement,
 } from "@/rendering/renderCanvas.ts";
 import { getTextLines, measureText } from "@/rendering/renderCanvas.ts";
+import { createWatermarkElements } from "@/rendering/watermark.ts";
 import type { MediaType } from "@/utils/validValuesMap.ts";
 import {
   createGlassCircleElement,
@@ -30,7 +31,7 @@ export type StorylfTemplateParams = {
   glassOptions?: GlassEffectOptions;
 };
 
-// Softer, more refined glass options for Apple Music style
+// Softer, more refined glass options style
 const STORY_GLASS_OPTIONS: GlassEffectOptions = {
   ...DEFAULT_GLASS_OPTIONS,
   light: {
@@ -152,7 +153,7 @@ export function storylfTemplate({
     );
   }
 
-  // 2. Smooth Apple Music dark scrim overlay
+  // 2. Smooth dark scrim overlay
   elements.push(
     createRectangleElement({
       fillStyle: {
@@ -176,7 +177,7 @@ export function storylfTemplate({
     }),
   );
 
-  // 3. Floating album artwork card (Apple Music square with soft diffuse shadow)
+  // 3. Floating album artwork card
   const cardSize = 740;
   const cardX = (width - cardSize) / 2;
   const cardY = 230;
@@ -214,7 +215,7 @@ export function storylfTemplate({
     );
   }
 
-  // 4. Track / Album / Artist metadata (Apple Music typography)
+  // 4. Track / Album / Artist metadata
   const titleFontSize = 50;
   const titleLineHeight = 58;
   const titleFont = `${titleFontSize}px "NotoSans-Bold", sans-serif`;
@@ -300,11 +301,10 @@ export function storylfTemplate({
     currentY = subtitleBaselineY;
   }
 
-  // 5. Scrobbles Capsule (Apple Music Audio Badge Style)
+  // 5. Scrobbles Capsule
   const scrobbles = (Number(lastfm_data.userplaycount) || 0) + 1;
-  const scrobblesText = `${scrobbles.toLocaleString("pt-BR")} ${
-    scrobbles === 1 ? "scrobble" : "scrobbles"
-  }`;
+  const scrobblesText = `${scrobbles.toLocaleString("pt-BR")} ${scrobbles === 1 ? "scrobble" : "scrobbles"
+    }`;
   const pillFontSize = 26;
   const pillFont = `${pillFontSize}px "NotoSans-Medium", sans-serif`;
   const pillTextWidth = measureText(scrobblesText, pillFont).width;
@@ -345,7 +345,7 @@ export function storylfTemplate({
     }),
   );
 
-  // 6. Apple Music progress bar (clean, sleek)
+  // 6. Progress bar (clean, sleek)
   const barWidth = 840;
   const barHeight = 8;
   const barX = centerX - barWidth / 2;
@@ -376,7 +376,7 @@ export function storylfTemplate({
     }),
   );
 
-  // 7. Media controls with circular glass shapes (Apple Music layout with soft shadows)
+  // 7. Media controls with circular glass shapes
   const controlsY = barY + 120;
   const sideControlOffset = 210;
   const sideDiameter = 104;
@@ -436,23 +436,13 @@ export function storylfTemplate({
     }),
   );
 
-  // 8. Watermark at the bottom
+  // 8. Watermark at the bottom: Glass pill with Telegram logo + t.me/<botusername>
   elements.push(
-    createTextElement({
-      text: "@telelastfmbot",
-      x: centerX,
-      y: 1780,
-      font: `22px "NotoSans-Regular", sans-serif`,
-      fillStyle: "rgba(255, 255, 255, 0.4)",
-      align: "center",
-      shadow: {
-        color: "rgba(0, 0, 0, 0.3)",
-        offsetX: 0,
-        offsetY: 1,
-        blur: 4,
-      },
-      maxWidth: 400,
-      maxLines: 1,
+    ...createWatermarkElements({
+      canvasWidth: width,
+      canvasHeight: height,
+      bottomOffset: 80,
+      glassOptions: mergedGlassOptions,
     }),
   );
 

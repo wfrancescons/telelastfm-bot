@@ -13,6 +13,7 @@ import type {
   TextElement,
 } from "@/rendering/renderCanvas.ts";
 import { measureText } from "@/rendering/renderCanvas.ts";
+import { createWatermarkElements } from "@/rendering/watermark.ts";
 import type { CalendarDayItem } from "@/services/lastfm/index.ts";
 import type { MediaType } from "@/utils/validValuesMap.ts";
 
@@ -97,6 +98,8 @@ function createTextElement(params: {
   maxWidth?: number;
   maxLines?: number;
   lineHeight?: number;
+  vibrancy?: TextElement["vibrancy"];
+  effects?: TextElement["effects"];
 }): TextElement {
   return { type: "text", ...params };
 }
@@ -119,7 +122,7 @@ export function calendarlfTemplate({
   glassOptions,
 }: CalendarlfTemplateParams): CanvasTemplateData {
   const canvasWidth = 1080;
-  const canvasHeight = 1080;
+  const canvasHeight = 1350;
 
   const elements: CanvasElement[] = [];
 
@@ -145,8 +148,8 @@ export function calendarlfTemplate({
         width: canvasWidth + bleed * 2,
         height: canvasHeight + bleed * 2,
         objectFit: "cover",
-        filter: "blur(72px) saturate(145%)",
-        opacity: 0.72,
+        filter: "blur(68px) saturate(160%)",
+        opacity: 0.78,
       }),
       createRectangleElement({
         x: 0,
@@ -155,15 +158,15 @@ export function calendarlfTemplate({
         height: canvasHeight,
         fillStyle: {
           type: "radialGradient",
-          x0: canvasWidth / 2,
-          y0: 135,
+          x0: 340,
+          y0: 165,
           r0: 20,
           x1: canvasWidth / 2,
-          y1: 420,
-          r1: 720,
+          y1: 520,
+          r1: 920,
           colors: [
-            { stop: 0, color: "rgba(14, 14, 14, 0.42)" },
-            { stop: 0.45, color: "rgba(14, 14, 14, 0.72)" },
+            { stop: 0, color: "rgba(14, 14, 14, 0.30)" },
+            { stop: 0.45, color: "rgba(14, 14, 14, 0.68)" },
             { stop: 1, color: "rgba(10, 10, 10, 0.92)" },
           ],
         },
@@ -175,15 +178,15 @@ export function calendarlfTemplate({
         x: 0,
         y: 0,
         width: canvasWidth,
-        height: 450,
+        height: 550,
         fillStyle: {
           type: "radialGradient",
           x0: canvasWidth / 2,
-          y0: 110,
+          y0: 140,
           r0: 10,
           x1: canvasWidth / 2,
-          y1: 150,
-          r1: 420,
+          y1: 180,
+          r1: 520,
           colors: [
             { stop: 0, color: "rgba(255, 255, 255, 0.08)" },
             { stop: 0.55, color: "rgba(255, 255, 255, 0.03)" },
@@ -194,70 +197,48 @@ export function calendarlfTemplate({
     );
   }
 
-  // Header Suggestion: Glass eyebrow badge ("top * of") with subtle flanking lines + "<month> <year>"
-  const headerSubtitle = getSubtitleByMediaType(media_type);
-  const subtitleFont = '19px "NotoSans-Medium", sans-serif';
-  const subtitleTextWidth = measureText(headerSubtitle, subtitleFont).width;
-  const headerPillHeight = 34;
-  const headerPillWidth = subtitleTextWidth + 40;
-  const headerPillX = (canvasWidth - headerPillWidth) / 2;
-  const headerPillY = 40;
-  const headerPillCenterY = headerPillY + headerPillHeight / 2;
-  const lineLength = 70;
-  const lineGap = 14;
+  // Calendar grid geometry: constant 132px cell size in 1080x1350 for up to 6 weeks
+  const cellSize = 132;
+  const cellGap = 12;
+  const cellRadius = 14;
+  const gridWidth = 7 * cellSize + 6 * cellGap; // 996px
+  const gridHeight = totalWeeks * cellSize + (totalWeeks - 1) * cellGap;
+  const gridStartX = Math.round((canvasWidth - gridWidth) / 2); // 42px
 
-  // Left and right subtle gradient accent lines flanking the glass eyebrow pill
+  // Header: Glass eyebrow badge ("top * of") on the left + "<month> <year>" underneath
+  const headerSubtitle = getSubtitleByMediaType(media_type);
+  const subtitleFont = '22px "NotoSans-Medium", sans-serif';
+  const subtitleTextWidth = measureText(headerSubtitle, subtitleFont).width;
+  const headerPillHeight = 42;
+  const headerPillWidth = subtitleTextWidth + 48;
+  const headerPillX = gridStartX; // Aligned to the left of the calendar grid
+  const headerPillY = 75;
+  const headerPillCenterY = headerPillY + headerPillHeight / 2;
+
+  // Header pill with glass effect
   elements.push(
-    createRectangleElement({
-      x: headerPillX - lineGap - lineLength,
-      y: headerPillCenterY - 1,
-      width: lineLength,
-      height: 2,
-      fillStyle: {
-        type: "linearGradient",
-        x0: headerPillX - lineGap - lineLength,
-        y0: headerPillCenterY,
-        x1: headerPillX - lineGap,
-        y1: headerPillCenterY,
-        colors: [
-          { stop: 0, color: "rgba(255, 255, 255, 0)" },
-          { stop: 1, color: "rgba(255, 255, 255, 0.28)" },
-        ],
-      },
-    }),
-    createRectangleElement({
-      x: headerPillX + headerPillWidth + lineGap,
-      y: headerPillCenterY - 1,
-      width: lineLength,
-      height: 2,
-      fillStyle: {
-        type: "linearGradient",
-        x0: headerPillX + headerPillWidth + lineGap,
-        y0: headerPillCenterY,
-        x1: headerPillX + headerPillWidth + lineGap + lineLength,
-        y1: headerPillCenterY,
-        colors: [
-          { stop: 0, color: "rgba(255, 255, 255, 0.28)" },
-          { stop: 1, color: "rgba(255, 255, 255, 0)" },
-        ],
-      },
-    }),
     createGlassPillElement({
       x: headerPillX,
       y: headerPillY,
       width: headerPillWidth,
       height: headerPillHeight,
-      options: effectiveGlassOptions,
+      options: {
+        ...effectiveGlassOptions,
+        tint: {
+          color: "#000000",
+          opacity: 0.35,
+        },
+      },
     }),
     createTextElement({
       text: headerSubtitle,
-      x: canvasWidth / 2,
-      y: headerPillCenterY + 6.5,
+      x: headerPillX + headerPillWidth / 2,
+      y: headerPillCenterY + 7.5,
       font: subtitleFont,
-      fillStyle: "rgba(255, 255, 255, 0.9)",
+      fillStyle: "rgba(255, 255, 255, 0.92)",
       align: "center",
       shadow: {
-        color: "rgba(0, 0, 0, 0.35)",
+        color: "rgba(0, 0, 0, 0.4)",
         offsetX: 0,
         offsetY: 1,
         blur: 4,
@@ -267,20 +248,19 @@ export function calendarlfTemplate({
     }),
   );
 
-  // Header main title: "<month> <year>" centered with bold white month and regular muted year
+  // Header main title: "<month> <year>" left-aligned below the pill with vibrancy effect
   const monthName = ENGLISH_MONTHS[monthIndex] || "month";
   const yearText = String(year);
-  const monthFont = '64px "NotoSans-Bold", sans-serif';
-  const yearFont = '64px "NotoSans-Regular", sans-serif';
-  const gapBetweenMonthAndYear = 18;
+  const monthFont = '84px "NotoSans-Bold", sans-serif';
+  const yearFont = '84px "NotoSans-Regular", sans-serif';
+  const gapBetweenMonthAndYear = 22;
 
   const monthWidth = measureText(monthName, monthFont).width;
-  const yearWidth = measureText(yearText, yearFont).width;
-  const totalTitleWidth = monthWidth + gapBetweenMonthAndYear + yearWidth;
-  const titleStartX = (canvasWidth - totalTitleWidth) / 2;
-  const titleBaselineY = 144;
+  const titleStartX = gridStartX;
+  const titleBaselineY = 208;
 
   elements.push(
+    // Month ("august") - Primary vibrancy effect blend (no shadow)
     createTextElement({
       text: monthName,
       x: titleStartX,
@@ -288,50 +268,34 @@ export function calendarlfTemplate({
       font: monthFont,
       fillStyle: "#ffffff",
       align: "left",
-      shadow: {
-        color: "rgba(0, 0, 0, 0.45)",
-        offsetX: 0,
-        offsetY: 2,
-        blur: 8,
-      },
+      vibrancy: "primary",
       maxWidth: 700,
       maxLines: 1,
     }),
+
+    // Year ("2026") - Secondary vibrancy ffect blend (no shadow)
     createTextElement({
       text: yearText,
       x: titleStartX + monthWidth + gapBetweenMonthAndYear,
       y: titleBaselineY,
       font: yearFont,
-      fillStyle: "rgba(255, 255, 255, 0.48)",
+      fillStyle: "rgba(255, 255, 255, 0.65)",
       align: "left",
-      shadow: {
-        color: "rgba(0, 0, 0, 0.35)",
-        offsetX: 0,
-        offsetY: 2,
-        blur: 8,
-      },
+      vibrancy: "secondary",
       maxWidth: 400,
       maxLines: 1,
     }),
   );
 
-  // Calendar grid geometry adjusted for 1080x1080 square
-  const cellSize = totalWeeks === 6 ? 116 : 126;
-  const cellGap = 10;
-  const cellRadius = 12;
-  const gridWidth = 7 * cellSize + 6 * cellGap;
-  const gridHeight = totalWeeks * cellSize + (totalWeeks - 1) * cellGap;
-  const gridStartX = Math.round((canvasWidth - gridWidth) / 2);
-
-  // Center the weekday header + grid block vertically between header and footer
-  const bodyTopY = 186;
-  const bodyBottomY = 1018;
-  const weekdayToGridGap = 20;
+  // Center the weekday header + grid block vertically in the middle section
+  const bodyTopY = 250;
+  const bodyBottomY = 1245;
+  const weekdayToGridGap = 24;
   const totalCalendarBlockHeight = weekdayToGridGap + gridHeight;
   const blockStartY =
     bodyTopY +
     Math.max(
-      10,
+      14,
       Math.floor((bodyBottomY - bodyTopY - totalCalendarBlockHeight) / 2),
     );
 
@@ -346,7 +310,7 @@ export function calendarlfTemplate({
         text: WEEKDAY_LABELS[col],
         x: colCenterX,
         y: weekdayBaselineY,
-        font: '18px "NotoSans-Medium", sans-serif',
+        font: '20px "NotoSans-Medium", sans-serif',
         fillStyle: "rgba(255, 255, 255, 0.52)",
         align: "center",
         maxWidth: cellSize,
@@ -566,17 +530,13 @@ export function calendarlfTemplate({
     }
   }
 
-  // Footer: t.me/telelastfmbot
+  // Footer watermark: glass pill with Telegram logo + t.me/<botusername>
   elements.push(
-    createTextElement({
-      text: "t.me/telelastfmbot",
-      x: canvasWidth / 2,
-      y: 1048,
-      font: '16px "NotoSans-Medium", sans-serif',
-      fillStyle: "rgba(255, 255, 255, 0.48)",
-      align: "center",
-      maxWidth: 600,
-      maxLines: 1,
+    ...createWatermarkElements({
+      canvasWidth,
+      canvasHeight,
+      bottomOffset: 34,
+      glassOptions: effectiveGlassOptions,
     }),
   );
 

@@ -163,7 +163,7 @@ export type CircleElement = {
 
 export type MediaControlIconElement = {
   type: "mediaControlIcon";
-  icon: "play" | "pause" | "prev" | "next";
+  icon: "play" | "pause" | "prev" | "next" | "telegram";
   /** Center X coordinate */
   cx: number;
   /** Center Y coordinate */
@@ -174,6 +174,8 @@ export type MediaControlIconElement = {
   shadow?: ShadowStyle;
   effects?: ElementEffects;
 };
+
+export type TextVibrancyMode = "primary" | "secondary";
 
 export type TextElement = {
   type: "text";
@@ -187,6 +189,7 @@ export type TextElement = {
   lineHeight?: number;
   align?: CanvasTextAlign;
   maxLines?: number;
+  vibrancy?: TextVibrancyMode;
   effects?: ElementEffects;
 };
 

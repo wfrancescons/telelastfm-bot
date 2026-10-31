@@ -153,14 +153,12 @@ export function parseCalendarArgs(rawText: string): {
   year: number;
   monthIndex: number;
   param: string | null;
-  asAttachment: boolean;
 } {
   const now = new Date();
   const year = now.getFullYear();
   const monthIndex = now.getMonth();
   let media_type: MediaType = "albums";
   let param: string | null = null;
-  let asAttachment = false;
 
   const tokens = rawText
     .trim()
@@ -170,7 +168,7 @@ export function parseCalendarArgs(rawText: string): {
     .filter(Boolean);
 
   if (tokens.length === 0) {
-    return { media_type, year, monthIndex, param, asAttachment };
+    return { media_type, year, monthIndex, param };
   }
 
   const remainingTokens: string[] = [];
@@ -186,15 +184,13 @@ export function parseCalendarArgs(rawText: string): {
       param = "notitles";
     } else if (NO_PLAYS_PARAM_ALIASES.includes(token)) {
       param = "noplays";
-    } else if (token === "att" || token === "attachment" || token === "file" || token === "doc") {
-      asAttachment = true;
     } else {
       remainingTokens.push(token);
     }
   }
 
   if (remainingTokens.length === 0) {
-    return { media_type, year, monthIndex, param, asAttachment };
+    return { media_type, year, monthIndex, param };
   }
 
   if (remainingTokens.length === 1) {
@@ -207,7 +203,6 @@ export function parseCalendarArgs(rawText: string): {
       year: parsed.year,
       monthIndex: parsed.monthIndex,
       param,
-      asAttachment,
     };
   }
 
@@ -218,7 +213,7 @@ export function parseCalendarArgs(rawText: string): {
       const m = parseMonthToken(t1);
       const y = Number(t2);
       if (m !== null && isValidMonthYear(y, m)) {
-        return { media_type, year: y, monthIndex: m, param, asAttachment };
+        return { media_type, year: y, monthIndex: m, param };
       }
     }
     // Try <YYYY> <month>
@@ -226,7 +221,7 @@ export function parseCalendarArgs(rawText: string): {
       const m = parseMonthToken(t2);
       const y = Number(t1);
       if (m !== null && isValidMonthYear(y, m)) {
-        return { media_type, year: y, monthIndex: m, param, asAttachment };
+        return { media_type, year: y, monthIndex: m, param };
       }
     }
     throw "CALENDAR_INVALID_DATE";
@@ -253,8 +248,9 @@ export default async function handleCalendarlf(ctx: BotContext) {
       throw "USER_NOT_FOUND";
     }
 
-    const { media_type, year, monthIndex, param, asAttachment } =
-      parseCalendarArgs(ctx.message?.text || "");
+    const { media_type, year, monthIndex, param } = parseCalendarArgs(
+      ctx.message?.text || "",
+    );
 
     const monthLabel = `${String(monthIndex + 1).padStart(2, "0")}/${year}`;
 
@@ -262,7 +258,7 @@ export default async function handleCalendarlf(ctx: BotContext) {
       `Generating your ${media_type} calendar (${monthLabel})...\n\n`,
     )
       .italic(
-        "💡 Tip: you can customize media, date, overlay, or send uncompressed:\n\n",
+        "💡 Tip: you can customize the media type, date, or overlay style:\n\n",
       )
       .plain("➡️ Examples:\n")
       .code("/calendarlf alb")
@@ -271,7 +267,7 @@ export default async function handleCalendarlf(ctx: BotContext) {
       .plain("\n")
       .code("/calendarlf art notitles 12/2025")
       .plain("\n")
-      .code("/calendarlf alb clean att");
+      .code("/calendarlf alb clean");
 
     const progressMsg = await ctx.reply(tip.text, {
       entities: tip.entities,
@@ -300,7 +296,7 @@ export default async function handleCalendarlf(ctx: BotContext) {
       throw err;
     }
 
-    await ctx.replyWithChatAction(asAttachment ? "upload_document" : "upload_photo");
+    await ctx.replyWithChatAction("upload_photo");
 
     const template = calendarlfTemplate({
       year,
@@ -315,21 +311,12 @@ export default async function handleCalendarlf(ctx: BotContext) {
     const displayName = ctx.from?.first_name || ctx.from?.username || "User";
     const caption = `${displayName}, your ${media_type} calendar (${monthLabel})`;
 
-    if (asAttachment) {
-      await ctx.replyWithDocument(new InputFile(canvasBuffer, `calendar_${monthLabel.replace("/", "_")}.jpg`), {
-        caption,
-        reply_parameters: ctx.message
-          ? { message_id: ctx.message.message_id }
-          : undefined,
-      });
-    } else {
-      await ctx.replyWithPhoto(new InputFile(canvasBuffer, "calendar.jpg"), {
-        caption,
-        reply_parameters: ctx.message
-          ? { message_id: ctx.message.message_id }
-          : undefined,
-      });
-    }
+    await ctx.replyWithPhoto(new InputFile(canvasBuffer, "calendar.jpg"), {
+      caption,
+      reply_parameters: ctx.message
+        ? { message_id: ctx.message.message_id }
+        : undefined,
+    });
 
     try {
       await progressMsg.delete();
