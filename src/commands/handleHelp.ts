@@ -29,8 +29,6 @@ export default async function handleHelp(ctx: BotContext) {
       .plain(" - Set your Last.fm username\n")
       .code("/gridlf <cols>x<rows> <type> <period>")
       .plain(" - Generate a grid collage\n")
-      .code("/storylf <type>")
-      .plain(" - Generate an image of your latest scrobble\n")
       .code("/vinyllf <type>")
       .plain(" - Generate a vinyl record image of your latest scrobble\n")
       .code("/calendarlf <type> <MM/YYYY>")

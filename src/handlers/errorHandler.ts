@@ -203,7 +203,7 @@ export async function errorHandler(
         break;
       }
 
-      case "STORY_INCORRECT_ARGS": {
+      case "VINYL_INCORRECT_ARGS": {
         const msg = new FormattedString("Invalid arguments 🤔\n\n")
           .plain("✅ Valid Media Types: ")
           .code("tracks")
@@ -212,11 +212,11 @@ export async function errorHandler(
           .plain(", ")
           .code("artists")
           .plain("\n\n➡️ Examples:\n")
-          .code("/storylf")
+          .code("/vinyllf")
           .plain("\n")
-          .code("/storylf alb")
+          .code("/vinyllf alb")
           .plain("\n")
-          .code("/storylf art");
+          .code("/vinyllf art");
 
         await ctx.reply(msg.text, {
           entities: msg.entities,

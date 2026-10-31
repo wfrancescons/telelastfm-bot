@@ -16,7 +16,6 @@ import handleRankinlf from "@/commands/handleRankinlf.ts";
 import handleRankoutlf from "@/commands/handleRankoutlf.ts";
 import handleSetlf from "@/commands/handleSetlf.ts";
 import handleStart from "@/commands/handleStart.ts";
-import handleStorylf from "@/commands/handleStorylf.ts";
 import handleVinyllf from "@/commands/handleVinyllf.ts";
 import handleYoulf from "@/commands/handleYoulf.ts";
 
@@ -27,7 +26,6 @@ userCommands.command("lf", "Send your last track scrobble", handleLf);
 userCommands.command("alblf", "Send your last album scrobble", handleAlblf);
 userCommands.command("artlf", "Send your last artist scrobble", handleArtlf);
 userCommands.command("gridlf", "Generate a grid collage", handleGridlf);
-userCommands.command("storylf", "Generate a story collage", handleStorylf);
 userCommands.command("vinyllf", "Generate a vinyl collage", handleVinyllf);
 userCommands.command(
   "calendarlf",
@@ -84,7 +82,6 @@ if (adminChatIds.length > 0) {
   registerForAdmins("alblf", "Send your last album scrobble", handleAlblf);
   registerForAdmins("artlf", "Send your last artist scrobble", handleArtlf);
   registerForAdmins("gridlf", "Generate a grid collage", handleGridlf);
-  registerForAdmins("storylf", "Generate a story collage", handleStorylf);
   registerForAdmins("vinyllf", "Generate a vinyl collage", handleVinyllf);
   registerForAdmins(
     "calendarlf",

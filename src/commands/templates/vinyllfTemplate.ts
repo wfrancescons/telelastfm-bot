@@ -15,10 +15,18 @@ import {
 } from "@/rendering/renderCanvas.ts";
 import { createWatermarkElements } from "@/rendering/watermark.ts";
 import type { MediaType } from "@/utils/validValuesMap.ts";
-import type { StoryMediaData } from "./storylfTemplate.ts";
+
+export type VinylMediaData = {
+  track?: string;
+  album?: string;
+  artist: string;
+  userplaycount: number;
+  image: string;
+  isNowPlaying?: boolean;
+};
 
 export type VinyllfTemplateParams = {
-  lastfm_data: StoryMediaData;
+  lastfm_data: VinylMediaData;
   media_type: MediaType;
   glassOptions?: GlassEffectOptions;
 };
