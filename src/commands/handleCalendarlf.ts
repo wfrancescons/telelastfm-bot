@@ -269,7 +269,8 @@ export default async function handleCalendarlf(ctx: BotContext) {
       throw err;
     }
 
-    await ctx.replyWithChatAction("upload_photo");
+    const isHd = hasHdParam(ctx.message?.text || "");
+    await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
 
     const template = calendarlfTemplate({
       year,
@@ -283,7 +284,6 @@ export default async function handleCalendarlf(ctx: BotContext) {
 
     const displayName = ctx.from?.first_name || ctx.from?.username || "User";
     const caption = `${displayName}, your ${media_type} calendar (${monthLabel})`;
-    const isHd = hasHdParam(ctx.message?.text || "");
     const ext = template.format === "png" ? "png" : "jpg";
     const filename = `calendar_${monthLabel.replace(/\s+/g, "_")}_${media_type}.${ext}`;
 

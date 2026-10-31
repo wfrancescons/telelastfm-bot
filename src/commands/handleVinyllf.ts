@@ -72,7 +72,8 @@ export default async function handleVinyllf(ctx: BotContext) {
         : undefined,
     });
 
-    await ctx.replyWithChatAction("upload_photo");
+    const isHd = hasHdParam(ctx.message?.text || "");
+    await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
 
     const template = vinyllfTemplate({
       lastfm_data: {
@@ -90,7 +91,6 @@ export default async function handleVinyllf(ctx: BotContext) {
 
     const displayName = ctx.from?.first_name || ctx.from?.username || "User";
     const caption = `${displayName}, your ${media_type} vinyl`;
-    const isHd = hasHdParam(ctx.message?.text || "");
     const ext = template.format === "png" ? "png" : "jpg";
     const filename = `vinyl_${media_type}.${ext}`;
 

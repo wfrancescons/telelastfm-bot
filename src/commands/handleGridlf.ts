@@ -160,7 +160,8 @@ export default async function handleGridlf(ctx: BotContext) {
       throw "ZERO_SCROBBLES";
     }
 
-    await ctx.replyWithChatAction("upload_photo");
+    const isHd = hasHdParam(ctx.message?.text || "");
+    await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
 
     const template = gridlfTemplate({
       lastfm_data,
@@ -178,7 +179,6 @@ export default async function handleGridlf(ctx: BotContext) {
     const caption =
       `${displayName}, your ${grid} ${media_type} grid of ${periodLabel}`;
 
-    const isHd = hasHdParam(ctx.message?.text || "");
     const ext = template.format === "png" ? "png" : "jpg";
     const filename = `grid_${grid}_${media_type}.${ext}`;
 
