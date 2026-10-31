@@ -11,6 +11,7 @@ import { ensureFontsRegistered } from "./fonts.ts";
 import type { CanvasTemplateData, ImageElement } from "./types.ts";
 
 export * from "./drawers/drawText.ts";
+export * from "./elements.ts";
 export * from "./types.ts";
 
 // Ensure fonts are registered before rendering

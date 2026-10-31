@@ -1,18 +1,18 @@
-import {
-  createGlassCircleElement,
-  createGlassPillElement,
-  DEFAULT_GLASS_OPTIONS,
-} from "@/commands/templates/gridlfTemplate.ts";
 import { isPlaceholderImageUrl } from "@/database/services/imageCache.ts";
 import type {
   CanvasElement,
   CanvasTemplateData,
   GlassEffectOptions,
-  ImageElement,
-  RectangleElement,
-  TextElement,
 } from "@/rendering/renderCanvas.ts";
-import { measureText } from "@/rendering/renderCanvas.ts";
+import {
+  createGlassCircleElement,
+  createGlassPillElement,
+  createImageElement,
+  createRectangleElement,
+  createTextElement,
+  DEFAULT_GLASS_OPTIONS,
+  measureText,
+} from "@/rendering/renderCanvas.ts";
 import { createWatermarkElements } from "@/rendering/watermark.ts";
 import type { CalendarDayItem } from "@/services/lastfm/index.ts";
 import type { MediaType } from "@/utils/validValuesMap.ts";
@@ -54,54 +54,6 @@ function findFirstBackgroundCover(
     }
   }
   return firstAny && !isPlaceholderImageUrl(firstAny) ? firstAny : null;
-}
-
-function createImageElement(params: {
-  src: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  borderRadius?: number;
-  objectFit?: "fill" | "cover";
-  filter?: string;
-  opacity?: number;
-}): ImageElement {
-  return { type: "image", ...params };
-}
-
-function createRectangleElement(params: {
-  fillStyle?: RectangleElement["fillStyle"];
-  style?: RectangleElement["style"];
-  borderRadius?: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}): RectangleElement {
-  return { type: "rectangle", ...params };
-}
-
-function createTextElement(params: {
-  text: string;
-  x: number;
-  y: number;
-  font: string;
-  fillStyle: string;
-  align?: TextElement["align"];
-  shadow?: {
-    color?: string;
-    offsetX?: number;
-    offsetY?: number;
-    blur?: number;
-  };
-  maxWidth?: number;
-  maxLines?: number;
-  lineHeight?: number;
-  vibrancy?: TextElement["vibrancy"];
-  effects?: TextElement["effects"];
-}): TextElement {
-  return { type: "text", ...params };
 }
 
 export type CalendarlfTemplateParams = {

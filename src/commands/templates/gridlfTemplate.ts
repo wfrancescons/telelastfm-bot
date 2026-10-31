@@ -1,13 +1,19 @@
 import type {
   CanvasElement,
   CanvasTemplateData,
-  CircleElement,
   GlassEffectOptions,
-  ImageElement,
-  RectangleElement,
-  TextElement,
 } from "@/rendering/renderCanvas.ts";
-import { getTextLines, measureText } from "@/rendering/renderCanvas.ts";
+import {
+  createGlassCircleElement,
+  createGlassPillElement,
+  createGradientRectangle,
+  createImageElement,
+  createRectangleElement,
+  createTextElement,
+  DEFAULT_GLASS_OPTIONS,
+  getTextLines,
+  measureText,
+} from "@/rendering/renderCanvas.ts";
 import type {
   TopAlbumItem,
   TopArtistItem,
@@ -15,6 +21,12 @@ import type {
   TopTrackItem,
 } from "@/services/lastfm/index.ts";
 import type { MediaType } from "@/utils/validValuesMap.ts";
+
+export {
+  createGlassCircleElement,
+  createGlassPillElement,
+  DEFAULT_GLASS_OPTIONS
+};
 
 export type GridTemplateConfig = {
   POSTER_WIDTH: number;
@@ -31,156 +43,6 @@ export type GridTemplateConfig = {
   BOTTOM_MARGIN: number;
   PILL_TEXT_GAP: number;
 };
-
-export const DEFAULT_GLASS_OPTIONS: GlassEffectOptions = {
-  light: {
-    angle: -45,
-    intensity: 0.55,
-  },
-  refraction: 2.5,
-  depth: 5,
-  dispersion: 0.5,
-  frost: 1,
-  tint: {
-    color: "#000000",
-    opacity: 0.15,
-  },
-  shadow: {
-    color: "#000000",
-    opacity: 0.1,
-    blur: 10,
-    offsetX: 2,
-    offsetY: 2,
-  },
-};
-
-function createImageElement(params: {
-  src: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  objectFit?: "fill" | "cover";
-}): ImageElement {
-  return { type: "image", ...params };
-}
-
-function createRectangleElement(params: {
-  fillStyle?: RectangleElement["fillStyle"];
-  style?: RectangleElement["style"];
-  borderRadius?: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}): RectangleElement {
-  return { type: "rectangle", ...params };
-}
-
-function createTextElement(params: {
-  text: string;
-  x: number;
-  y: number;
-  font: string;
-  fillStyle: string;
-  align?: TextElement["align"];
-  shadow?: {
-    color?: string;
-    offsetX?: number;
-    offsetY?: number;
-    blur?: number;
-  };
-  maxWidth?: number;
-  maxLines?: number;
-  lineHeight?: number;
-}): TextElement {
-  return { type: "text", ...params };
-}
-
-export function createGlassCircleElement({
-  cx,
-  cy,
-  diameter,
-  options,
-}: {
-  cx: number;
-  cy: number;
-  diameter: number;
-  options?: GlassEffectOptions;
-}): CircleElement {
-  return {
-    type: "circle",
-    x: cx,
-    y: cy,
-    width: diameter,
-    height: diameter,
-    style: {
-      type: "glass",
-      options: {
-        ...DEFAULT_GLASS_OPTIONS,
-        ...options,
-      },
-    },
-  };
-}
-
-export function createGlassPillElement({
-  x,
-  y,
-  width,
-  height,
-  options,
-}: {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  options?: GlassEffectOptions;
-}): RectangleElement {
-  return {
-    type: "rectangle",
-    x,
-    y,
-    width,
-    height,
-    borderRadius: height / 2,
-    style: {
-      type: "glass",
-      options: {
-        ...DEFAULT_GLASS_OPTIONS,
-        ...options,
-      },
-    },
-  };
-}
-
-function createGradientRectangle(
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  gradientHeight: number,
-): RectangleElement {
-  return createRectangleElement({
-    fillStyle: {
-      type: "linearGradient",
-      colors: [
-        { stop: 0, color: "rgba(14, 14, 14, 0)" },
-        { stop: 0.4, color: "rgba(14, 14, 14, 0.25)" },
-        { stop: 0.75, color: "rgba(14, 14, 14, 0.5)" },
-        { stop: 1, color: "rgba(14, 14, 14, 0.75)" },
-      ],
-      x0: x,
-      y0: y + height - gradientHeight,
-      x1: x,
-      y1: y + height,
-    },
-    x,
-    y: y + height - gradientHeight,
-    width,
-    height: gradientHeight,
-  });
-}
 
 function extractItemTexts(
   item: TopGridItem,
@@ -283,7 +145,13 @@ function generateTileElements(
   // Mode: notitles -> only the glass pill with scrobble count
   if (isNoTitles) {
     elements.push(
-      createGradientRectangle(x, y, width, height, 90),
+      createGradientRectangle({
+        x,
+        y,
+        width,
+        height,
+        gradientHeight: 90,
+      }),
     );
 
     const scrobbleFont = `${scrobbleFontSize}px "NotoSans-Medium", sans-serif`;
@@ -322,6 +190,7 @@ function generateTileElements(
         maxWidth: pillWidth - 8,
         maxLines: 2,
         lineHeight: scrobbleFontSize,
+        vibrancy: "primary"
       }),
     );
 
@@ -330,7 +199,13 @@ function generateTileElements(
 
   // Default or noplays mode
   elements.push(
-    createGradientRectangle(x, y, width, height, gradientHeight),
+    createGradientRectangle({
+      x,
+      y,
+      width,
+      height,
+      gradientHeight,
+    }),
   );
 
   let currentBottomY = y + height - bottomMargin;
@@ -372,6 +247,7 @@ function generateTileElements(
         maxWidth: pillWidth - 8,
         maxLines: 2,
         lineHeight: scrobbleFontSize,
+        vibrancy: "primary"
       }),
     );
 

@@ -1,8 +1,4 @@
 import config from "@/config.ts";
-import {
-  createGlassPillElement,
-  DEFAULT_GLASS_OPTIONS,
-} from "@/commands/templates/gridlfTemplate.ts";
 import type {
   CanvasElement,
   GlassEffectOptions,
@@ -10,7 +6,11 @@ import type {
   RectangleElement,
   TextElement,
 } from "@/rendering/renderCanvas.ts";
-import { measureText } from "@/rendering/renderCanvas.ts";
+import {
+  createGlassPillElement,
+  DEFAULT_GLASS_OPTIONS,
+  measureText,
+} from "@/rendering/renderCanvas.ts";
 
 export type WatermarkOptions = {
   canvasWidth: number;

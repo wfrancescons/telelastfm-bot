@@ -2,20 +2,20 @@ import type {
   CanvasElement,
   CanvasTemplateData,
   GlassEffectOptions,
-  ImageElement,
-  MediaControlIconElement,
-  RectangleElement,
-  ShadowStyle,
-  TextElement,
 } from "@/rendering/renderCanvas.ts";
-import { getTextLines, measureText } from "@/rendering/renderCanvas.ts";
-import { createWatermarkElements } from "@/rendering/watermark.ts";
-import type { MediaType } from "@/utils/validValuesMap.ts";
 import {
   createGlassCircleElement,
   createGlassPillElement,
+  createImageElement,
+  createMediaControlIcon,
+  createRectangleElement,
+  createTextElement,
   DEFAULT_GLASS_OPTIONS,
-} from "./gridlfTemplate.ts";
+  getTextLines,
+  measureText,
+} from "@/rendering/renderCanvas.ts";
+import { createWatermarkElements } from "@/rendering/watermark.ts";
+import type { MediaType } from "@/utils/validValuesMap.ts";
 
 export type StoryMediaData = {
   track?: string;
@@ -54,73 +54,6 @@ const STORY_GLASS_OPTIONS: GlassEffectOptions = {
     offsetY: 5,
   },
 };
-
-function createImageElement(params: {
-  src: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  objectFit?: "fill" | "cover";
-  borderRadius?: number;
-  filter?: string;
-  shadow?: ShadowStyle;
-}): ImageElement {
-  return { type: "image", ...params };
-}
-
-function createRectangleElement(params: {
-  fillStyle?: RectangleElement["fillStyle"];
-  style?: RectangleElement["style"];
-  borderRadius?: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  shadow?: ShadowStyle;
-}): RectangleElement {
-  return { type: "rectangle", ...params };
-}
-
-function createTextElement(params: {
-  text: string;
-  x: number;
-  y: number;
-  font: string;
-  fillStyle: string;
-  align?: TextElement["align"];
-  shadow?: {
-    color?: string;
-    offsetX?: number;
-    offsetY?: number;
-    blur?: number;
-  };
-  maxWidth?: number;
-  maxLines?: number;
-  lineHeight?: number;
-}): TextElement {
-  return { type: "text", ...params };
-}
-
-function createMediaControlIcon(params: {
-  icon: MediaControlIconElement["icon"];
-  cx: number;
-  cy: number;
-  size: number;
-  fillStyle?: string;
-}): MediaControlIconElement {
-  return {
-    type: "mediaControlIcon",
-    ...params,
-    fillStyle: params.fillStyle ?? "#ffffff",
-    shadow: {
-      color: "rgba(0, 0, 0, 0.25)",
-      offsetX: 0,
-      offsetY: 2,
-      blur: 4,
-    },
-  };
-}
 
 export function storylfTemplate({
   lastfm_data,
