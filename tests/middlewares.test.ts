@@ -1,4 +1,5 @@
-import test, { describe, it } from "node:test";
+// deno-lint-ignore-file no-explicit-any require-await
+import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { ignoreChannelMessages } from "@/middlewares/ignoreChannelMessages.ts";
 import { safeReplyTransformer } from "@/middlewares/safeReplyTransformer.ts";

@@ -1,13 +1,10 @@
-import test, { describe, it } from "node:test";
+import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
-  createCircleElement,
   createGlassCircleElement,
   createGlassPillElement,
   createGradientRectangle,
   createImageElement,
-  createMediaControlIcon,
-  createRectangleElement,
   createTextElement,
   createTonearmElement,
   createVinylDiscElement,

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import type { Update } from "grammy/types";
 import { createMockBot } from "./helpers/mockBot.ts";
 import { createTestUpdate } from "./helpers/testUpdates.ts";
 
@@ -75,10 +76,10 @@ describe("GrammY Bot Commands (Update Handling & API Transformers)", () => {
         channel_post: {
           message_id: 1,
           date: Math.floor(Date.now() / 1000),
-          chat: { id: -100123456789, type: "channel" },
+          chat: { id: -100123456789, title: "Test Channel", type: "channel" },
           text: "/start",
         },
-      } as any;
+      } as unknown as Update;
 
       await bot.handleUpdate(channelUpdate);
 

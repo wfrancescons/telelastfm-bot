@@ -4,6 +4,8 @@ import { ensureFontsRegistered } from "../fonts.ts";
 import type { TextElement, TextVibrancyMode } from "../types.ts";
 
 let measureCtx: CanvasRenderingContext2D | null = null;
+let vibrancyMaskCanvas: Canvas | null = null;
+let vibrancyMaskCtx: CanvasRenderingContext2D | null = null;
 
 function getMeasureContext(): CanvasRenderingContext2D {
   if (!measureCtx) {
@@ -12,6 +14,29 @@ function getMeasureContext(): CanvasRenderingContext2D {
     measureCtx = measureCanvas.getContext("2d");
   }
   return measureCtx;
+}
+
+function getVibrancyMaskContext(
+  width: number,
+  height: number,
+): CanvasRenderingContext2D {
+  if (!vibrancyMaskCanvas || !vibrancyMaskCtx) {
+    ensureFontsRegistered();
+    vibrancyMaskCanvas = new Canvas(
+      Math.max(width, 256),
+      Math.max(height, 128),
+      { gpu: false },
+    );
+    vibrancyMaskCtx = vibrancyMaskCanvas.getContext("2d");
+  } else if (
+    vibrancyMaskCanvas.width < width ||
+    vibrancyMaskCanvas.height < height
+  ) {
+    vibrancyMaskCanvas.width = Math.max(vibrancyMaskCanvas.width, width);
+    vibrancyMaskCanvas.height = Math.max(vibrancyMaskCanvas.height, height);
+  }
+  vibrancyMaskCtx.clearRect(0, 0, width, height);
+  return vibrancyMaskCtx;
 }
 
 export function measureText(
@@ -179,88 +204,121 @@ function drawVibrantText(
     canvasH - boxY,
   );
 
-  // 1. Sample the underlying blurred backdrop (smooth local color field, no 3D refraction)
-  const backdropCanvas = new Canvas(boxW, boxH, { gpu: false });
-  const bctx = backdropCanvas.getContext("2d");
-  bctx.filter = "blur(10px) saturate(165%)";
-  bctx.drawImage(
-    ctx.canvas,
-    boxX,
-    boxY,
-    boxW,
-    boxH,
-    0,
-    0,
-    boxW,
-    boxH,
-  );
-  bctx.filter = "none";
-  const backdropData = bctx.getImageData(0, 0, boxW, boxH).data;
+  // 1. Read backdrop pixels directly from the bounding box (avoids full-canvas snapshot & CPU blur pass)
+  const backdropImg = ctx.getImageData(boxX, boxY, boxW, boxH);
+  const outData = backdropImg.data;
+  const srcData = new Uint8ClampedArray(outData);
 
-  // 2. Render clean, flat anti-aliased glyph mask
-  const maskCanvas = new Canvas(boxW, boxH, { gpu: false });
-  const mctx = maskCanvas.getContext("2d");
+  // 2. Render clean, flat anti-aliased glyph mask on a reusable scratch canvas
+  const mctx = getVibrancyMaskContext(boxW, boxH);
+  mctx.save();
   mctx.font = font;
   mctx.textAlign = align;
   mctx.fillStyle = "#ffffff";
-  lines.forEach((line, i) => {
+  for (let i = 0; i < lines.length; i++) {
     const lineY = element.y - (lines.length - 1 - i) * lineHeight;
-    mctx.fillText(line, element.x - boxX, lineY - boxY);
-  });
+    mctx.fillText(lines[i], element.x - boxX, lineY - boxY);
+  }
+  mctx.restore();
   const maskData = mctx.getImageData(0, 0, boxW, boxH).data;
 
-  // 3. Apply flat vibrancy effect color matrix + screen/plus-lighter blend per pixel
-  const outCanvas = new Canvas(boxW, boxH, { gpu: false });
-  const octx = outCanvas.getContext("2d");
-  const outImg = octx.createImageData(boxW, boxH);
-  const outData = outImg.data;
+  // 3. Apply flat vibrancy color matrix + alpha blend directly into backdropImg.data
+  const maxX = boxW - 1;
+  const maxY = boxH - 1;
+  const sampleRadius = 4;
 
-  for (let i = 0; i < maskData.length; i += 4) {
-    const maskA = maskData[i + 3];
-    if (maskA === 0) continue;
+  for (let py = 0; py < boxH; py++) {
+    const rowOffset = py * boxW;
+    const yUp = (py > sampleRadius ? py - sampleRadius : 0) * boxW;
+    const yDown = (py + sampleRadius < maxY ? py + sampleRadius : maxY) * boxW;
 
-    const coverage = maskA / 255;
-    const bgR = backdropData[i];
-    const bgG = backdropData[i + 1];
-    const bgB = backdropData[i + 2];
+    for (let px = 0; px < boxW; px++) {
+      const idx = (rowOffset + px) * 4;
+      const maskA = maskData[idx + 3];
+      if (maskA === 0) continue;
 
-    const mean = (bgR + bgG + bgB) / 3;
-    const dR = bgR - mean;
-    const dG = bgG - mean;
-    const dB = bgB - mean;
+      const coverage = maskA / 255;
 
-    // Limit extreme chroma excursions so vibrancy stays a clean pastel/translucent tint
-    const maxChroma = Math.max(Math.abs(dR), Math.abs(dG), Math.abs(dB), 1);
-    const chromaScale = maxChroma > 42 ? 42 / maxChroma : 1;
-    const cR = dR * chromaScale;
-    const cG = dG * chromaScale;
-    const cB = dB * chromaScale;
+      // Fast 5-point neighborhood sample for smooth local color field
+      const xLeft = px > sampleRadius ? px - sampleRadius : 0;
+      const xRight = px + sampleRadius < maxX ? px + sampleRadius : maxX;
 
-    if (mode === "primary") {
-      // Primary Vibrancy ("august"):
-      // Bright, flat pastel vibrancy (high luminance + subtle local background chroma lift)
-      const baseL = clamp(202 + mean * 0.26, 204, 240);
-      const gain = 1.35;
+      const iL = (rowOffset + xLeft) * 4;
+      const iR = (rowOffset + xRight) * 4;
+      const iU = (yUp + px) * 4;
+      const iD = (yDown + px) * 4;
 
-      outData[i] = Math.round(clamp(baseL + cR * gain, 0, 255));
-      outData[i + 1] = Math.round(clamp(baseL + cG * gain, 0, 255));
-      outData[i + 2] = Math.round(clamp(baseL + cB * gain, 0, 255));
-      outData[i + 3] = Math.round(clamp(coverage * 0.95 * 255, 0, 255));
-    } else {
-      // Secondary Vibrancy ("2026"):
-      // Softer, translucent vibrancy blend (absorbs background luminance & hue without 3D borders)
-      const baseL = clamp(128 + mean * 0.44, 132, 205);
-      const gain = 1.25;
+      const sR =
+        (srcData[idx] * 2 +
+          srcData[iL] +
+          srcData[iR] +
+          srcData[iU] +
+          srcData[iD]) /
+        6;
+      const sG =
+        (srcData[idx + 1] * 2 +
+          srcData[iL + 1] +
+          srcData[iR + 1] +
+          srcData[iU + 1] +
+          srcData[iD + 1]) /
+        6;
+      const sB =
+        (srcData[idx + 2] * 2 +
+          srcData[iL + 2] +
+          srcData[iR + 2] +
+          srcData[iU + 2] +
+          srcData[iD + 2]) /
+        6;
 
-      outData[i] = Math.round(clamp(baseL + cR * gain, 0, 255));
-      outData[i + 1] = Math.round(clamp(baseL + cG * gain, 0, 255));
-      outData[i + 2] = Math.round(clamp(baseL + cB * gain, 0, 255));
-      outData[i + 3] = Math.round(clamp(coverage * 0.64 * 255, 0, 255));
+      const mean = (sR + sG + sB) / 3;
+      // Apply 1.65x saturation boost (matching original saturate(165%)) before clamping chroma
+      const dR = (sR - mean) * 1.65;
+      const dG = (sG - mean) * 1.65;
+      const dB = (sB - mean) * 1.65;
+
+      // Limit extreme chroma excursions so vibrancy stays a clean pastel/translucent tint
+      const maxChroma = Math.max(Math.abs(dR), Math.abs(dG), Math.abs(dB), 1);
+      const chromaScale = maxChroma > 42 ? 42 / maxChroma : 1;
+      const cR = dR * chromaScale;
+      const cG = dG * chromaScale;
+      const cB = dB * chromaScale;
+
+      let fgR: number;
+      let fgG: number;
+      let fgB: number;
+      let alpha: number;
+
+      if (mode === "primary") {
+        // Primary Vibrancy ("august"):
+        // Bright, flat pastel vibrancy (high luminance + subtle local background chroma lift)
+        const baseL = clamp(202 + mean * 0.26, 204, 240);
+        const gain = 1.35;
+
+        fgR = clamp(baseL + cR * gain, 0, 255);
+        fgG = clamp(baseL + cG * gain, 0, 255);
+        fgB = clamp(baseL + cB * gain, 0, 255);
+        alpha = clamp(coverage * 0.95, 0, 1);
+      } else {
+        // Secondary Vibrancy ("2026"):
+        // Softer, translucent vibrancy blend (absorbs background luminance & hue without 3D borders)
+        const baseL = clamp(128 + mean * 0.44, 132, 205);
+        const gain = 1.25;
+
+        fgR = clamp(baseL + cR * gain, 0, 255);
+        fgG = clamp(baseL + cG * gain, 0, 255);
+        fgB = clamp(baseL + cB * gain, 0, 255);
+        alpha = clamp(coverage * 0.64, 0, 1);
+      }
+
+      const invAlpha = 1 - alpha;
+      outData[idx] = Math.round(srcData[idx] * invAlpha + fgR * alpha);
+      outData[idx + 1] = Math.round(srcData[idx + 1] * invAlpha + fgG * alpha);
+      outData[idx + 2] = Math.round(srcData[idx + 2] * invAlpha + fgB * alpha);
+      outData[idx + 3] = 255;
     }
   }
 
-  octx.putImageData(outImg, 0, 0);
-  ctx.drawImage(outCanvas, boxX, boxY);
+  ctx.putImageData(backdropImg, boxX, boxY);
   ctx.restore();
 }
 

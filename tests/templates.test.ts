@@ -1,8 +1,9 @@
-import test, { describe, it } from "node:test";
+import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { calendarlfTemplate } from "@/commands/templates/calendarlfTemplate.ts";
 import { vinyllfTemplate } from "@/commands/templates/vinyllfTemplate.ts";
 import { gridlfTemplate } from "@/commands/templates/gridlfTemplate.ts";
+import type { TopAlbumItem } from "@/services/lastfm/types.ts";
 
 describe("Templates Generation", () => {
   describe("calendarlfTemplate", () => {
@@ -83,7 +84,7 @@ describe("Templates Generation", () => {
 
   describe("gridlfTemplate", () => {
     it("should build grid template for 3x3 posters", () => {
-      const sampleItems = Array.from({ length: 9 }, (_, i) => ({
+      const sampleItems: TopAlbumItem[] = Array.from({ length: 9 }, (_, i) => ({
         album: { name: `Album ${i + 1}`, artist: `Artist ${i + 1}` },
         image: "https://example.com/img.jpg",
         scrobbles: 10 + i,
@@ -91,7 +92,7 @@ describe("Templates Generation", () => {
       }));
 
       const template = gridlfTemplate({
-        lastfm_data: sampleItems as any,
+        lastfm_data: sampleItems,
         columns: 3,
         rows: 3,
         media_type: "albums",

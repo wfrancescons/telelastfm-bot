@@ -380,6 +380,22 @@ export async function getArtistListeningNow(
   };
 }
 
+const pendingImageResolutions = new Map<string, Promise<string>>();
+
+function deduplicateResolution(
+  cacheKey: string,
+  resolver: () => Promise<string>,
+): Promise<string> {
+  const existing = pendingImageResolutions.get(cacheKey);
+  if (existing) return existing;
+
+  const promise = resolver().finally(() => {
+    pendingImageResolutions.delete(cacheKey);
+  });
+  pendingImageResolutions.set(cacheKey, promise);
+  return promise;
+}
+
 export async function resolveTrackImageUrl({
   track,
   artist,
@@ -401,26 +417,29 @@ export async function resolveTrackImageUrl({
   const cached = await getCachedImageUrl("tracks", { track, artist });
   if (cached) return cached;
 
-  try {
-    const info = await getTrackInfo({ track, artist, username });
-    if (info.image?.large && !isPlaceholderImageUrl(info.image.large)) {
-      await setCachedImageUrl("tracks", { track, artist }, info.image.large);
-      return info.image.large;
+  const dedupKey = `track:${artist.toLowerCase()}|||${track.toLowerCase()}`;
+  return deduplicateResolution(dedupKey, async () => {
+    try {
+      const info = await getTrackInfo({ track, artist, username });
+      if (info.image?.large && !isPlaceholderImageUrl(info.image.large)) {
+        await setCachedImageUrl("tracks", { track, artist }, info.image.large);
+        return info.image.large;
+      }
+    } catch {
+      // Fallback to trackUrl og:image if getTrackInfo fails
     }
-  } catch {
-    // Fallback to trackUrl og:image if getTrackInfo fails
-  }
 
-  if (trackUrl) {
-    const og = await getOgImage(trackUrl);
-    const large = buildImagesFromUrl(og).large;
-    if (!isPlaceholderImageUrl(large)) {
-      await setCachedImageUrl("tracks", { track, artist }, large);
-      return large;
+    if (trackUrl) {
+      const og = await getOgImage(trackUrl);
+      const large = buildImagesFromUrl(og).large;
+      if (!isPlaceholderImageUrl(large)) {
+        await setCachedImageUrl("tracks", { track, artist }, large);
+        return large;
+      }
     }
-  }
 
-  return DEFAULT_IMAGE;
+    return DEFAULT_IMAGE;
+  });
 }
 
 export async function resolveAlbumImageUrl({
@@ -442,26 +461,29 @@ export async function resolveAlbumImageUrl({
   const cached = await getCachedImageUrl("albums", { album, artist });
   if (cached) return cached;
 
-  try {
-    const info = await getAlbumInfo({ album, artist });
-    if (info.image?.large && !isPlaceholderImageUrl(info.image.large)) {
-      await setCachedImageUrl("albums", { album, artist }, info.image.large);
-      return info.image.large;
+  const dedupKey = `album:${artist.toLowerCase()}|||${album.toLowerCase()}`;
+  return deduplicateResolution(dedupKey, async () => {
+    try {
+      const info = await getAlbumInfo({ album, artist });
+      if (info.image?.large && !isPlaceholderImageUrl(info.image.large)) {
+        await setCachedImageUrl("albums", { album, artist }, info.image.large);
+        return info.image.large;
+      }
+    } catch {
+      // Fallback to albumUrl og:image if getAlbumInfo fails
     }
-  } catch {
-    // Fallback to albumUrl og:image if getAlbumInfo fails
-  }
 
-  if (albumUrl) {
-    const og = await getOgImage(albumUrl);
-    const large = buildImagesFromUrl(og).large;
-    if (!isPlaceholderImageUrl(large)) {
-      await setCachedImageUrl("albums", { album, artist }, large);
-      return large;
+    if (albumUrl) {
+      const og = await getOgImage(albumUrl);
+      const large = buildImagesFromUrl(og).large;
+      if (!isPlaceholderImageUrl(large)) {
+        await setCachedImageUrl("albums", { album, artist }, large);
+        return large;
+      }
     }
-  }
 
-  return initialImageUrl || DEFAULT_IMAGE;
+    return initialImageUrl || DEFAULT_IMAGE;
+  });
 }
 
 export async function resolveArtistImageUrl({
@@ -474,17 +496,20 @@ export async function resolveArtistImageUrl({
   const cached = await getCachedImageUrl("artists", { artist });
   if (cached) return cached;
 
-  const targetUrl =
-    artistUrl || `https://www.last.fm/music/${encodeURIComponent(artist)}`;
-  const og = await getOgImage(targetUrl);
-  const large = buildImagesFromUrl(og).large;
+  const dedupKey = `artist:${artist.toLowerCase()}`;
+  return deduplicateResolution(dedupKey, async () => {
+    const targetUrl =
+      artistUrl || `https://www.last.fm/music/${encodeURIComponent(artist)}`;
+    const og = await getOgImage(targetUrl);
+    const large = buildImagesFromUrl(og).large;
 
-  if (!isPlaceholderImageUrl(large)) {
-    await setCachedImageUrl("artists", { artist }, large);
-    return large;
-  }
+    if (!isPlaceholderImageUrl(large)) {
+      await setCachedImageUrl("artists", { artist }, large);
+      return large;
+    }
 
-  return DEFAULT_IMAGE;
+    return DEFAULT_IMAGE;
+  });
 }
 
 export async function getUserTopTracks(

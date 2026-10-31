@@ -20,13 +20,41 @@ export * from "./types.ts";
 ensureFontsRegistered();
 
 const limiter = new Bottleneck({
-  maxConcurrent: 4,
-  minTime: 0,
+  maxConcurrent: 2,
+  minTime: 10,
 });
+
+/**
+ * Yields execution to the macrotask queue (timers / I/O callbacks) so incoming
+ * Telegram updates and lightweight commands are never starved during heavy
+ * synchronous Skia / pixel-buffer rendering passes.
+ */
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+function isHeavyElement(element: CanvasTemplateData["elements"][number]): boolean {
+  if (element.type === "vinylDisc" || element.type === "tonearm") return true;
+  if (element.type === "rectangle" && element.style?.type === "glass") {
+    return true;
+  }
+  if (element.type === "circle" && element.style?.type === "glass") return true;
+  if (element.type === "text" && element.vibrancy) return true;
+  if (
+    (element.type === "image" || element.type === "icon") &&
+    element.filter &&
+    element.filter !== "none"
+  ) {
+    return true;
+  }
+  return false;
+}
 
 async function renderCanvasInternal(
   data: CanvasTemplateData,
 ): Promise<Uint8Array> {
+  await yieldToEventLoop();
+
   const canvas = new Canvas(data.width, data.height, { gpu: false });
   const ctx = canvas.getContext("2d");
 
@@ -43,6 +71,9 @@ async function renderCanvasInternal(
     }
   }
   const preloaded = await preloadImages(imageSrcs);
+  await yieldToEventLoop();
+
+  let opsSinceLastYield = 0;
 
   for (const element of data.elements) {
     switch (element.type) {
@@ -69,8 +100,15 @@ async function renderCanvasInternal(
         await drawText(ctx, element);
         break;
     }
+
+    opsSinceLastYield += isHeavyElement(element) ? 4 : 1;
+    if (opsSinceLastYield >= 8) {
+      opsSinceLastYield = 0;
+      await yieldToEventLoop();
+    }
   }
 
+  await yieldToEventLoop();
   const buffer = await canvas.toBuffer("jpeg", { quality: 0.95 });
   return new Uint8Array(buffer);
 }

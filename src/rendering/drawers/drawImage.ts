@@ -8,6 +8,7 @@ import {
   updateCachedImageUrl,
 } from "@/database/services/imageCache.ts";
 import { DEFAULT_IMAGE, fetchWithRetry } from "@/services/lastfm/client.ts";
+import Bottleneck from "bottleneck";
 import { Buffer } from "node:buffer";
 import { resolve } from "node:path";
 import process from "node:process";
@@ -26,6 +27,12 @@ const localImageCache = new Map<string, Image>();
 // In-flight downloads, so concurrent renders of the same cover share one request
 const pendingDownloads = new Map<string, Promise<Uint8Array | null>>();
 
+// Rate-limits actual network image downloads (SQLite blob cache hits bypass this completely)
+const imageDownloadLimiter = new Bottleneck({
+  maxConcurrent: 6,
+  minTime: 40,
+});
+
 function buildLastfmFallbackCandidates(rawUrl: string): string[] {
   const normalized = rawUrl
     .trim()
@@ -36,51 +43,42 @@ function buildLastfmFallbackCandidates(rawUrl: string): string[] {
 
   if (cropRegex.test(normalized)) {
     candidates.add(normalized.replace(cropRegex, "/300x300/"));
-    candidates.add(normalized.replace(cropRegex, "/ar0/"));
-
-    if (normalized.endsWith(".png")) {
-      const asJpg = normalized.slice(0, -4) + ".jpg";
-      candidates.add(asJpg);
-      candidates.add(asJpg.replace(cropRegex, "/300x300/"));
-    } else if (normalized.endsWith(".jpg")) {
-      const asPng = normalized.slice(0, -4) + ".png";
-      candidates.add(asPng);
-      candidates.add(asPng.replace(cropRegex, "/300x300/"));
-    }
   }
 
   return [...candidates];
 }
 
-async function fetchRemoteImageBuffer(url: string): Promise<Buffer | null> {
-  try {
-    const response = await fetchWithRetry(
-      url,
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-          Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+const fetchRemoteImageBuffer = imageDownloadLimiter.wrap(
+  async (url: string): Promise<Buffer | null> => {
+    try {
+      const response = await fetchWithRetry(
+        url,
+        {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+          },
         },
-      },
-      2,
-      6000,
-    );
+        2,
+        6000,
+      );
 
-    if (!response.ok) {
+      if (!response.ok) {
+        return null;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      if (arrayBuffer.byteLength === 0) {
+        return null;
+      }
+
+      return Buffer.from(arrayBuffer);
+    } catch {
       return null;
     }
-
-    const arrayBuffer = await response.arrayBuffer();
-    if (arrayBuffer.byteLength === 0) {
-      return null;
-    }
-
-    return Buffer.from(arrayBuffer);
-  } catch {
-    return null;
-  }
-}
+  },
+);
 
 /**
  * Returns image bytes for a URL: persistent SQLite blob cache first,

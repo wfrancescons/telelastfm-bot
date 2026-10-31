@@ -10,12 +10,13 @@ export const DEFAULT_IMAGE =
 const REQUEST_TIMEOUT_MS = 5000;
 
 const apiLimiter = new Bottleneck({
-  minTime: 100,
+  maxConcurrent: 5,
+  minTime: 120,
 });
 
 const scrapingLimiter = new Bottleneck({
-  maxConcurrent: 8,
-  minTime: 100,
+  maxConcurrent: 4,
+  minTime: 180,
 });
 
 const HTTP_HEADERS: Record<string, string> = {
@@ -25,6 +26,23 @@ const HTTP_HEADERS: Record<string, string> = {
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
   "Accept-Language": "en-US,en;q=0.5",
 };
+
+function parseRetryAfterMs(headerValue: string | null, attempt: number): number {
+  if (headerValue) {
+    const seconds = Number(headerValue);
+    if (!Number.isNaN(seconds) && seconds > 0) {
+      return Math.min(seconds * 1000, 15000);
+    }
+    const dateMs = Date.parse(headerValue);
+    if (!Number.isNaN(dateMs)) {
+      const diff = dateMs - Date.now();
+      if (diff > 0) return Math.min(diff, 15000);
+    }
+  }
+  const baseBackoff = 1200 * Math.pow(2, attempt - 1);
+  const jitter = Math.floor(Math.random() * 450);
+  return Math.min(baseBackoff + jitter, 12000);
+}
 
 export async function fetchWithRetry(
   url: string,
@@ -45,6 +63,18 @@ export async function fetchWithRetry(
       });
       clearTimeout(timeoutId);
 
+      if (response.status === 429) {
+        if (attempt < retries) {
+          const waitMs = parseRetryAfterMs(
+            response.headers.get("retry-after"),
+            attempt,
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitMs));
+          continue;
+        }
+        return response;
+      }
+
       if (response.status >= 500 && response.status < 600) {
         throw new Error(`Server Error: ${response.status}`);
       }
@@ -54,7 +84,9 @@ export async function fetchWithRetry(
       clearTimeout(timeoutId);
       lastError = error;
       if (attempt < retries) {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        const backoffMs =
+          1000 * Math.pow(1.8, attempt - 1) + Math.floor(Math.random() * 350);
+        await new Promise((resolve) => setTimeout(resolve, backoffMs));
       }
     }
   }

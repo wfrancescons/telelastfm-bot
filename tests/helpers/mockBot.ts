@@ -21,7 +21,8 @@ export function createMockBot(): TestBotInstance {
 
   const calls: OutgoingCall[] = [];
 
-  bot.api.config.use(async (prev, method, payload, signal) => {
+  // deno-lint-ignore no-explicit-any
+  bot.api.config.use((_prev, method, payload, _signal): Promise<any> => {
     calls.push({
       method,
       payload: (payload && typeof payload === "object"
@@ -31,7 +32,7 @@ export function createMockBot(): TestBotInstance {
 
     if (method === "sendMessage") {
       const p = payload as Record<string, unknown>;
-      return {
+      return Promise.resolve({
         ok: true,
         result: {
           message_id: Math.floor(Math.random() * 10000) + 1,
@@ -40,16 +41,16 @@ export function createMockBot(): TestBotInstance {
           text: p?.text ?? "",
           entities: p?.entities,
         },
-      } as any;
+      });
     }
 
     if (method === "sendChatAction") {
-      return { ok: true, result: true } as any;
+      return Promise.resolve({ ok: true, result: true });
     }
 
     if (method === "sendPhoto") {
       const p = payload as Record<string, unknown>;
-      return {
+      return Promise.resolve({
         ok: true,
         result: {
           message_id: Math.floor(Math.random() * 10000) + 1,
@@ -58,14 +59,14 @@ export function createMockBot(): TestBotInstance {
           photo: [{ file_id: "test-photo", width: 100, height: 100 }],
           caption: p?.caption,
         },
-      } as any;
+      });
     }
 
     if (method === "deleteMessage") {
-      return { ok: true, result: true } as any;
+      return Promise.resolve({ ok: true, result: true });
     }
 
-    return { ok: true, result: true } as any;
+    return Promise.resolve({ ok: true, result: true });
   });
 
   bot.api.config.use(safeReplyTransformer);
