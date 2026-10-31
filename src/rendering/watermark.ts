@@ -116,6 +116,7 @@ export function createWatermarkElements({
     },
     maxWidth: textWidth + 10,
     maxLines: 1,
+    vibrancy: "primary"
   };
   elements.push(textElement);
 
