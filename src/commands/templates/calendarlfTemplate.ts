@@ -197,6 +197,7 @@ export function calendarlfTemplate({
       },
       maxWidth: headerPillWidth - 16,
       maxLines: 1,
+      vibrancy: "primary"
     }),
   );
 
@@ -267,6 +268,7 @@ export function calendarlfTemplate({
         align: "center",
         maxWidth: cellSize,
         maxLines: 1,
+        vibrancy: "primary"
       }),
     );
   }
@@ -317,7 +319,7 @@ export function calendarlfTemplate({
 
       // 2. Bottom dark gradient overlay (unless in clean/notexts mode)
       if (!isClean) {
-        const gradHeight = isNoTitles ? 48 : isNoPlays ? 58 : 70;
+        const gradHeight = isNoTitles ? 48 : isNoPlays ? 58 : 80;
         elements.push(
           createRectangleElement({
             x: cellX,
@@ -333,8 +335,8 @@ export function calendarlfTemplate({
               y1: cellY + cellSize,
               colors: [
                 { stop: 0, color: "rgba(14, 14, 14, 0)" },
-                { stop: 0.5, color: "rgba(14, 14, 14, 0.28)" },
-                { stop: 1, color: "rgba(14, 14, 14, 0.62)" },
+                { stop: 0.5, color: "rgba(14, 14, 14, 0.40)" },
+                { stop: 1, color: "rgba(14, 14, 14, 0.75)" },
               ],
             },
           }),
@@ -420,6 +422,7 @@ export function calendarlfTemplate({
             maxWidth: pillWidth - 6,
             maxLines: 1,
             lineHeight: scrobbleFontSize,
+            vibrancy: "primary"
           }),
         );
 
@@ -428,8 +431,8 @@ export function calendarlfTemplate({
 
       // 5. Title (shown in default and noplays modes)
       if (!isNoTitles) {
-        const titleFontSize = 10;
-        const titleLineHeight = 12;
+        const titleFontSize = 9;
+        const titleLineHeight = 11;
         const titleFont = `${titleFontSize}px "NotoSans-Bold", sans-serif`;
 
         elements.push(
@@ -448,6 +451,7 @@ export function calendarlfTemplate({
             maxWidth: maxContentWidth,
             maxLines: 2,
             lineHeight: titleLineHeight,
+            vibrancy: "primary"
           }),
         );
       }

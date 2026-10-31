@@ -307,6 +307,7 @@ function generateTileElements(
       maxWidth,
       maxLines: 2,
       lineHeight,
+      vibrancy: "primary"
     }),
   );
 
