@@ -30,6 +30,7 @@ export type WeeklyScrobblesPlaycountsTable = {
   telegram_id: number;
   scrobbles_playcount: number;
   tracks_playcount: number;
+  consecutive_zero_weeks: number;
   created_at: string;
   updated_at: string;
 };
@@ -147,6 +148,15 @@ function migrateLegacyTables(): void {
         WHERE image_url LIKE '%lastfm-img.freetls.fastly.net%';
       `);
     }
+
+    if (
+      tableExists("weekly_scrobbles_playcounts") &&
+      !hasColumn("weekly_scrobbles_playcounts", "consecutive_zero_weeks")
+    ) {
+      sqlite.exec(
+        "ALTER TABLE weekly_scrobbles_playcounts ADD COLUMN consecutive_zero_weeks INTEGER NOT NULL DEFAULT 0;",
+      );
+    }
   } catch (err) {
     console.error("DB: Warning during legacy table migration:", err);
   }
@@ -190,6 +200,7 @@ export async function initDatabase(): Promise<void> {
     .addColumn("telegram_id", "integer", (col) => col.primaryKey().notNull())
     .addColumn("scrobbles_playcount", "integer", (col) => col.notNull().defaultTo(0))
     .addColumn("tracks_playcount", "integer", (col) => col.notNull().defaultTo(0))
+    .addColumn("consecutive_zero_weeks", "integer", (col) => col.notNull().defaultTo(0))
     .addColumn("created_at", "text", (col) => col.notNull())
     .addColumn("updated_at", "text", (col) => col.notNull())
     .execute();

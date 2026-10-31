@@ -1,6 +1,7 @@
 import { logCommand } from "@/database/services/commandLogs.ts";
 import { findOrCreateRecord } from "@/database/services/rankGroupParticipants.ts";
 import { getLastfmUser } from "@/database/services/users.ts";
+import { resetUserZeroWeeks } from "@/database/services/weeklyScrobblesPlaycount.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
 import type { BotContext } from "@/types/context.ts";
 import { FormattedString } from "@grammyjs/parse-mode";
@@ -31,6 +32,8 @@ export default async function handleRankinlf(ctx: BotContext) {
     if (!newRecord) {
       throw "COMMON_ERROR";
     }
+
+    await resetUserZeroWeeks(telegram_id);
 
     const msg = new FormattedString("You're in the group ")
       .bold("Weekly Chart Race!")

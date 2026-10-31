@@ -89,6 +89,24 @@ export async function deleteRecord(
   return Number(res.numDeletedRows ?? 0) > 0;
 }
 
+export async function deleteGroupFromRank(chat_id: number): Promise<number> {
+  const res = await db.deleteFrom("rank_group_participants")
+    .where("chat_id", "=", chat_id)
+    .executeTakeFirst();
+
+  return Number(res.numDeletedRows ?? 0);
+}
+
+export async function deleteUserFromAllRankGroups(
+  telegram_id: number,
+): Promise<number> {
+  const res = await db.deleteFrom("rank_group_participants")
+    .where("telegram_id", "=", telegram_id)
+    .executeTakeFirst();
+
+  return Number(res.numDeletedRows ?? 0);
+}
+
 export async function removeInvalidUsersFromGroup(
   chat_id: number,
   validUserIds: number[],

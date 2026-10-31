@@ -1,11 +1,12 @@
 import {
+  deleteGroupFromRank,
   getAllRankGroups,
   getUsersByChatId,
 } from "@/database/services/rankGroupParticipants.ts";
 import { getUserScrobblesPlaycount } from "@/database/services/weeklyScrobblesPlaycount.ts";
 import type { BotContext } from "@/types/context.ts";
 import { FormattedString } from "@grammyjs/parse-mode";
-import type { Bot } from "grammy";
+import { type Bot, GrammyError } from "grammy";
 
 function getMedal(index: number): string {
   const medals = ["🥇", "🥈", "🥉", "🏅"];
@@ -88,6 +89,19 @@ export default async function sendMessages(
         entities: msg.entities,
       });
     } catch (groupError) {
+      if (groupError instanceof GrammyError) {
+        if (
+          groupError.error_code === 403 ||
+          (groupError.error_code === 400 &&
+            /chat not found/i.test(groupError.description))
+        ) {
+          console.log(
+            `CRONJOB: Bot was kicked or group deleted (${chat_id}). Removing from ranking database.`,
+          );
+          await deleteGroupFromRank(chat_id);
+          continue;
+        }
+      }
       console.error(
         `CRONJOB: Error sending message to group ${chat_id}:`,
         groupError,

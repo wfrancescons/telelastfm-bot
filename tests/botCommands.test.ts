@@ -103,6 +103,25 @@ function setupLastfmFetchMock() {
         );
       }
 
+      if (method === "user.getTopTracks") {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              toptracks: {
+                track: [
+                  {
+                    name: "Weird Fishes/Arpeggi",
+                    artist: { name: "Radiohead" },
+                    playcount: "42",
+                  },
+                ],
+              },
+            }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          ),
+        );
+      }
+
       if (method === "track.getInfo") {
         return Promise.resolve(
           new Response(
