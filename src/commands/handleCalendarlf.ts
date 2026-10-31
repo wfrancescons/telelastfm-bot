@@ -7,6 +7,7 @@ import { getUserMonthlyCalendarData } from "@/services/lastfm/index.ts";
 import type { BotContext } from "@/types/context.ts";
 import {
   acceptedCollageParams,
+  acceptedHdParams,
   acceptedMedias,
   collageParamMap,
   hasHdParam,
@@ -152,6 +153,9 @@ export function parseCalendarArgs(rawText: string): {
       media_type = mediaMap[token];
     } else if ((acceptedCollageParams as readonly string[]).includes(token)) {
       param = collageParamMap[token];
+    } else if ((acceptedHdParams as readonly string[]).includes(token)) {
+      // Ignored for date parsing; handled via hasHdParam
+      continue;
     } else {
       remainingTokens.push(token);
     }

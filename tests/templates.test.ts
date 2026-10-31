@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { calendarlfTemplate } from "@/commands/templates/calendarlfTemplate.ts";
+import { parseCalendarArgs } from "@/commands/handleCalendarlf.ts";
 import { vinyllfTemplate } from "@/commands/templates/vinyllfTemplate.ts";
 import { gridlfTemplate } from "@/commands/templates/gridlfTemplate.ts";
 import type { TopAlbumItem } from "@/services/lastfm/types.ts";
@@ -32,6 +33,16 @@ describe("Templates Generation", () => {
         (el) => el.type === "text" && el.text === "august",
       );
       assert.notEqual(monthEl, undefined);
+    });
+
+    it("should parse calendar args correctly when hd is present", () => {
+      const parsed = parseCalendarArgs("/calendarlf hd");
+      assert.equal(parsed.media_type, "albums");
+      assert.equal(parsed.param, null);
+
+      const parsedWithMedia = parseCalendarArgs("/calendarlf tracks hd");
+      assert.equal(parsedWithMedia.media_type, "tracks");
+      assert.equal(parsedWithMedia.param, null);
     });
   });
 
