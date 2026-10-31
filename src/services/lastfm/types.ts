@@ -99,6 +99,8 @@ export type UserProfileData = {
   scrobbles: number;
   artistsCount: number;
   lovedTracksCount: number;
+  friendsCount?: number;
+  url?: string;
   topArtists: TopArtistItem[];
   topTracks: TopTrackItem[];
   topAlbums: TopAlbumItem[];

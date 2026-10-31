@@ -17,6 +17,7 @@ import handleRankinlf from "@/commands/handleRankinlf.ts";
 import handleRankoutlf from "@/commands/handleRankoutlf.ts";
 import handleSetlf from "@/commands/handleSetlf.ts";
 import handleStart from "@/commands/handleStart.ts";
+import handleToplf from "@/commands/handleToplf.ts";
 import handleVinyllf from "@/commands/handleVinyllf.ts";
 import handleYoulf from "@/commands/handleYoulf.ts";
 
@@ -34,8 +35,13 @@ userCommands.command(
   handleCalendarlf,
 );
 userCommands.command(
+  "toplf",
+  "Generate your top artists, albums, and scrobbles collage",
+  handleToplf,
+);
+userCommands.command(
   "profilelf",
-  "Generate your Last.fm profile card",
+  "View your Last.fm profile details and stats",
   handleProfilelf,
 );
 userCommands.command(
@@ -95,8 +101,13 @@ if (adminChatIds.length > 0) {
     handleCalendarlf,
   );
   registerForAdmins(
+    "toplf",
+    "Generate your top artists, albums, and scrobbles collage",
+    handleToplf,
+  );
+  registerForAdmins(
     "profilelf",
-    "Generate your Last.fm profile card",
+    "View your Last.fm profile details and stats",
     handleProfilelf,
   );
   registerForAdmins(

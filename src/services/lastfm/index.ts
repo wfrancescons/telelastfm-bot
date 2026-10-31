@@ -913,6 +913,71 @@ export async function getUserMonthlyCalendarData(
   }
 }
 
+export type LastfmBasicUserInfo = {
+  username: string;
+  realname: string | null;
+  avatar: string | null;
+  scrobbles: number;
+  artistsCount: number;
+  albumsCount: number;
+  tracksCount: number;
+  url: string;
+  registeredDate: number;
+  country: string;
+};
+
+export async function getUserBasicInfo(
+  username: string,
+): Promise<LastfmBasicUserInfo> {
+  try {
+    const res = await makeRequest({
+      method: "user.getInfo",
+      user: username,
+    });
+
+    const userObj = res?.user;
+    if (!userObj) {
+      throw "NOT_A_VALID_LASTFM_USER";
+    }
+
+    const canonicalUsername = String(userObj.name || username).trim();
+    const rawRealname = String(userObj.realname || "").trim();
+    const realname = rawRealname.length > 0 ? rawRealname : null;
+
+    const scrobbles = Number(userObj.playcount) || 0;
+    const artistsCount = Number(userObj.artist_count) || 0;
+    const albumsCount = Number(userObj.album_count) || 0;
+    const tracksCount = Number(userObj.track_count) || 0;
+    const profileUrl =
+      userObj.url ||
+      `https://www.last.fm/user/${encodeURIComponent(canonicalUsername)}`;
+
+    const extractedAvatar = extractImage(userObj.image);
+    const avatar = !isPlaceholderImageUrl(extractedAvatar.large)
+      ? extractedAvatar.large
+      : null;
+
+    return {
+      username: canonicalUsername,
+      realname,
+      avatar,
+      scrobbles,
+      artistsCount,
+      albumsCount,
+      tracksCount,
+      url: profileUrl,
+      registeredDate: Number(userObj.registered?.unixtime) || 0,
+      country: String(userObj.country || "").trim(),
+    };
+  } catch (error) {
+    // deno-lint-ignore no-explicit-any
+    if ((error as any)?.status === 404) {
+      throw "USER_CHANGED_USERNAME";
+    }
+    handleRequestError(error);
+  }
+}
+
 export async function getUserProfileData(
   username: string,
   period: LastfmPeriod = "overall",
@@ -979,6 +1044,8 @@ export async function getUserProfileData(
 
     const lovedTracksCount =
       Number(lovedRes?.lovedtracks?.["@attr"]?.total) || 0;
+    const profileUrl =
+      userObj.url || `https://www.last.fm/user/${encodeURIComponent(canonicalUsername)}`;
 
     // Extract user avatar (can be .png, .jpg, or .gif on Last.fm)
     const extractedAvatar = extractImage(userObj.image);
@@ -1098,6 +1165,7 @@ export async function getUserProfileData(
       scrobbles,
       artistsCount,
       lovedTracksCount,
+      url: profileUrl,
       topArtists,
       topTracks,
       topAlbums,

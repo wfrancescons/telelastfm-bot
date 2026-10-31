@@ -34,14 +34,12 @@ export function createWatermarkElements({
   const cleanUsername = rawUsername.replace(/^@/, "");
   const watermarkText = `t.me/${cleanUsername}`;
 
-  // Proportional sizing based on canvas scale (designed around 1080px base)
-  const scale = Math.max(0.65, Math.min(2.0, canvasWidth / 1080));
-
-  const pillHeight = Math.round(38 * scale);
-  const fontSize = Math.round(17 * scale);
-  const iconSize = Math.round(18 * scale);
-  const iconTextGap = Math.round(10 * scale);
-  const paddingX = Math.round(19 * scale);
+  // Fixed dimensions standardized across all collages (matching the clean /calendarlf 1080px base)
+  const pillHeight = 38;
+  const fontSize = 17;
+  const iconSize = 18;
+  const iconTextGap = 10;
+  const paddingX = 19;
 
   const font = `${fontSize}px "NotoSans-Medium", sans-serif`;
   const textWidth = measureText(watermarkText, font).width;

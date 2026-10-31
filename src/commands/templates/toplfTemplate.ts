@@ -11,22 +11,24 @@ import {
   createTextElement,
   createVinylDiscElement,
   DEFAULT_GLASS_OPTIONS,
+  measureText,
 } from "@/rendering/renderCanvas.ts";
 import { createWatermarkElements } from "@/rendering/watermark.ts";
 import {
-  DEFAULT_AVATAR_IMAGE,
   DEFAULT_IMAGE,
   type UserProfileData,
 } from "@/services/lastfm/index.ts";
+import type { LastfmPeriod } from "@/utils/validValuesMap.ts";
 
-export type ProfilelfTemplateParams = {
+export type ToplfTemplateParams = {
   profileData: UserProfileData;
+  period?: LastfmPeriod;
   fallbackDisplayName?: string;
   fallbackAvatarUrl?: string | null;
   glassOptions?: GlassEffectOptions;
 };
 
-const PROFILE_GLASS_OPTIONS: GlassEffectOptions = {
+const TOPLF_GLASS_OPTIONS: GlassEffectOptions = {
   ...DEFAULT_GLASS_OPTIONS,
   refraction: 0.72,
   depth: 6,
@@ -65,19 +67,42 @@ function pickBackgroundCover(
   return candidates[0] || null;
 }
 
-export function profilelfTemplate({
+export function getPeriodHeadline(period: LastfmPeriod = "7day"): {
+  pillSubtitle: string;
+  headlinePeriod: string;
+} {
+  const pillSubtitle = "top scrobbles of";
+
+  switch (period) {
+    case "7day":
+      return { pillSubtitle, headlinePeriod: "last 7 days" };
+    case "1month":
+      return { pillSubtitle, headlinePeriod: "last month" };
+    case "3month":
+      return { pillSubtitle, headlinePeriod: "last 3 months" };
+    case "6month":
+      return { pillSubtitle, headlinePeriod: "last 6 months" };
+    case "12month":
+      return { pillSubtitle, headlinePeriod: "last year" };
+    case "overall":
+    default:
+      return { pillSubtitle, headlinePeriod: "all time" };
+  }
+}
+
+export function toplfTemplate({
   profileData,
-  fallbackDisplayName,
+  period = "7day",
   fallbackAvatarUrl,
   glassOptions,
-}: ProfilelfTemplateParams): CanvasTemplateData {
+}: ToplfTemplateParams): CanvasTemplateData {
   // Proporção 9:16 com altura máxima 1350px -> 760 x 1350
   const width = 760;
   const height = 1350;
   const centerX = width / 2;
 
   const effectiveGlassOptions: GlassEffectOptions = {
-    ...PROFILE_GLASS_OPTIONS,
+    ...TOPLF_GLASS_OPTIONS,
     ...glassOptions,
   };
 
@@ -87,7 +112,7 @@ export function profilelfTemplate({
     profileData.avatar ||
     fallbackAvatarUrl ||
     profileData.topArtists[0]?.image ||
-    DEFAULT_AVATAR_IMAGE;
+    DEFAULT_IMAGE;
 
   // 1. Blurred cover background + dark vignette overlay
   const bgCover = pickBackgroundCover(profileData, avatarUrl);
@@ -112,7 +137,7 @@ export function profilelfTemplate({
         fillStyle: {
           type: "radialGradient",
           x0: 534,
-          y0: 605,
+          y0: 520,
           r0: 30,
           x1: centerX,
           y1: 675,
@@ -127,141 +152,78 @@ export function profilelfTemplate({
     );
   }
 
-  // 2. Top Header: Circular User Avatar Centralizado + Real Name e @username embaixo
-  const leftMargin = 59;
-  const avatarSize = 128;
-  const avatarX = Math.round(centerX - avatarSize / 2);
-  const avatarY = 38;
+  // 2. Top Header: Alinhado à esquerda com pill translúcida igual ao calendar
+  // Pill: "top scrobbles of"
+  // Título abaixo: "last 7 days" (tamanho 48px)
+  const leftMargin = 50;
+  const { pillSubtitle, headlinePeriod } = getPeriodHeadline(period);
 
-  elements.push(
-    createImageElement({
-      src: avatarUrl,
-      x: avatarX,
-      y: avatarY,
-      width: avatarSize,
-      height: avatarSize,
-      borderRadius: avatarSize / 2,
-      objectFit: "cover",
-      shadow: {
-        color: "rgba(0, 0, 0, 0.28)",
-        blur: 14,
-        offsetX: 0,
-        offsetY: 4,
-      },
-    }),
-  );
-
-  const displayName =
-    profileData.realname || fallbackDisplayName || profileData.username;
-  const handleText = `@${profileData.username}`;
-  const headerTextMaxW = width - leftMargin * 2;
-
-  elements.push(
-    createTextElement({
-      text: displayName,
-      x: centerX,
-      y: 204,
-      font: '28px "NotoSans-Bold", sans-serif',
-      fillStyle: "#ffffff",
-      align: "center",
-      vibrancy: "primary",
-      maxWidth: headerTextMaxW,
-      maxLines: 1,
-    }),
-    createTextElement({
-      text: handleText,
-      x: centerX,
-      y: 235,
-      font: '19px "NotoSans-Regular", sans-serif',
-      fillStyle: "rgba(255, 255, 255, 0.68)",
-      align: "center",
-      vibrancy: "secondary",
-      maxWidth: headerTextMaxW,
-      maxLines: 1,
-    }),
-  );
-
-  // 3. Stats Section: Pill compacta abaixo do @username com divisores verticais
-  const statsPillW = 472;
-  const statsPillH = 66;
-  const statsPillX = Math.round((width - statsPillW) / 2); // 144
-  const statsPillY = 258;
+  const subtitleFont = '19px "NotoSans-Medium", sans-serif';
+  const subtitleTextWidth = measureText(pillSubtitle, subtitleFont).width;
+  const headerPillHeight = 36;
+  const headerPillWidth = Math.round(subtitleTextWidth + 36);
+  const headerPillX = leftMargin;
+  const headerPillY = 82;
+  const headerPillCenterY = headerPillY + headerPillHeight / 2;
 
   elements.push(
     createGlassPillElement({
-      x: statsPillX,
-      y: statsPillY,
-      width: statsPillW,
-      height: statsPillH,
-      options: effectiveGlassOptions,
+      x: headerPillX,
+      y: headerPillY,
+      width: headerPillWidth,
+      height: headerPillHeight,
+      options: {
+        ...effectiveGlassOptions,
+        tint: {
+          color: "#000000",
+          opacity: 0.35,
+        },
+      },
+    }),
+    createTextElement({
+      text: pillSubtitle,
+      x: headerPillX + headerPillWidth / 2,
+      y: headerPillCenterY + 6.5,
+      font: subtitleFont,
+      fillStyle: "rgba(255, 255, 255, 0.92)",
+      align: "center",
+      shadow: {
+        color: "rgba(0, 0, 0, 0.4)",
+        offsetX: 0,
+        offsetY: 1,
+        blur: 4,
+      },
+      maxWidth: headerPillWidth - 12,
+      maxLines: 1,
+      vibrancy: "primary",
     }),
   );
 
-  const colW = statsPillW / 3; // ~157.33px
-  const statsItems = [
-    {
-      label: "SCROBBLES",
-      value: profileData.scrobbles.toLocaleString("en-US"),
-    },
-    {
-      label: "ARTISTS",
-      value: profileData.artistsCount.toLocaleString("en-US"),
-    },
-    {
-      label: "LOVED TRACKS",
-      value: profileData.lovedTracksCount.toLocaleString("en-US"),
-    },
-  ];
+  // Espaçamento generoso entre a pill e o título do período, harmonizado com o header do calendarlf
+  const periodTitleY = headerPillY + headerPillHeight + 55;
+  elements.push(
+    createTextElement({
+      text: headlinePeriod,
+      x: leftMargin,
+      y: periodTitleY,
+      font: '48px "NotoSans-Bold", sans-serif',
+      fillStyle: "#ffffff",
+      align: "left",
+      vibrancy: "primary",
+      maxWidth: width - leftMargin * 2,
+      maxLines: 1,
+    }),
+  );
 
-  statsItems.forEach((stat, index) => {
-    const colCenterX = statsPillX + index * colW + colW / 2;
-
-    elements.push(
-      createTextElement({
-        text: stat.value,
-        x: colCenterX,
-        y: statsPillY + 30,
-        font: '20px "NotoSans-Bold", sans-serif',
-        fillStyle: "#ffffff",
-        align: "center",
-        vibrancy: "primary",
-        maxWidth: colW - 14,
-        maxLines: 1,
-      }),
-      createTextElement({
-        text: stat.label,
-        x: colCenterX,
-        y: statsPillY + 51,
-        font: '11px "NotoSans-Bold", sans-serif',
-        fillStyle: "rgba(255, 255, 255, 0.56)",
-        align: "center",
-        vibrancy: "secondary",
-        maxWidth: colW - 14,
-        maxLines: 1,
-      }),
-    );
-
-    if (index > 0) {
-      const dividerX = Math.round(statsPillX + index * colW);
-      elements.push(
-        createRectangleElement({
-          x: dividerX,
-          y: statsPillY + 14,
-          width: 1.5,
-          height: statsPillH - 28,
-          fillStyle: "rgba(255, 255, 255, 0.16)",
-        }),
-      );
-    }
-  });
-
-  // 4. Right Column: Overlapping Artwork Showcase (proporções idênticas à versão anterior escaladas para 760x1350)
-  // 1st (Top): Circular Top #1 Artist (soft diffuse shadow, no stroke)
-  // 2nd (Middle): Rounded Card Top #1 Album (overlaps top of bottom vinyl)
-  // 3rd (Bottom): Stylized Vinyl Disc for Top #1 Scrobbles
-  const artSize = 296;
-  const artX = 433;
-  const cardRadius = 17;
+  // 3. Bloco Principal (Artistas, Álbuns, Faixas e Artes da Direita)
+  // Perfeitamente centralizado verticalmente no espaço útil entre o título e a watermark:
+  // - Topo do espaço útil: headerBottom = 180px
+  // - Base do espaço útil: watermarkTop = 1240px
+  // - Altura útil: 1060px | Altura total do bloco: 930px
+  // - Início ideal do bloco: 180 + (1060 - 930) / 2 = 245px (~ shift de -75px em relação ao anterior)
+  const artSize = 300;
+  const artX = width - leftMargin - artSize; // 760 - 50 - 300 = 410
+  const cardRadius = 18;
 
   const topArtistCover =
     profileData.topArtists[0]?.image ||
@@ -279,10 +241,10 @@ export function profilelfTemplate({
     profileData.topAlbums[0]?.image ||
     DEFAULT_IMAGE;
 
-  // 4c. Bottom Element (y: 939): Stylized Vinyl Disc for Top #1 Scrobbles
+  // 3c. Desenha 1º: Disco de vinil no fundo (y: 860, centro em 1010)
   const vinylDiameter = artSize;
   const vinylCx = artX + artSize / 2;
-  const vinylCy = 939 + artSize / 2;
+  const vinylCy = 860 + artSize / 2;
 
   elements.push(
     createVinylDiscElement({
@@ -295,15 +257,15 @@ export function profilelfTemplate({
       labelRotation: -12,
       shadow: {
         color: "rgba(0, 0, 0, 0.45)",
-        blur: 22,
+        blur: 24,
         offsetX: 0,
         offsetY: 8,
       },
     }),
   );
 
-  // 4b. Middle Card (y: 654): Top #1 Album
-  const albumCardY = 654;
+  // 3b. Desenha 2º: Encarte do álbum no meio (y: 575, sobrepondo o topo do vinil)
+  const albumCardY = 575;
   elements.push(
     createRectangleElement({
       x: artX,
@@ -313,8 +275,8 @@ export function profilelfTemplate({
       borderRadius: cardRadius,
       fillStyle: "#121212",
       shadow: {
-        color: "rgba(0, 0, 0, 0.42)",
-        blur: 20,
+        color: "rgba(0, 0, 0, 0.46)",
+        blur: 24,
         offsetX: 0,
         offsetY: 8,
       },
@@ -330,8 +292,8 @@ export function profilelfTemplate({
     }),
   );
 
-  // 4a. Top Circle (y: 370): Top #1 Artist (soft diffuse shadow, no stroke)
-  const artistCircleY = 370;
+  // 3a. Desenha 3º: Foto circular do artista no topo (y: 285, sobrepondo o topo do encarte com sombra difusa elegante)
+  const artistCircleY = 285;
   elements.push(
     createImageElement({
       src: topArtistCover,
@@ -342,41 +304,38 @@ export function profilelfTemplate({
       borderRadius: artSize / 2,
       objectFit: "cover",
       shadow: {
-        color: "rgba(0, 0, 0, 0.36)",
-        blur: 18,
+        color: "rgba(0, 0, 0, 0.55)",
+        blur: 28,
         offsetX: 0,
-        offsetY: 6,
+        offsetY: 10,
       },
     }),
   );
 
-  // 5. Left Column: Top 3 Lists (mesmas coordenadas e espaçamentos proporcionais da versão anterior)
-  // 1) Top Artists (y: 447)
-  // 2) Top Albuns  (y: 706)
-  // 3) Top Scrobbles (y: 998)
-  const listX = leftMargin; // 59
-  const itemTextX = listX + 37; // 96
-  const itemMaxWidth = artX - itemTextX - 25; // 312px
+  // 4. Left Column: Top 3 Lists alinhadas harmonicamente com as 3 artes
+  const listX = leftMargin; // 50
+  const itemTextX = listX + 34; // 84
+  const itemMaxWidth = artX - itemTextX - 22; // 304px
 
-  // 5a. Top Artists Section
-  const artistsHeaderY = 447;
+  // 4a. Top Artists Section (y: 365, alinhado com o círculo do artista)
+  const artistsHeaderY = 365;
   elements.push(
     createTextElement({
       text: "Top Artists",
       x: listX,
       y: artistsHeaderY,
-      font: '34px "NotoSans-Bold", sans-serif',
+      font: '28px "NotoSans-Bold", sans-serif',
       fillStyle: "#ffffff",
       align: "left",
       vibrancy: "primary",
-      maxWidth: 348,
+      maxWidth: itemMaxWidth + 34,
       maxLines: 1,
     }),
   );
 
   for (let i = 0; i < 3; i++) {
     const item = profileData.topArtists[i];
-    const rowY = artistsHeaderY + 53 + i * 44;
+    const rowY = artistsHeaderY + 46 + i * 42;
     const artistName = item?.artist?.name || "—";
 
     elements.push(
@@ -384,18 +343,18 @@ export function profilelfTemplate({
         text: String(i + 1),
         x: listX,
         y: rowY,
-        font: '22px "NotoSans-Bold", sans-serif',
+        font: '20px "NotoSans-Bold", sans-serif',
         fillStyle: "rgba(255, 255, 255, 0.48)",
         align: "left",
         vibrancy: "secondary",
-        maxWidth: 28,
+        maxWidth: 26,
         maxLines: 1,
       }),
       createTextElement({
         text: artistName,
         x: itemTextX,
         y: rowY,
-        font: '22px "NotoSans-Bold", sans-serif',
+        font: '20px "NotoSans-Bold", sans-serif',
         fillStyle: "#ffffff",
         align: "left",
         maxWidth: itemMaxWidth,
@@ -404,25 +363,25 @@ export function profilelfTemplate({
     );
   }
 
-  // 5b. Top Albuns Section
-  const albumsHeaderY = 706;
+  // 4b. Top Albuns Section (y: 615, alinhado com o encarte do álbum)
+  const albumsHeaderY = 615;
   elements.push(
     createTextElement({
       text: "Top Albuns",
       x: listX,
       y: albumsHeaderY,
-      font: '34px "NotoSans-Bold", sans-serif',
+      font: '28px "NotoSans-Bold", sans-serif',
       fillStyle: "#ffffff",
       align: "left",
       vibrancy: "primary",
-      maxWidth: 348,
+      maxWidth: itemMaxWidth + 34,
       maxLines: 1,
     }),
   );
 
   for (let i = 0; i < 3; i++) {
     const item = profileData.topAlbums[i];
-    const rowY = albumsHeaderY + 52 + i * 68;
+    const rowY = albumsHeaderY + 46 + i * 64;
     const albumName = item?.album?.name || "—";
     const artistName = item?.album?.artist || "";
 
@@ -431,18 +390,18 @@ export function profilelfTemplate({
         text: String(i + 1),
         x: listX,
         y: rowY,
-        font: '21px "NotoSans-Bold", sans-serif',
+        font: '19px "NotoSans-Bold", sans-serif',
         fillStyle: "rgba(255, 255, 255, 0.48)",
         align: "left",
         vibrancy: "secondary",
-        maxWidth: 28,
+        maxWidth: 26,
         maxLines: 1,
       }),
       createTextElement({
         text: albumName,
         x: itemTextX,
         y: rowY,
-        font: '21px "NotoSans-Bold", sans-serif',
+        font: '19px "NotoSans-Bold", sans-serif',
         fillStyle: "#ffffff",
         align: "left",
         maxWidth: itemMaxWidth,
@@ -455,8 +414,8 @@ export function profilelfTemplate({
         createTextElement({
           text: artistName,
           x: itemTextX,
-          y: rowY + 25,
-          font: '18px "NotoSans-Regular", sans-serif',
+          y: rowY + 23,
+          font: '16px "NotoSans-Regular", sans-serif',
           fillStyle: "rgba(255, 255, 255, 0.62)",
           align: "left",
           maxWidth: itemMaxWidth,
@@ -466,25 +425,25 @@ export function profilelfTemplate({
     }
   }
 
-  // 5c. Top Scrobbles Section
-  const scrobblesHeaderY = 998;
+  // 4c. Top Scrobbles Section (y: 900, alinhado com o vinil)
+  const scrobblesHeaderY = 900;
   elements.push(
     createTextElement({
       text: "Top Scrobbles",
       x: listX,
       y: scrobblesHeaderY,
-      font: '34px "NotoSans-Bold", sans-serif',
+      font: '28px "NotoSans-Bold", sans-serif',
       fillStyle: "#ffffff",
       align: "left",
       vibrancy: "primary",
-      maxWidth: 348,
+      maxWidth: itemMaxWidth + 34,
       maxLines: 1,
     }),
   );
 
   for (let i = 0; i < 3; i++) {
     const item = profileData.topTracks[i];
-    const rowY = scrobblesHeaderY + 52 + i * 68;
+    const rowY = scrobblesHeaderY + 46 + i * 64;
     const trackName = item?.track?.name || "—";
     const artistName = item?.track?.artist || "";
 
@@ -493,18 +452,18 @@ export function profilelfTemplate({
         text: String(i + 1),
         x: listX,
         y: rowY,
-        font: '21px "NotoSans-Bold", sans-serif',
+        font: '19px "NotoSans-Bold", sans-serif',
         fillStyle: "rgba(255, 255, 255, 0.48)",
         align: "left",
         vibrancy: "secondary",
-        maxWidth: 28,
+        maxWidth: 26,
         maxLines: 1,
       }),
       createTextElement({
         text: trackName,
         x: itemTextX,
         y: rowY,
-        font: '21px "NotoSans-Bold", sans-serif',
+        font: '19px "NotoSans-Bold", sans-serif',
         fillStyle: "#ffffff",
         align: "left",
         maxWidth: itemMaxWidth,
@@ -517,8 +476,8 @@ export function profilelfTemplate({
         createTextElement({
           text: artistName,
           x: itemTextX,
-          y: rowY + 25,
-          font: '18px "NotoSans-Regular", sans-serif',
+          y: rowY + 23,
+          font: '16px "NotoSans-Regular", sans-serif',
           fillStyle: "rgba(255, 255, 255, 0.62)",
           align: "left",
           maxWidth: itemMaxWidth,
@@ -528,12 +487,12 @@ export function profilelfTemplate({
     }
   }
 
-  // 6. Footer Watermark: Glass pill with Telegram logo + t.me/<botusername>
+  // 5. Footer Watermark: Glass pill with Telegram logo + t.me/<botusername>
   elements.push(
     ...createWatermarkElements({
       canvasWidth: width,
       canvasHeight: height,
-      bottomOffset: 27,
+      bottomOffset: 36,
       glassOptions: {
         ...effectiveGlassOptions,
         shadow: {
@@ -548,7 +507,7 @@ export function profilelfTemplate({
   );
 
   return {
-    type: "lastfm-profile",
+    type: "lastfm-top",
     width,
     height,
     background: "#080808",
@@ -557,4 +516,4 @@ export function profilelfTemplate({
   };
 }
 
-export default profilelfTemplate;
+export default toplfTemplate;

@@ -2,8 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { calendarlfTemplate } from "@/commands/templates/calendarlfTemplate.ts";
 import { parseCalendarArgs } from "@/commands/handleCalendarlf.ts";
-import { parseProfileArgs } from "@/commands/handleProfilelf.ts";
-import { profilelfTemplate } from "@/commands/templates/profilelfTemplate.ts";
+import { parseTopArgs } from "@/commands/handleToplf.ts";
+import { toplfTemplate } from "@/commands/templates/toplfTemplate.ts";
 import { vinyllfTemplate } from "@/commands/templates/vinyllfTemplate.ts";
 import { gridlfTemplate } from "@/commands/templates/gridlfTemplate.ts";
 import type { TopAlbumItem } from "@/services/lastfm/types.ts";
@@ -119,9 +119,9 @@ describe("Templates Generation", () => {
     });
   });
 
-  describe("profilelfTemplate", () => {
-    it("should build 760x1350 profile template with stats cards, top lists, and fallback display name", () => {
-      const template = profilelfTemplate({
+  describe("toplfTemplate", () => {
+    it("should build 760x1350 top template with headline, top lists, and right artwork", () => {
+      const template = toplfTemplate({
         profileData: {
           username: "usuariolastfm",
           realname: null,
@@ -141,29 +141,32 @@ describe("Templates Generation", () => {
             { rank: 1, album: { name: "Melt", artist: "Not for Radio" }, scrobbles: 800, image: "https://example.com/alb1.jpg" },
           ],
         },
-        fallbackDisplayName: "Nome no Telegram",
+        period: "7day",
       });
 
       assert.equal(template.width, 760);
       assert.equal(template.height, 1350);
-      assert.equal(template.type, "lastfm-profile");
+      assert.equal(template.type, "lastfm-top");
 
-      // Should use fallbackDisplayName when realname is null
-      const nameEl = template.elements.find(
-        (el) => el.type === "text" && el.text === "Nome no Telegram",
+      // Should render pill and period headline
+      const pillEl = template.elements.find(
+        (el) => el.type === "text" && el.text === "top scrobbles of",
       );
-      assert.notEqual(nameEl, undefined);
+      assert.notEqual(pillEl, undefined);
 
-      // Should render @username
-      const handleEl = template.elements.find(
-        (el) => el.type === "text" && el.text === "@usuariolastfm",
+      const headlineEl = template.elements.find(
+        (el) => el.type === "text" && el.text === "last 7 days",
       );
-      assert.notEqual(handleEl, undefined);
+      assert.notEqual(headlineEl, undefined);
 
-      // Should parse profile args with period and hd
-      const parsed = parseProfileArgs("/profilelf 7d hd");
-      assert.equal(parsed.period, "7day");
-      assert.equal(parsed.isHd, true);
+      // Should parse top args with default 7day and custom period
+      const defaultParsed = parseTopArgs("/toplf");
+      assert.equal(defaultParsed.period, "7day");
+      assert.equal(defaultParsed.isHd, false);
+
+      const parsedWithArgs = parseTopArgs("/toplf 1m hd");
+      assert.equal(parsedWithArgs.period, "1month");
+      assert.equal(parsedWithArgs.isHd, true);
     });
   });
 });
