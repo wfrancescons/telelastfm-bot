@@ -23,6 +23,7 @@ export type StoryMediaData = {
   artist: string;
   userplaycount: number;
   image: string;
+  isNowPlaying?: boolean;
 };
 
 export type StorylfTemplateParams = {

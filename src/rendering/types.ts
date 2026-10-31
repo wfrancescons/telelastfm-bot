@@ -124,6 +124,8 @@ export type ImageElement = {
   height: number;
   objectFit?: "fill" | "cover";
   borderRadius?: number;
+  /** Optional rotation in degrees around the center of the image */
+  rotation?: number;
   filter?: string;
   composite?: GlobalCompositeOperation;
   opacity?: number;
@@ -139,6 +141,8 @@ export type RectangleElement = {
   height: number;
   /** Corner border radius (0 for sharp rectangle) */
   borderRadius?: number;
+  /** Optional rotation in degrees around the center of the rectangle */
+  rotation?: number;
   fillStyle?: string | LinearGradientStyle | RadialGradientStyle;
   style?: GlassElementStyle;
   shadow?: ShadowStyle;
@@ -193,12 +197,47 @@ export type TextElement = {
   effects?: ElementEffects;
 };
 
+export type VinylDiscElement = {
+  type: "vinylDisc";
+  /** Center X coordinate */
+  cx: number;
+  /** Center Y coordinate */
+  cy: number;
+  /** Outer diameter of the vinyl record */
+  diameter: number;
+  /** Primary title printed on the classic cream center label */
+  labelTitle?: string;
+  /** Secondary subtitle (artist) printed on the center label */
+  labelSubtitle?: string;
+  /** Rotation angle of the center label in degrees (default: -12) */
+  labelRotation?: number;
+  shadow?: ShadowStyle;
+  effects?: ElementEffects;
+};
+
+export type TonearmElement = {
+  type: "tonearm";
+  /** Pivot center X coordinate */
+  pivotX: number;
+  /** Pivot center Y coordinate */
+  pivotY: number;
+  /** Overall vertical length of the tonearm assembly */
+  length: number;
+  /** Arm angle in degrees (0 = straight down, positive = angled toward the left/record) */
+  angle?: number;
+  glassOptions?: GlassEffectOptions;
+  shadow?: ShadowStyle;
+  effects?: ElementEffects;
+};
+
 export type CanvasElement =
   | ImageElement
   | RectangleElement
   | CircleElement
   | MediaControlIconElement
-  | TextElement;
+  | TextElement
+  | VinylDiscElement
+  | TonearmElement;
 
 export type CanvasTemplateData = {
   type: string;

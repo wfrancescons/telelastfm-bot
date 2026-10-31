@@ -180,6 +180,14 @@ export async function drawImage(
     const image = pre ?? await loadCachedImage(element.src);
 
     await withContextEffects(ctx, element, (c) => {
+      if (element.rotation) {
+        const cx = element.x + element.width / 2;
+        const cy = element.y + element.height / 2;
+        c.translate(cx, cy);
+        c.rotate((element.rotation * Math.PI) / 180);
+        c.translate(-cx, -cy);
+      }
+
       const radius = element.borderRadius ?? 0;
       if (radius > 0 && typeof c.roundRect === "function") {
         c.beginPath();

@@ -5,6 +5,8 @@ import type {
   MediaControlIconElement,
   RectangleElement,
   TextElement,
+  TonearmElement,
+  VinylDiscElement,
 } from "./types.ts";
 
 export const DEFAULT_GLASS_OPTIONS: GlassEffectOptions = {
@@ -88,7 +90,30 @@ export function createMediaControlIcon(
   };
 }
 
+export type CreateVinylDiscParams = Omit<VinylDiscElement, "type">;
+
+export function createVinylDiscElement(
+  params: CreateVinylDiscParams,
+): VinylDiscElement {
+  return {
+    type: "vinylDisc",
+    ...params,
+  };
+}
+
+export type CreateTonearmParams = Omit<TonearmElement, "type">;
+
+export function createTonearmElement(
+  params: CreateTonearmParams,
+): TonearmElement {
+  return {
+    type: "tonearm",
+    ...params,
+  };
+}
+
 export type CreateGlassCircleParams = {
+
   cx: number;
   cy: number;
   diameter: number;

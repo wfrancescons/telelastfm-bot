@@ -31,6 +31,8 @@ export default async function handleHelp(ctx: BotContext) {
       .plain(" - Generate a grid collage\n")
       .code("/storylf <type>")
       .plain(" - Generate an image of your latest scrobble\n")
+      .code("/vinyllf <type>")
+      .plain(" - Generate a vinyl record image of your latest scrobble\n")
       .code("/calendarlf <type> <MM/YYYY>")
       .plain(" - Generate a monthly calendar collage\n")
       .plain("/melf - Compare your scrobbles with the replied user\n")

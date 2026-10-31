@@ -5,6 +5,8 @@ import {
   drawCircle,
   drawMediaControlIcon,
   drawRect,
+  drawTonearm,
+  drawVinylDisc,
 } from "./drawers/drawShape.ts";
 import { drawText } from "./drawers/drawText.ts";
 import { ensureFontsRegistered } from "./fonts.ts";
@@ -52,6 +54,12 @@ async function renderCanvasInternal(
         break;
       case "mediaControlIcon":
         await drawMediaControlIcon(ctx, element);
+        break;
+      case "vinylDisc":
+        await drawVinylDisc(ctx, element);
+        break;
+      case "tonearm":
+        await drawTonearm(ctx, element);
         break;
       case "text":
         await drawText(ctx, element);
