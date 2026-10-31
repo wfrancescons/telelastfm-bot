@@ -34,11 +34,15 @@ async function renderCanvasInternal(
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Fetch every image in parallel up-front; drawing stays sequential (z-order)
-  const preloaded = await preloadImages(
-    data.elements
-      .filter((el) => el.type === "image" || el.type === "icon")
-      .map((el) => (el as ImageElement).src),
-  );
+  const imageSrcs: string[] = [];
+  for (const el of data.elements) {
+    if (el.type === "image" || el.type === "icon") {
+      imageSrcs.push((el as ImageElement).src);
+    } else if (el.type === "vinylDisc" && el.labelImage) {
+      imageSrcs.push(el.labelImage);
+    }
+  }
+  const preloaded = await preloadImages(imageSrcs);
 
   for (const element of data.elements) {
     switch (element.type) {
@@ -56,7 +60,7 @@ async function renderCanvasInternal(
         await drawMediaControlIcon(ctx, element);
         break;
       case "vinylDisc":
-        await drawVinylDisc(ctx, element);
+        await drawVinylDisc(ctx, element, preloaded);
         break;
       case "tonearm":
         await drawTonearm(ctx, element);

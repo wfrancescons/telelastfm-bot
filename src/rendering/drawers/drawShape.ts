@@ -1,4 +1,4 @@
-import { type CanvasRenderingContext2D, Path2D } from "skia-canvas";
+import { type CanvasRenderingContext2D, type Image, Path2D } from "skia-canvas";
 import { withContextEffects } from "../effects/contextEffects.ts";
 import { renderGlassEffectShape } from "../effects/glassEffect.ts";
 import type {
@@ -245,6 +245,7 @@ export async function drawMediaControlIcon(
 export async function drawVinylDisc(
   ctx: CanvasRenderingContext2D,
   element: VinylDiscElement,
+  preloaded?: Map<string, Image | Error>,
 ): Promise<void> {
   await withContextEffects(ctx, element, (c) => {
     const { cx, cy, diameter } = element;
@@ -342,93 +343,146 @@ export async function drawVinylDisc(
     c.lineWidth = 1.6;
     c.stroke();
 
-    // 4. Classic Cream / Off-White Vinyl Center Label
+    // 4. Vinyl Center Label (Circular album artwork OR Classic Cream Paper Label)
     const labelRadius = radius * 0.345;
+    const preImg = element.labelImage
+      ? preloaded?.get(element.labelImage)
+      : undefined;
+    const hasLabelImage = preImg && !(preImg instanceof Error);
+
     c.save();
     c.beginPath();
     c.arc(cx, cy, labelRadius, 0, Math.PI * 2);
-    const labelGrad = c.createRadialGradient(
-      cx - labelRadius * 0.2,
-      cy - labelRadius * 0.2,
-      labelRadius * 0.05,
-      cx,
-      cy,
-      labelRadius,
-    );
-    labelGrad.addColorStop(0, "#F7F4EC");
-    labelGrad.addColorStop(0.75, "#EFEAE0");
-    labelGrad.addColorStop(1, "#E2DBD0");
-    c.fillStyle = labelGrad;
-    c.fill();
     c.clip();
 
-    // Pressed stamper ring on paper label
-    c.beginPath();
-    c.arc(cx, cy, labelRadius * 0.78, 0, Math.PI * 2);
-    c.strokeStyle = "rgba(0, 0, 0, 0.08)";
-    c.lineWidth = 1.4;
-    c.stroke();
-
-    c.beginPath();
-    c.arc(cx, cy, labelRadius * 0.78 - 1.5, 0, Math.PI * 2);
-    c.strokeStyle = "rgba(255, 255, 255, 0.55)";
-    c.lineWidth = 1.0;
-    c.stroke();
-
-    // Outer thin border ring on paper label
-    c.beginPath();
-    c.arc(cx, cy, labelRadius * 0.92, 0, Math.PI * 2);
-    c.strokeStyle = "rgba(30, 28, 25, 0.14)";
-    c.lineWidth = 1.0;
-    c.stroke();
-
-    // Label typography (slightly angled like the reference record)
-    const rotDeg = element.labelRotation ?? -10;
-    c.save();
-    c.translate(cx, cy);
-    c.rotate((rotDeg * Math.PI) / 180);
-    c.textAlign = "center";
-
-    // Top micro metadata
-    const rpmFontSize = Math.max(7, Math.round(labelRadius * 0.09));
-    c.font = `${rpmFontSize}px "NotoSans-Medium", sans-serif`;
-    c.fillStyle = "rgba(35, 32, 29, 0.45)";
-    c.fillText("33 ⅓ RPM  •  STEREO", 0, -labelRadius * 0.52);
-
-    // Subtitle (Artist) above spindle hole
-    if (element.labelSubtitle) {
-      const subFontSize = Math.max(9, Math.round(labelRadius * 0.135));
-      c.font = `${subFontSize}px "NotoSans-Regular", sans-serif`;
-      c.fillStyle = "rgba(28, 26, 24, 0.82)";
-      const subLines = wrapText(
-        c,
-        element.labelSubtitle,
-        labelRadius * 1.35,
-        1,
-      );
-      if (subLines[0]) {
-        c.fillText(subLines[0], 0, -labelRadius * 0.25);
+    if (hasLabelImage) {
+      const rotDeg = element.labelRotation ?? 0;
+      c.save();
+      c.translate(cx, cy);
+      if (rotDeg) {
+        c.rotate((rotDeg * Math.PI) / 180);
       }
-    }
 
-    // Primary Title (Track / Album) below spindle hole
-    if (element.labelTitle) {
-      const titleFontSize = Math.max(11, Math.round(labelRadius * 0.175));
-      c.font = `${titleFontSize}px "NotoSans-Bold", sans-serif`;
-      c.fillStyle = "#171614";
-      const titleLines = wrapText(
-        c,
-        element.labelTitle,
-        labelRadius * 1.42,
-        2,
+      // Draw circular cover image (object-fit: cover)
+      const imgW = preImg.width;
+      const imgH = preImg.height;
+      const side = Math.min(imgW, imgH);
+      const sx = (imgW - side) / 2;
+      const sy = (imgH - side) / 2;
+      c.drawImage(
+        preImg,
+        sx,
+        sy,
+        side,
+        side,
+        -labelRadius,
+        -labelRadius,
+        labelRadius * 2,
+        labelRadius * 2,
       );
-      const lineGap = titleFontSize * 1.15;
-      titleLines.forEach((line, idx) => {
-        c.fillText(line, 0, labelRadius * 0.34 + idx * lineGap);
-      });
-    }
+      c.restore();
 
-    c.restore();
+      // Subtle inner stamper ring & outer rim over the artwork label
+      c.beginPath();
+      c.arc(cx, cy, labelRadius * 0.72, 0, Math.PI * 2);
+      c.strokeStyle = "rgba(0, 0, 0, 0.22)";
+      c.lineWidth = 1.4;
+      c.stroke();
+
+      c.beginPath();
+      c.arc(cx, cy, labelRadius * 0.72 - 1.4, 0, Math.PI * 2);
+      c.strokeStyle = "rgba(255, 255, 255, 0.22)";
+      c.lineWidth = 0.9;
+      c.stroke();
+
+      c.beginPath();
+      c.arc(cx, cy, labelRadius - 0.8, 0, Math.PI * 2);
+      c.strokeStyle = "rgba(0, 0, 0, 0.45)";
+      c.lineWidth = 1.6;
+      c.stroke();
+    } else {
+      const labelGrad = c.createRadialGradient(
+        cx - labelRadius * 0.2,
+        cy - labelRadius * 0.2,
+        labelRadius * 0.05,
+        cx,
+        cy,
+        labelRadius,
+      );
+      labelGrad.addColorStop(0, "#F7F4EC");
+      labelGrad.addColorStop(0.75, "#EFEAE0");
+      labelGrad.addColorStop(1, "#E2DBD0");
+      c.fillStyle = labelGrad;
+      c.fill();
+
+      // Pressed stamper ring on paper label
+      c.beginPath();
+      c.arc(cx, cy, labelRadius * 0.78, 0, Math.PI * 2);
+      c.strokeStyle = "rgba(0, 0, 0, 0.08)";
+      c.lineWidth = 1.4;
+      c.stroke();
+
+      c.beginPath();
+      c.arc(cx, cy, labelRadius * 0.78 - 1.5, 0, Math.PI * 2);
+      c.strokeStyle = "rgba(255, 255, 255, 0.55)";
+      c.lineWidth = 1.0;
+      c.stroke();
+
+      // Outer thin border ring on paper label
+      c.beginPath();
+      c.arc(cx, cy, labelRadius * 0.92, 0, Math.PI * 2);
+      c.strokeStyle = "rgba(30, 28, 25, 0.14)";
+      c.lineWidth = 1.0;
+      c.stroke();
+
+      // Label typography (slightly angled like the reference record)
+      const rotDeg = element.labelRotation ?? -10;
+      c.save();
+      c.translate(cx, cy);
+      c.rotate((rotDeg * Math.PI) / 180);
+      c.textAlign = "center";
+
+      // Top micro metadata
+      const rpmFontSize = Math.max(7, Math.round(labelRadius * 0.09));
+      c.font = `${rpmFontSize}px "NotoSans-Medium", sans-serif`;
+      c.fillStyle = "rgba(35, 32, 29, 0.45)";
+      c.fillText("33 ⅓ RPM  •  STEREO", 0, -labelRadius * 0.52);
+
+      // Subtitle (Artist) above spindle hole
+      if (element.labelSubtitle) {
+        const subFontSize = Math.max(9, Math.round(labelRadius * 0.135));
+        c.font = `${subFontSize}px "NotoSans-Regular", sans-serif`;
+        c.fillStyle = "rgba(28, 26, 24, 0.82)";
+        const subLines = wrapText(
+          c,
+          element.labelSubtitle,
+          labelRadius * 1.35,
+          1,
+        );
+        if (subLines[0]) {
+          c.fillText(subLines[0], 0, -labelRadius * 0.25);
+        }
+      }
+
+      // Primary Title (Track / Album) below spindle hole
+      if (element.labelTitle) {
+        const titleFontSize = Math.max(11, Math.round(labelRadius * 0.175));
+        c.font = `${titleFontSize}px "NotoSans-Bold", sans-serif`;
+        c.fillStyle = "#171614";
+        const titleLines = wrapText(
+          c,
+          element.labelTitle,
+          labelRadius * 1.42,
+          2,
+        );
+        const lineGap = titleFontSize * 1.15;
+        titleLines.forEach((line, idx) => {
+          c.fillText(line, 0, labelRadius * 0.34 + idx * lineGap);
+        });
+      }
+
+      c.restore();
+    }
     c.restore();
 
     // 5. Center spindle hole

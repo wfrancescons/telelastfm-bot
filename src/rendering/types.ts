@@ -205,9 +205,11 @@ export type VinylDiscElement = {
   cy: number;
   /** Outer diameter of the vinyl record */
   diameter: number;
-  /** Primary title printed on the classic cream center label */
+  /** Optional cover artwork image URL to render cropped in a circle on the center label */
+  labelImage?: string;
+  /** Primary title printed on the classic cream center label (when labelImage is not used) */
   labelTitle?: string;
-  /** Secondary subtitle (artist) printed on the center label */
+  /** Secondary subtitle (artist) printed on the center label (when labelImage is not used) */
   labelSubtitle?: string;
   /** Rotation angle of the center label in degrees (default: -12) */
   labelRotation?: number;

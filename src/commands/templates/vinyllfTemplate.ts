@@ -118,15 +118,15 @@ export function vinyllfTemplate({
     labelSubtitle = "Artist";
   }
 
-  // Exact horizontal geometry so [Sleeve + Vinyl] has identical 60px left & right margins:
-  // Sleeve: width 510 (x: 60..570)
-  // Vinyl: diameter 500, radius 250, center at x = 770 (x: 520..1020)
+  // Exact horizontal geometry so [Sleeve + Protruding Vinyl] has identical 60px left & right margins:
+  // Highlighted Sleeve (Encarte): 576x576 (x: 60..636)
+  // Vinyl Disc sliding out from inside the sleeve: diameter 556 (radius 278), center at x = 742 (x: 464..1020)
   // Total scene width: 1020 - 60 = 960px -> left margin = 60px, right margin = 60px
-  const sleeveSize = 510;
-  const vinylDiameter = 500;
+  const sleeveSize = 576;
+  const vinylDiameter = 556;
   const vinylRadius = vinylDiameter / 2;
-  const vinylCenterOffsetFromSleeveLeft = 710;
-  const totalSceneWidth = vinylCenterOffsetFromSleeveLeft + vinylRadius; // 960px
+  const vinylProtrusionPastSleeve = 106 + vinylRadius; // 384px protruding to the right
+  const totalSceneWidth = sleeveSize + vinylProtrusionPastSleeve; // 960px
   const sceneStartX = Math.round((width - totalSceneWidth) / 2); // 60px
   const contentMaxWidth = totalSceneWidth; // 960px
 
@@ -135,7 +135,7 @@ export function vinyllfTemplate({
     ? "listening to:"
     : "listened to:";
   const headerStatusFont = '84px "NotoSans-Bold", sans-serif';
-  const headerBaselineY = 156;
+  const headerBaselineY = 148;
 
   elements.push(
     createTextElement({
@@ -159,7 +159,7 @@ export function vinyllfTemplate({
     1,
     getTextLines(primaryTitle, contentMaxWidth, 2, titleFont).length,
   );
-  const titleFirstLineY = headerBaselineY + 76;
+  const titleFirstLineY = headerBaselineY + 74;
   const titleBaselineY = titleFirstLineY + (titleLines - 1) * titleLineHeight;
 
   elements.push(
@@ -170,7 +170,6 @@ export function vinyllfTemplate({
       font: titleFont,
       fillStyle: "#ffffff",
       align: "left",
-      // vibrancy: "primary",
       maxWidth: contentMaxWidth,
       maxLines: 2,
       lineHeight: titleLineHeight,
@@ -188,7 +187,7 @@ export function vinyllfTemplate({
       getTextLines(secondarySubtitle, contentMaxWidth, 1, subtitleFont).length,
     );
     const subtitleBaselineY =
-      headerBottomY + 42 + (subtitleLines - 1) * subtitleLineHeight;
+      headerBottomY + 40 + (subtitleLines - 1) * subtitleLineHeight;
 
     elements.push(
       createTextElement({
@@ -198,7 +197,6 @@ export function vinyllfTemplate({
         font: subtitleFont,
         fillStyle: "rgba(255, 255, 255, 0.72)",
         align: "left",
-        // vibrancy: "secondary",
         maxWidth: contentMaxWidth,
         maxLines: 1,
         lineHeight: subtitleLineHeight,
@@ -209,75 +207,85 @@ export function vinyllfTemplate({
   }
 
   // 3. Vertically center the [Sleeve + Vinyl] scene between the header and the bottom watermark
-  const stageTopBound = headerBottomY + 36;
-  const stageBottomBound = height - 96; // above watermark
+  const stageTopBound = headerBottomY + 34;
+  const stageBottomBound = height - 92; // above watermark
   const sleeveY = Math.max(
     stageTopBound,
-    Math.round(stageTopBound + (stageBottomBound - stageTopBound - sleeveSize) / 2),
+    Math.round(
+      stageTopBound + (stageBottomBound - stageTopBound - sleeveSize) / 2,
+    ),
   );
   const sleeveX = sceneStartX;
-  const frameBorder = 16;
+  const sleeveRadius = 10;
 
-  // Off-white physical vinyl sleeve frame (straight, rotation 0)
+  // 4. Simulated Vinyl Record Disc (drawn FIRST so it slides out from INSIDE the sleeve)
+  const vinylCx = sleeveX + sleeveSize + 106;
+  const vinylCy = sleeveY + sleeveSize / 2;
+
+  elements.push(
+    createVinylDiscElement({
+      cx: vinylCx,
+      cy: vinylCy,
+      diameter: vinylDiameter,
+      labelTitle: primaryTitle,
+      labelSubtitle,
+      labelRotation: -10,
+      shadow: {
+        color: "rgba(0, 0, 0, 0.58)",
+        blur: 38,
+        offsetX: 6,
+        offsetY: 16,
+      },
+    }),
+  );
+
+  // 5. Highlighted Vinyl Jacket Sleeve (Encarte) drawn ON TOP of the vinyl's left side,
+  //    casting a deep realistic shadow onto the record emerging from inside it
   elements.push(
     createRectangleElement({
       x: sleeveX,
       y: sleeveY,
       width: sleeveSize,
       height: sleeveSize,
-      borderRadius: 6,
-      fillStyle: {
-        type: "linearGradient",
-        x0: sleeveX,
-        y0: sleeveY,
-        x1: sleeveX + sleeveSize,
-        y1: sleeveY + sleeveSize,
-        colors: [
-          { stop: 0, color: "#F6F3EB" },
-          { stop: 0.6, color: "#EDE8DC" },
-          { stop: 1, color: "#E2DDD0" },
-        ],
-      },
+      borderRadius: sleeveRadius,
+      fillStyle: "#141414",
       shadow: {
-        color: "rgba(0, 0, 0, 0.42)",
-        blur: 34,
-        offsetX: 0,
-        offsetY: 16,
+        color: "rgba(0, 0, 0, 0.76)",
+        blur: 38,
+        offsetX: 18,
+        offsetY: 12,
       },
     }),
   );
-
-  const coverX = sleeveX + frameBorder;
-  const coverY = sleeveY + frameBorder;
-  const coverSize = sleeveSize - frameBorder * 2;
 
   if (lastfm_data.image) {
     elements.push(
       createImageElement({
         src: lastfm_data.image,
-        x: coverX,
-        y: coverY,
-        width: coverSize,
-        height: coverSize,
-        borderRadius: 2,
+        x: sleeveX,
+        y: sleeveY,
+        width: sleeveSize,
+        height: sleeveSize,
+        borderRadius: sleeveRadius,
         objectFit: "cover",
       }),
     );
   }
 
-  // 4. Hype Sticker: Glass capsule positioned at the bottom of the album cover
+  // 6. Hype Sticker: Glass capsule positioned at the bottom-left of the sleeve
   const scrobbles = (Number(lastfm_data.userplaycount) || 0) + 1;
-  const scrobblesText = `${scrobbles.toLocaleString("pt-BR")} ${scrobbles === 1 ? "scrobble" : "scrobbles"
-    }`;
+  const scrobblesText = `${scrobbles.toLocaleString("pt-BR")} ${
+    scrobbles === 1 ? "scrobble" : "scrobbles"
+  }`;
   const stickerFontSize = 23;
   const stickerFont = `${stickerFontSize}px "NotoSans-Bold", sans-serif`;
   const stickerTextWidth = measureText(scrobblesText, stickerFont).width;
   const stickerHeight = 46;
   const stickerPaddingX = 24;
   const stickerWidth = Math.max(140, stickerTextWidth + stickerPaddingX * 2);
-  const stickerMargin = 16;
-  const stickerX = coverX + stickerMargin;
-  const stickerY = coverY + coverSize - stickerMargin - stickerHeight;
+  const stickerMargin = 22;
+  const stickerX = sleeveX + stickerMargin;
+  const stickerY = sleeveY + sleeveSize - stickerMargin - stickerHeight;
   const stickerCenterY = stickerY + stickerHeight / 2;
 
   elements.push(
@@ -308,33 +316,12 @@ export function vinyllfTemplate({
     }),
   );
 
-  // 5. Simulated Vinyl Record Disc (overlapping the right edge of the sleeve)
-  const vinylCx = sleeveX + vinylCenterOffsetFromSleeveLeft;
-  const vinylCy = sleeveY + sleeveSize / 2;
-
-  elements.push(
-    createVinylDiscElement({
-      cx: vinylCx,
-      cy: vinylCy,
-      diameter: vinylDiameter,
-      labelTitle: primaryTitle,
-      labelSubtitle,
-      labelRotation: -10,
-      shadow: {
-        color: "rgba(0, 0, 0, 0.55)",
-        blur: 36,
-        offsetX: 4,
-        offsetY: 16,
-      },
-    }),
-  );
-
-  // 6. Bottom Watermark with soft shadow
+  // 7. Bottom Watermark with soft shadow
   elements.push(
     ...createWatermarkElements({
       canvasWidth: width,
       canvasHeight: height,
-      bottomOffset: 32,
+      bottomOffset: 30,
       glassOptions: {
         ...effectiveGlassOptions,
         shadow: {
