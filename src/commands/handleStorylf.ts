@@ -57,6 +57,7 @@ export default async function handleStorylf(ctx: BotContext) {
     const lastfm_data = await fetchStoryData(lastfm_user, media_type);
 
     const tip = new FormattedString(`Generating your ${media_type} story...\n\n`)
+      .bold("⏰ It may take a while\n\n")
       .italic("💡 Tip: you can define the type of media of your story:\n\n")
       .plain("➡️ Examples:\n")
       .code("/storylf alb")

@@ -11,8 +11,10 @@ import {
 } from "@/services/lastfm/index.ts";
 import type { BotContext } from "@/types/context.ts";
 import {
+  acceptedCollageParams,
   acceptedMedias,
   acceptedPeriods,
+  collageParamMap,
   type LastfmPeriod,
   mediaMap,
   type MediaType,
@@ -31,24 +33,6 @@ const DEFAULT_GRID = "4x4";
 const DEFAULT_MEDIA_TYPE: MediaType = "albums";
 const DEFAULT_PERIOD: LastfmPeriod = "7day";
 const GRID_REGEX = /^(\d+)x(\d+)$/;
-
-const CLEAN_PARAM_ALIASES = [
-  "notexts",
-  "notext",
-  "clean",
-  "nonames",
-  "nooverlay",
-];
-
-const NO_PLAYS_PARAM_ALIASES = [
-  "noplays",
-  "noscrobbles",
-];
-
-const NO_TITLES_PARAM_ALIASES = [
-  "notitles",
-  "notitle",
-];
 
 function parseGridArgs(rawText: string) {
   const parts = rawText.trim().toLowerCase().split(/\s+/).slice(1);
@@ -69,14 +53,10 @@ function parseGridArgs(rawText: string) {
     ? periodMap[periodArg]
     : DEFAULT_PERIOD;
 
-  let param: string | null = null;
-  if (parts.some((arg) => CLEAN_PARAM_ALIASES.includes(arg))) {
-    param = "notexts";
-  } else if (parts.some((arg) => NO_TITLES_PARAM_ALIASES.includes(arg))) {
-    param = "notitles";
-  } else if (parts.some((arg) => NO_PLAYS_PARAM_ALIASES.includes(arg))) {
-    param = "noplays";
-  }
+  const collageParamArg = parts.find((arg) =>
+    (acceptedCollageParams as readonly string[]).includes(arg),
+  );
+  const param = collageParamArg ? collageParamMap[collageParamArg] : null;
 
   const main = !parts.includes("nomain");
 
@@ -146,7 +126,7 @@ export default async function handleGridlf(ctx: BotContext) {
       : columns * rows;
 
     const tip = new FormattedString(`Generating your ${grid} grid...\n\n`)
-      .plain("⏰ It may take a while\n\n")
+      .bold("⏰ It may take a while\n\n")
       .italic(
         "💡 Tip: you can define your grid, type of media, period, or clean style:\n\n",
       )

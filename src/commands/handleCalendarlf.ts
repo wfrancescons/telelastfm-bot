@@ -6,7 +6,9 @@ import renderCanvas from "@/rendering/renderCanvas.ts";
 import { getUserMonthlyCalendarData } from "@/services/lastfm/index.ts";
 import type { BotContext } from "@/types/context.ts";
 import {
+  acceptedCollageParams,
   acceptedMedias,
+  collageParamMap,
   mediaMap,
   type MediaType,
 } from "@/utils/validValuesMap.ts";
@@ -59,35 +61,6 @@ const MONTH_NAME_MAP: Record<string, number> = {
   december: 11,
   dezembro: 11,
 };
-
-const EXTRA_MEDIA_ALIASES: Record<string, MediaType> = {
-  musica: "tracks",
-  musicas: "tracks",
-  "música": "tracks",
-  "músicas": "tracks",
-  faixa: "tracks",
-  faixas: "tracks",
-  artista: "artists",
-  artistas: "artists",
-};
-
-const CLEAN_PARAM_ALIASES = [
-  "notexts",
-  "notext",
-  "clean",
-  "nonames",
-  "nooverlay",
-];
-
-const NO_PLAYS_PARAM_ALIASES = [
-  "noplays",
-  "noscrobbles",
-];
-
-const NO_TITLES_PARAM_ALIASES = [
-  "notitles",
-  "notitle",
-];
 
 function parseMonthToken(token: string): number | null {
   const lower = token.toLowerCase();
@@ -176,14 +149,8 @@ export function parseCalendarArgs(rawText: string): {
   for (const token of tokens) {
     if ((acceptedMedias as readonly string[]).includes(token)) {
       media_type = mediaMap[token];
-    } else if (token in EXTRA_MEDIA_ALIASES) {
-      media_type = EXTRA_MEDIA_ALIASES[token];
-    } else if (CLEAN_PARAM_ALIASES.includes(token)) {
-      param = "notexts";
-    } else if (NO_TITLES_PARAM_ALIASES.includes(token)) {
-      param = "notitles";
-    } else if (NO_PLAYS_PARAM_ALIASES.includes(token)) {
-      param = "noplays";
+    } else if ((acceptedCollageParams as readonly string[]).includes(token)) {
+      param = collageParamMap[token];
     } else {
       remainingTokens.push(token);
     }
@@ -257,6 +224,7 @@ export default async function handleCalendarlf(ctx: BotContext) {
     const tip = new FormattedString(
       `Generating your ${media_type} calendar (${monthLabel})...\n\n`,
     )
+      .bold("⏰ It may take a while\n\n")
       .italic(
         "💡 Tip: you can customize the media type, date, or overlay style:\n\n",
       )

@@ -20,7 +20,7 @@ import type {
   TopGridItem,
   TopTrackItem,
 } from "@/services/lastfm/index.ts";
-import type { MediaType } from "@/utils/validValuesMap.ts";
+import { collageParamMap, type MediaType } from "@/utils/validValuesMap.ts";
 
 export {
   createGlassCircleElement,
@@ -125,20 +125,15 @@ function generateTileElements(
     );
   }
 
-  const isClean =
-    param === "notexts" ||
-    param === "notext" ||
-    param === "clean" ||
-    param === "nonames" ||
-    param === "nooverlay";
-
+  const normalizedParam = param ? collageParamMap[param] ?? param : null;
+  const isClean = normalizedParam === "notexts";
   if (isClean) {
     return elements;
   }
 
   const { title, subtitle, scrobblesText } = extractItemTexts(item, mediaType);
-  const isNoTitles = param === "notitles" || param === "notitle";
-  const isNoPlays = param === "noplays" || param === "noscrobbles";
+  const isNoTitles = normalizedParam === "notitles";
+  const isNoPlays = normalizedParam === "noplays";
 
   const pillCenterY = y + height - bottomMargin - pillHeight / 2;
 

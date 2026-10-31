@@ -10,29 +10,119 @@ export type LastfmPeriod =
 export const acceptedMedias = [
   "tracks",
   "track",
-  "musics",
-  "lf",
   "tra",
+  "lf",
+  "music",
+  "musics",
+  "musica",
+  "musicas",
+  "música",
+  "músicas",
+  "faixa",
+  "faixas",
   "albums",
   "album",
   "alb",
   "artists",
   "artist",
   "art",
+  "artista",
+  "artistas",
 ] as const;
 
 export const mediaMap: Record<string, MediaType> = {
+  // Tracks aliases
   tracks: "tracks",
   track: "tracks",
   tra: "tracks",
   lf: "tracks",
+  music: "tracks",
   musics: "tracks",
+  musica: "tracks",
+  musicas: "tracks",
+  "música": "tracks",
+  "músicas": "tracks",
+  faixa: "tracks",
+  faixas: "tracks",
+
+  // Albums aliases
   albums: "albums",
   album: "albums",
   alb: "albums",
+
+  // Artists aliases
   artists: "artists",
   artist: "artists",
   art: "artists",
+  artista: "artists",
+  artistas: "artists",
+};
+
+export type CollageParam = "notexts" | "notitles" | "noplays";
+
+export const CLEAN_PARAM_ALIASES = [
+  "notexts",
+  "notext",
+  "clean",
+  "nonames",
+  "nooverlay",
+  "notexto",
+  "notextos",
+  "semtexto",
+  "semtextos",
+] as const;
+
+export const NO_TITLES_PARAM_ALIASES = [
+  "notitles",
+  "notitle",
+  "notitulo",
+  "notitulos",
+  "semtitulo",
+  "semtitulos",
+] as const;
+
+export const NO_PLAYS_PARAM_ALIASES = [
+  "noplays",
+  "noscrobbles",
+  "noplay",
+  "noscrobble",
+  "semscrobble",
+  "semscrobbles",
+] as const;
+
+export const acceptedCollageParams = [
+  ...CLEAN_PARAM_ALIASES,
+  ...NO_TITLES_PARAM_ALIASES,
+  ...NO_PLAYS_PARAM_ALIASES,
+] as const;
+
+export const collageParamMap: Record<string, CollageParam> = {
+  // Clean / No texts
+  notexts: "notexts",
+  notext: "notexts",
+  clean: "notexts",
+  nonames: "notexts",
+  nooverlay: "notexts",
+  notexto: "notexts",
+  notextos: "notexts",
+  semtexto: "notexts",
+  semtextos: "notexts",
+
+  // No titles
+  notitles: "notitles",
+  notitle: "notitles",
+  notitulo: "notitles",
+  notitulos: "notitles",
+  semtitulo: "notitles",
+  semtitulos: "notitles",
+
+  // No plays / No scrobbles
+  noplays: "noplays",
+  noscrobbles: "noplays",
+  noplay: "noplays",
+  noscrobble: "noplays",
+  semscrobble: "noplays",
+  semscrobbles: "noplays",
 };
 
 export const acceptedPeriods = [

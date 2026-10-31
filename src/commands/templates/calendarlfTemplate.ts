@@ -15,7 +15,7 @@ import {
 } from "@/rendering/renderCanvas.ts";
 import { createWatermarkElements } from "@/rendering/watermark.ts";
 import type { CalendarDayItem } from "@/services/lastfm/index.ts";
-import type { MediaType } from "@/utils/validValuesMap.ts";
+import { collageParamMap, type MediaType } from "@/utils/validValuesMap.ts";
 
 const ENGLISH_MONTHS = [
   "january",
@@ -273,14 +273,10 @@ export function calendarlfTemplate({
     );
   }
 
-  const isClean =
-    param === "notexts" ||
-    param === "notext" ||
-    param === "clean" ||
-    param === "nonames" ||
-    param === "nooverlay";
-  const isNoTitles = param === "notitles" || param === "notitle";
-  const isNoPlays = param === "noplays" || param === "noscrobbles";
+  const normalizedParam = param ? collageParamMap[param] ?? param : null;
+  const isClean = normalizedParam === "notexts";
+  const isNoTitles = normalizedParam === "notitles";
+  const isNoPlays = normalizedParam === "noplays";
 
   // Render all days 1..daysInMonth
   for (let day = 1; day <= daysInMonth; day++) {
