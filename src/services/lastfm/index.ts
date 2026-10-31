@@ -685,7 +685,7 @@ export async function getWeeklyTrackChart(username: string) {
   }
 }
 
-const MAX_MONTHLY_PAGES = 30;
+const MAX_MONTHLY_PAGES = 100;
 
 export async function getUserMonthlyCalendarData(
   username: string,
