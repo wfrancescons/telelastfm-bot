@@ -230,11 +230,7 @@ export async function drawImage(
 
       const radius = element.borderRadius ?? 0;
 
-      // When shadow is requested together with borderRadius (e.g. rounded cards or circular avatars),
-      // clipping the canvas directly cuts off outer drop shadows because canvas clip() restricts everything drawn inside.
-      // To preserve both the smooth clipped image AND the outer drop shadow:
-      // 1) First draw an opaque silhouette behind with the shadow active;
-      // 2) Then clear shadow, clip the path, and draw the image content cleanly.
+      // Draw an opaque background silhouette with shadow before clipping the image
       if (radius > 0 && typeof c.roundRect === "function") {
         const hasShadow = Boolean(element.shadow || element.effects?.shadow);
         if (hasShadow) {

@@ -30,7 +30,6 @@ export default async function handleUserInfo(ctx: BotContext) {
     return;
   }
 
-  // Check if user is dev
   if (!config.bot.devs.includes(telegram_id.toString())) {
     return;
   }
@@ -41,7 +40,6 @@ export default async function handleUserInfo(ctx: BotContext) {
     const replyMessage = ctx.message?.reply_to_message;
     const targetUser = replyMessage?.from;
 
-    // In case no user message was replied to
     if (!replyMessage || !targetUser) {
       const warning = new FormattedString(
         "⚠️ Please reply to a user's message with ",

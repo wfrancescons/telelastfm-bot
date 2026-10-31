@@ -185,7 +185,7 @@ export default async function handleGridlf(ctx: BotContext) {
             : undefined,
         });
       } else {
-        // Telegram sendPhoto has a strict 10MB limit. Fallback to sendDocument if it exceeds 10MB.
+        // Fallback to document if photo exceeds Telegram's 10MB limit
         const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
         if (canvasBuffer.byteLength > MAX_PHOTO_BYTES) {
           await ctx.replyWithDocument(new InputFile(canvasBuffer, filename), {

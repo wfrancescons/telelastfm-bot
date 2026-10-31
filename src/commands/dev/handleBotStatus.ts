@@ -122,7 +122,6 @@ export default async function handleBotStatus(ctx: BotContext) {
     return;
   }
 
-  // Check if user is dev
   if (!config.bot.devs.includes(telegram_id.toString())) {
     return;
   }
@@ -134,7 +133,6 @@ export default async function handleBotStatus(ctx: BotContext) {
     const parts = rawText.trim().split(/\s+/).slice(1);
     const dateArg = parts[0];
 
-    // If an argument was passed, handle date-specific query
     if (dateArg) {
       const parsedDate = parseDateArg(dateArg);
       if (!parsedDate) {

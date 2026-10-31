@@ -401,5 +401,3 @@ export function renderGlassEffectShape(
   ctx.putImageData(outImageData, x0, y0);
 }
 
-export const renderLiquidGlassShape = renderGlassEffectShape;
-

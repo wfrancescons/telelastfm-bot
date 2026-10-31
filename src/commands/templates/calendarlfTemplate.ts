@@ -226,7 +226,7 @@ export function calendarlfTemplate({
       maxLines: 1,
     }),
 
-    // Year ("2026") - Secondary vibrancy ffect blend (no shadow)
+    // Year ("2026") - Secondary vibrancy effect (no shadow)
     createTextElement({
       text: yearText,
       x: titleStartX + monthWidth + gapBetweenMonthAndYear,

@@ -126,10 +126,7 @@ export function vinyllfTemplate({
     labelSubtitle = "Artist";
   }
 
-  // Exact horizontal geometry so [Sleeve + Protruding Vinyl] has identical 60px left & right margins:
-  // Highlighted Sleeve (Encarte): 510x510
-  // Vinyl Disc sliding out from inside the sleeve: diameter 490 (radius 245), protruding ~380px to the right
-  // Total scene width: 510 + 94 + 245 = 849px -> well balanced and centered
+  // Horizontal geometry for sleeve and protruding vinyl disc
   const sleeveSize = 510;
   const vinylDiameter = 490;
   const vinylRadius = vinylDiameter / 2;
@@ -138,7 +135,7 @@ export function vinyllfTemplate({
   const sceneStartX = Math.round((width - totalSceneWidth) / 2);
   const contentMaxWidth = width - 2 * sceneStartX;
 
-  // 2. Left-aligned Header Section at the top
+  // Header section
   const headerStatusText = lastfm_data.isNowPlaying
     ? "listening to:"
     : "listened to:";
@@ -258,7 +255,7 @@ export function vinyllfTemplate({
 
   headerBottomY = pillY + pillHeight;
 
-  // 4. Vertically center the [Sleeve + Vinyl] scene between the scrobble pill and the bottom watermark
+  // Vertically center the sleeve and vinyl scene
   const stageTopBound = headerBottomY + 26;
   const stageBottomBound = height - 90; // above watermark
   const sleeveY = Math.max(
@@ -270,7 +267,7 @@ export function vinyllfTemplate({
   const sleeveX = sceneStartX;
   const sleeveRadius = 10;
 
-  // 5. Simulated Vinyl Record Disc (drawn FIRST so it slides out from INSIDE the sleeve)
+  // Vinyl record disc (drawn before sleeve so it appears emerging from inside)
   const vinylCx = sleeveX + sleeveSize + 94;
   const vinylCy = sleeveY + sleeveSize / 2;
 
@@ -291,8 +288,7 @@ export function vinyllfTemplate({
     }),
   );
 
-  // 6. Highlighted Vinyl Jacket Sleeve (Encarte) drawn ON TOP of the vinyl's left side,
-  //    casting a deep realistic shadow onto the record emerging from inside it
+  // Vinyl jacket sleeve casting shadow over the record
   elements.push(
     createRectangleElement({
       x: sleeveX,

@@ -188,12 +188,10 @@ export async function drawMediaControlIcon(
       const leftEdge = cx - totalW / 2;
       const rightEdge = cx + totalW / 2;
 
-      // Vertical bar on the left
       c.beginPath();
       c.roundRect(leftEdge, cy - h / 2, barW, h, barW / 2);
       c.fill();
 
-      // Triangle pointing left
       const p1: [number, number] = [rightEdge, cy - h / 2];
       const p2: [number, number] = [rightEdge - triW, cy];
       const p3: [number, number] = [rightEdge, cy + h / 2];
@@ -210,13 +208,11 @@ export async function drawMediaControlIcon(
       const leftEdge = cx - totalW / 2;
       const rightEdge = cx + totalW / 2;
 
-      // Triangle pointing right
       const p1: [number, number] = [leftEdge, cy - h / 2];
       const p2: [number, number] = [leftEdge + triW, cy];
       const p3: [number, number] = [leftEdge, cy + h / 2];
       drawRoundedTriangle(c, p1, p2, p3, size * 0.06);
 
-      // Vertical bar on the right
       c.beginPath();
       c.roundRect(rightEdge - barW, cy - h / 2, barW, h, barW / 2);
       c.fill();
@@ -224,8 +220,7 @@ export async function drawMediaControlIcon(
     }
 
     if (icon === "telegram") {
-      // Official Telegram paper plane glyph (from https://www.svgrepo.com/show/336237/telegram.svg)
-      // ViewBox: 48x48. Actual path bounds: X: 3..44, Y: 7..41 (center ~ [23.5, 24], span: 41x34)
+      // Telegram paper plane glyph (viewBox: 48x48)
       c.save();
       const scale = size / 48;
       c.translate(cx, cy);
@@ -511,7 +506,7 @@ export async function drawTonearm(
   const { pivotX, pivotY, length } = element;
   const armAngleDeg = element.angle ?? 2.2;
 
-  // 1. Pill-shaped glass base beneath the tonearm pivot assembly (matches reference)
+  // Glass base beneath tonearm assembly
   const baseWidth = 84;
   const baseHeight = 132;
   renderGlassEffectShape(

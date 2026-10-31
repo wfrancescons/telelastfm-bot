@@ -24,7 +24,7 @@ export default async function handleProfilelf(ctx: BotContext) {
       throw "USER_NOT_FOUND";
     }
 
-    // Apenas 1 requisição à API (user.getInfo) trazendo todos os metadados
+    // Single API call (user.getInfo) fetching all required metadata
     const info = await getUserBasicInfo(lastfm_user);
 
     const telegramName =
@@ -39,7 +39,7 @@ export default async function handleProfilelf(ctx: BotContext) {
     const albums = info.albumsCount.toLocaleString("en-US");
     const tracks = info.tracksCount.toLocaleString("en-US");
 
-    // Formata a mensagem com link embutido no nome do usuário (sem exibir a URL crua)
+    // Format message with embedded user profile link
     const msg = new FormattedString(`👤 `)
       .link(`${telegramName}'s Last.fm`, profileUrl)
       .plain(`:\n\n`)

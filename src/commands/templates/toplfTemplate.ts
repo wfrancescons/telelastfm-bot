@@ -96,7 +96,7 @@ export function toplfTemplate({
   fallbackAvatarUrl,
   glassOptions,
 }: ToplfTemplateParams): CanvasTemplateData {
-  // Proporção 9:16 com altura máxima 1350px -> 760 x 1350
+  // 9:16 aspect ratio: 760 x 1350
   const width = 760;
   const height = 1350;
   const centerX = width / 2;
@@ -114,7 +114,7 @@ export function toplfTemplate({
     profileData.topArtists[0]?.image ||
     DEFAULT_IMAGE;
 
-  // 1. Blurred cover background + dark vignette overlay
+  // Background: blurred cover + dark vignette overlay
   const bgCover = pickBackgroundCover(profileData, avatarUrl);
   if (bgCover) {
     const bleed = 100;
@@ -152,9 +152,7 @@ export function toplfTemplate({
     );
   }
 
-  // 2. Top Header: Alinhado à esquerda com pill translúcida igual ao calendar
-  // Pill: "top scrobbles of"
-  // Título abaixo: "last 7 days" (tamanho 48px)
+  // Header: left-aligned glass pill and period headline
   const leftMargin = 50;
   const { pillSubtitle, headlinePeriod } = getPeriodHeadline(period);
 
@@ -199,7 +197,6 @@ export function toplfTemplate({
     }),
   );
 
-  // Espaçamento generoso entre a pill e o título do período, harmonizado com o header do calendarlf
   const periodTitleY = headerPillY + headerPillHeight + 55;
   elements.push(
     createTextElement({
@@ -215,12 +212,7 @@ export function toplfTemplate({
     }),
   );
 
-  // 3. Bloco Principal (Artistas, Álbuns, Faixas e Artes da Direita)
-  // Perfeitamente centralizado verticalmente no espaço útil entre o título e a watermark:
-  // - Topo do espaço útil: headerBottom = 180px
-  // - Base do espaço útil: watermarkTop = 1240px
-  // - Altura útil: 1060px | Altura total do bloco: 930px
-  // - Início ideal do bloco: 180 + (1060 - 930) / 2 = 245px (~ shift de -75px em relação ao anterior)
+  // Main content: top lists and right-side artwork
   const artSize = 300;
   const artX = width - leftMargin - artSize; // 760 - 50 - 300 = 410
   const cardRadius = 18;
@@ -241,7 +233,7 @@ export function toplfTemplate({
     profileData.topAlbums[0]?.image ||
     DEFAULT_IMAGE;
 
-  // 3c. Desenha 1º: Disco de vinil no fundo (y: 860, centro em 1010)
+  // Vinyl disc at the bottom
   const vinylDiameter = artSize;
   const vinylCx = artX + artSize / 2;
   const vinylCy = 860 + artSize / 2;
@@ -264,7 +256,7 @@ export function toplfTemplate({
     }),
   );
 
-  // 3b. Desenha 2º: Encarte do álbum no meio (y: 575, sobrepondo o topo do vinil)
+  // Album cover art in the middle
   const albumCardY = 575;
   elements.push(
     createRectangleElement({
@@ -292,7 +284,7 @@ export function toplfTemplate({
     }),
   );
 
-  // 3a. Desenha 3º: Foto circular do artista no topo (y: 285, sobrepondo o topo do encarte com sombra difusa elegante)
+  // Circular artist photo on top
   const artistCircleY = 285;
   elements.push(
     createImageElement({
@@ -312,12 +304,12 @@ export function toplfTemplate({
     }),
   );
 
-  // 4. Left Column: Top 3 Lists alinhadas harmonicamente com as 3 artes
-  const listX = leftMargin; // 50
-  const itemTextX = listX + 34; // 84
-  const itemMaxWidth = artX - itemTextX - 22; // 304px
+  // Left column: Top 3 lists
+  const listX = leftMargin;
+  const itemTextX = listX + 34;
+  const itemMaxWidth = artX - itemTextX - 22;
 
-  // 4a. Top Artists Section (y: 365, alinhado com o círculo do artista)
+  // Top Artists section
   const artistsHeaderY = 365;
   elements.push(
     createTextElement({
@@ -363,11 +355,11 @@ export function toplfTemplate({
     );
   }
 
-  // 4b. Top Albuns Section (y: 615, alinhado com o encarte do álbum)
+  // Top Albums section
   const albumsHeaderY = 615;
   elements.push(
     createTextElement({
-      text: "Top Albuns",
+      text: "Top Albums",
       x: listX,
       y: albumsHeaderY,
       font: '28px "NotoSans-Bold", sans-serif',
@@ -425,7 +417,7 @@ export function toplfTemplate({
     }
   }
 
-  // 4c. Top Scrobbles Section (y: 900, alinhado com o vinil)
+  // Top Scrobbles section
   const scrobblesHeaderY = 900;
   elements.push(
     createTextElement({
@@ -487,7 +479,7 @@ export function toplfTemplate({
     }
   }
 
-  // 5. Footer Watermark: Glass pill with Telegram logo + t.me/<botusername>
+  // Footer watermark
   elements.push(
     ...createWatermarkElements({
       canvasWidth: width,
