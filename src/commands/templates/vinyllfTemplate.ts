@@ -215,7 +215,7 @@ export function vinyllfTemplate({
   const scrobbles = (Number(lastfm_data.userplaycount) || 0) + 1;
   const scrobblesText = `${scrobbles.toLocaleString("pt-BR")} ${scrobbles === 1 ? "scrobble" : "scrobbles"
     }`;
-  const pillFontSize = 19;
+  const pillFontSize = 21;
   const pillFont = `${pillFontSize}px "NotoSans-Bold", sans-serif`;
   const pillTextWidth = measureText(scrobblesText, pillFont).width;
   const pillHeight = 38;
