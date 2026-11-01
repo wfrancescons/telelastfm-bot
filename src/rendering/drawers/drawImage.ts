@@ -1,12 +1,14 @@
 import {
   deleteImageBlob,
   getImageBlob,
+  hasImageBlob,
   setImageBlob,
 } from "@/database/imageBlobStore.ts";
 import {
   deleteCachedImageByUrl,
   isDeadImageUrl,
   markDeadImageUrl,
+  unmarkDeadImageUrl,
   updateCachedImageUrl,
 } from "@/database/services/imageCache.ts";
 import { DEFAULT_IMAGE, fetchWithRetry } from "@/services/lastfm/client.ts";
@@ -94,8 +96,13 @@ function buildLastfmFallbackCandidates(rawUrl: string): string[] {
   return [...candidates];
 }
 
+type FetchImageResult = {
+  buffer: Buffer | null;
+  status?: number;
+};
+
 const fetchRemoteImageBuffer = imageDownloadLimiter.wrap(
-  async (url: string): Promise<Buffer | null> => {
+  async (url: string): Promise<FetchImageResult> => {
     try {
       const response = await fetchWithRetry(
         url,
@@ -112,18 +119,18 @@ const fetchRemoteImageBuffer = imageDownloadLimiter.wrap(
 
       if (!response.ok) {
         console.warn(`[ImageDownload] HTTP ${response.status} ${response.statusText} for ${url}`);
-        return null;
+        return { buffer: null, status: response.status };
       }
 
       const arrayBuffer = await response.arrayBuffer();
       if (arrayBuffer.byteLength === 0) {
-        return null;
+        return { buffer: null, status: 200 };
       }
 
-      return Buffer.from(arrayBuffer);
+      return { buffer: Buffer.from(arrayBuffer), status: 200 };
     } catch (err) {
       console.warn(`[ImageDownload] Error fetching ${url}:`, err instanceof Error ? err.message : err);
-      return null;
+      return { buffer: null, status: 0 };
     }
   },
 );
@@ -144,13 +151,14 @@ function getImageBytes(url: string): Promise<Uint8Array | null> {
   if (pending) return pending;
 
   const download = fetchRemoteImageBuffer(url)
-    .then((buffer) => {
-      if (buffer) {
-        setImageBlob(url, buffer);
-      } else {
+    .then((result) => {
+      if (result.buffer) {
+        setImageBlob(url, result.buffer);
+        unmarkDeadImageUrl(url);
+      } else if (result.status === 404 || result.status === 410) {
         markDeadImageUrl(url);
       }
-      return buffer;
+      return result.buffer;
     })
     .finally(() => pendingDownloads.delete(url));
 
@@ -184,9 +192,17 @@ async function loadCachedImage(src: string): Promise<Image> {
 
     try {
       const img = await loadImage(Buffer.from(bytes));
+      // Un-mark dead URLs so successful candidate clears any prior false-positive cooldown
+      unmarkDeadImageUrl(src);
+      unmarkDeadImageUrl(canonicalSrc);
+      unmarkDeadImageUrl(candidateUrl);
+
+      setImageBlob(src, bytes);
+      setImageBlob(canonicalSrc, bytes);
       if (candidateUrl !== canonicalSrc) {
-        setImageBlob(canonicalSrc, bytes);
-        await updateCachedImageUrl(src, canonicalSrc);
+        setImageBlob(candidateUrl, bytes);
+        // Point image_urls to the candidate URL that actually succeeded (e.g. ar0)
+        await updateCachedImageUrl(src, candidateUrl);
       }
       return img;
     } catch {
@@ -196,7 +212,7 @@ async function loadCachedImage(src: string): Promise<Image> {
     }
   }
 
-  // Self-healing: mark broken URL as dead and remove from URL cache so next run re-resolves it
+  // Self-healing: mark permanently broken URLs as dead and remove from URL cache so next run re-resolves them
   markDeadImageUrl(src);
   markDeadImageUrl(canonicalSrc);
   await deleteCachedImageByUrl(src);

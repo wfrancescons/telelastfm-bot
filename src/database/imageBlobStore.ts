@@ -53,9 +53,24 @@ sqlite.exec(`
     );
 `);
 
+// Migrate legacy lastfm.freetls.fastly.net to official lastfm-img.freetls.fastly.net CDN
+sqlite.exec(`
+  UPDATE OR IGNORE image_blobs
+  SET url = REPLACE(url, 'lastfm.freetls.fastly.net', 'lastfm-img.freetls.fastly.net')
+  WHERE url LIKE '%lastfm.freetls.fastly.net%';
+
+  DELETE FROM image_blobs
+  WHERE url LIKE '%lastfm.freetls.fastly.net%';
+
+  -- Purge previous Deezer artist blobs so they are re-downloaded from Last.fm
+  DELETE FROM image_blobs
+  WHERE url LIKE '%dzcdn.net%';
+`);
+
 const stmtGet = sqlite.prepare(
   "SELECT data, last_access FROM image_blobs WHERE url = ?",
 );
+const stmtHas = sqlite.prepare("SELECT 1 FROM image_blobs WHERE url = ?");
 const stmtTouch = sqlite.prepare(
   "UPDATE image_blobs SET last_access = ? WHERE url = ?",
 );
@@ -76,6 +91,15 @@ const stmtOldest = sqlite.prepare(
 );
 
 let insertsSinceCheck = 0;
+
+export function hasImageBlob(url: string): boolean {
+  if (!url) return false;
+  try {
+    return Boolean(stmtHas.get(url));
+  } catch {
+    return false;
+  }
+}
 
 export function getImageBlob(url: string): Uint8Array | null {
   try {

@@ -4,6 +4,7 @@ import {
   isPlaceholderImageUrl,
   setCachedImageUrl,
 } from "@/database/services/imageCache.ts";
+import fetchDeezerArtistImage from "@/services/deezer.ts";
 import type { LastfmPeriod, MediaType } from "@/utils/validValuesMap.ts";
 import {
   buildImagesFromUrl,
@@ -264,18 +265,14 @@ export async function getArtistInfo({
 
     if (isPlaceholderImageUrl(image.large)) {
       const cached = await getCachedImageUrl("artists", { artist: artistName });
-      if (cached) {
+      if (cached && !isPlaceholderImageUrl(cached) && !isDeadImageUrl(cached)) {
         image = buildImagesFromUrl(cached);
-      } else if (artistUrl) {
-        const ogUrl = await getOgImage(artistUrl);
-        if (!isPlaceholderImageUrl(ogUrl)) {
-          image = buildImagesFromUrl(ogUrl);
-          await setCachedImageUrl(
-            "artists",
-            { artist: artistName },
-            image.large,
-          );
-        }
+      } else {
+        const resolved = await resolveArtistImageUrl({
+          artist: artistName,
+          artistUrl,
+        });
+        image = buildImagesFromUrl(resolved);
       }
     } else {
       await setCachedImageUrl("artists", { artist: artistName }, image.large);
@@ -311,21 +308,32 @@ export async function getTrackListeningNow(
     ? recent.image
     : trackInfo.image;
 
+  const albumName = (recent.album || trackInfo.album || "").trim();
   if (!isPlaceholderImageUrl(finalImage.large)) {
-    await setCachedImageUrl(
-      "tracks",
-      {
-        track: recent.track,
-        album: recent.album || trackInfo.album,
-        artist: recent.artist,
-      },
-      finalImage.large,
-    );
+    if (albumName) {
+      await setCachedImageUrl(
+        "albums",
+        {
+          album: albumName,
+          artist: recent.artist,
+        },
+        finalImage.large,
+      );
+    } else {
+      await setCachedImageUrl(
+        "tracks",
+        {
+          track: recent.track,
+          artist: recent.artist,
+        },
+        finalImage.large,
+      );
+    }
   }
 
   return {
     ...recent,
-    album: recent.album || trackInfo.album,
+    album: albumName || "",
     image: finalImage,
     userplaycount: trackInfo.userplaycount,
     lovedtrack: trackInfo.lovedtrack,
@@ -365,22 +373,28 @@ export async function getArtistListeningNow(
 ): Promise<ArtistInfoData> {
   const recentTracks = await getRecentTracks(username, 1);
   const recent = recentTracks[0];
-  const artistInfo = await getArtistInfo({
-    artist: recent.artist,
-    username,
-  });
 
-  const finalImage = !isPlaceholderImageUrl(artistInfo.image.large)
-    ? artistInfo.image
-    : recent.image;
+  const [artistInfo, resolvedImageUrl] = await Promise.all([
+    getArtistInfo({
+      artist: recent.artist,
+      username,
+    }).catch(() => null),
+    resolveArtistImageUrl({
+      artist: recent.artist,
+      artistUrl: recent.url,
+      fallbackImageUrl: recent.image.large,
+    }),
+  ]);
+
+  const finalImage = buildImagesFromUrl(resolvedImageUrl);
 
   return {
     ...recent,
-    artist: artistInfo.artist || recent.artist,
+    artist: artistInfo?.artist || recent.artist,
     image: finalImage,
-    userplaycount: artistInfo.userplaycount || 0,
-    tags: artistInfo.tags,
-    url: artistInfo.url ?? recent.url ?? null,
+    userplaycount: artistInfo?.userplaycount || 0,
+    tags: artistInfo?.tags || [],
+    url: artistInfo?.url ?? recent.url ?? null,
   };
 }
 
@@ -403,12 +417,14 @@ function deduplicateResolution(
 export async function resolveTrackImageUrl({
   track,
   artist,
+  album,
   username,
   initialImageUrl,
   trackUrl,
 }: {
   track: string;
   artist: string;
+  album?: string;
   username?: string;
   initialImageUrl?: string;
   trackUrl?: string;
@@ -417,35 +433,88 @@ export async function resolveTrackImageUrl({
     ? buildImagesFromUrl(initialImageUrl).large
     : undefined;
 
+  const albumName = album?.trim();
+
+  // 1. Se o álbum foi informado, verificar se já temos a capa desse álbum no cache!
+  if (albumName) {
+    const cachedAlbum = await getCachedImageUrl("albums", {
+      album: albumName,
+      artist,
+    });
+    if (
+      cachedAlbum &&
+      !isPlaceholderImageUrl(cachedAlbum) &&
+      !isDeadImageUrl(cachedAlbum)
+    ) {
+      return cachedAlbum;
+    }
+  }
+
+  // 2. Verificar cache de tracks (buildImageCacheKey mapeia para album se albumName presente, senão track)
+  const cachedTrack = await getCachedImageUrl("tracks", {
+    track,
+    artist,
+    album: albumName,
+  });
+  if (
+    cachedTrack &&
+    !isPlaceholderImageUrl(cachedTrack) &&
+    !isDeadImageUrl(cachedTrack)
+  ) {
+    return cachedTrack;
+  }
+
+  // 3. Se a imagem inicial do scrobble for válida, salvar sob album se tiver, ou track
   if (
     canonicalInitial &&
     !isPlaceholderImageUrl(canonicalInitial) &&
     !isDeadImageUrl(canonicalInitial)
   ) {
-    const cached = await getCachedImageUrl("tracks", { track, artist });
-    if (cached && !isPlaceholderImageUrl(cached) && !isDeadImageUrl(cached)) {
-      return buildImagesFromUrl(cached).large;
+    if (albumName) {
+      await setCachedImageUrl(
+        "albums",
+        { album: albumName, artist },
+        canonicalInitial,
+      );
+    } else {
+      await setCachedImageUrl(
+        "tracks",
+        { track, artist },
+        canonicalInitial,
+      );
     }
-    await setCachedImageUrl("tracks", { track, artist }, canonicalInitial);
     return canonicalInitial;
-  }
-
-  const cached = await getCachedImageUrl("tracks", { track, artist });
-  if (cached && !isPlaceholderImageUrl(cached) && !isDeadImageUrl(cached)) {
-    return buildImagesFromUrl(cached).large;
   }
 
   const dedupKey = `track:${artist.toLowerCase()}|||${track.toLowerCase()}`;
   return deduplicateResolution(dedupKey, async () => {
+    let resolvedAlbum = albumName;
+
     try {
       const info = await getTrackInfo({ track, artist, username });
+      if (info.album && !resolvedAlbum) {
+        resolvedAlbum = info.album.trim();
+      }
+
       if (
         info.image?.large &&
         !isPlaceholderImageUrl(info.image.large) &&
         !isDeadImageUrl(info.image.large)
       ) {
         const canonical = buildImagesFromUrl(info.image.large).large;
-        await setCachedImageUrl("tracks", { track, artist }, canonical);
+        if (resolvedAlbum) {
+          await setCachedImageUrl(
+            "albums",
+            { album: resolvedAlbum, artist },
+            canonical,
+          );
+        } else {
+          await setCachedImageUrl(
+            "tracks",
+            { track, artist },
+            canonical,
+          );
+        }
         return canonical;
       }
     } catch {
@@ -456,7 +525,19 @@ export async function resolveTrackImageUrl({
       const og = await getOgImage(trackUrl);
       const large = buildImagesFromUrl(og).large;
       if (!isPlaceholderImageUrl(large) && !isDeadImageUrl(large)) {
-        await setCachedImageUrl("tracks", { track, artist }, large);
+        if (resolvedAlbum) {
+          await setCachedImageUrl(
+            "albums",
+            { album: resolvedAlbum, artist },
+            large,
+          );
+        } else {
+          await setCachedImageUrl(
+            "tracks",
+            { track, artist },
+            large,
+          );
+        }
         return large;
       }
     }
@@ -487,7 +568,7 @@ export async function resolveAlbumImageUrl({
   ) {
     const cached = await getCachedImageUrl("albums", { album, artist });
     if (cached && !isPlaceholderImageUrl(cached) && !isDeadImageUrl(cached)) {
-      return buildImagesFromUrl(cached).large;
+      return cached;
     }
     await setCachedImageUrl("albums", { album, artist }, canonicalInitial);
     return canonicalInitial;
@@ -495,7 +576,7 @@ export async function resolveAlbumImageUrl({
 
   const cached = await getCachedImageUrl("albums", { album, artist });
   if (cached && !isPlaceholderImageUrl(cached) && !isDeadImageUrl(cached)) {
-    return buildImagesFromUrl(cached).large;
+    return cached;
   }
 
   const dedupKey = `album:${artist.toLowerCase()}|||${album.toLowerCase()}`;
@@ -531,27 +612,87 @@ export async function resolveAlbumImageUrl({
 export async function resolveArtistImageUrl({
   artist,
   artistUrl,
+  fallbackImageUrl,
 }: {
   artist: string;
-  artistUrl?: string;
+  artistUrl?: string | null;
+  fallbackImageUrl?: string | null;
 }): Promise<string> {
   const cached = await getCachedImageUrl("artists", { artist });
   if (cached && !isPlaceholderImageUrl(cached) && !isDeadImageUrl(cached)) {
-    return buildImagesFromUrl(cached).large;
+    return cached;
   }
 
   const dedupKey = `artist:${artist.toLowerCase()}`;
   return deduplicateResolution(dedupKey, async () => {
-    const targetUrl =
-      artistUrl || `https://www.last.fm/music/${encodeURIComponent(artist)}`;
-    const og = await getOgImage(targetUrl);
-    const large = buildImagesFromUrl(og).large;
-
-    if (!isPlaceholderImageUrl(large) && !isDeadImageUrl(large)) {
-      await setCachedImageUrl("artists", { artist }, large);
-      return large;
+    // 1º Passo: API do Last.fm (artist.getInfo)
+    try {
+      const response = await makeRequest({
+        method: "artist.getInfo",
+        artist,
+        autocorrect: 1,
+      });
+      const autocorrected = response?.artist?.name;
+      const img = response?.artist?.image?.length
+        ? extractImage(response.artist.image)
+        : null;
+      if (
+        img?.large &&
+        !isPlaceholderImageUrl(img.large) &&
+        !isDeadImageUrl(img.large)
+      ) {
+        const canonical = buildImagesFromUrl(img.large).large;
+        await setCachedImageUrl("artists", { artist }, canonical);
+        if (autocorrected && autocorrected.toLowerCase() !== artist.toLowerCase()) {
+          await setCachedImageUrl("artists", { artist: autocorrected }, canonical);
+        }
+        return canonical;
+      }
+    } catch {
+      // Ignora erro e tenta o próximo passo
     }
 
+    // 2º Passo: Last.fm Web Scraping (og:image oficial da página do artista)
+    try {
+      const targetUrl =
+        artistUrl || `https://www.last.fm/music/${encodeURIComponent(artist)}`;
+      const og = await getOgImage(targetUrl);
+      const large = buildImagesFromUrl(og).large;
+      const chosen = (!large || isPlaceholderImageUrl(large)) ? og : large;
+
+      if (!isPlaceholderImageUrl(chosen) && !isDeadImageUrl(chosen)) {
+        await setCachedImageUrl("artists", { artist }, chosen);
+        return chosen;
+      }
+    } catch {
+      // Ignora erro e tenta o próximo passo
+    }
+
+    // 3º Passo: API do Deezer
+    try {
+      const deezerImg = await fetchDeezerArtistImage(artist);
+      if (
+        deezerImg &&
+        !isPlaceholderImageUrl(deezerImg) &&
+        !isDeadImageUrl(deezerImg)
+      ) {
+        await setCachedImageUrl("artists", { artist }, deezerImg);
+        return deezerImg;
+      }
+    } catch {
+      // Ignora erro e tenta o próximo passo
+    }
+
+    // 4º Passo: Fallback de contexto (capa de álbum/música se fornecido)
+    if (
+      fallbackImageUrl &&
+      !isPlaceholderImageUrl(fallbackImageUrl) &&
+      !isDeadImageUrl(fallbackImageUrl)
+    ) {
+      return buildImagesFromUrl(fallbackImageUrl).large;
+    }
+
+    // 5º Passo: Placeholder padrão
     return DEFAULT_IMAGE;
   });
 }
@@ -908,6 +1049,7 @@ export async function getUserMonthlyCalendarData(
           imageUrl = await resolveTrackImageUrl({
             track: winner.trackName,
             artist: winner.artistName,
+            album: winner.albumName,
             username,
             initialImageUrl: winner.initialImageUrl,
             trackUrl: winner.trackUrl,
@@ -921,6 +1063,7 @@ export async function getUserMonthlyCalendarData(
         } else {
           imageUrl = await resolveArtistImageUrl({
             artist: winner.artistName,
+            fallbackImageUrl: winner.initialImageUrl,
           });
         }
         resolvedImages.set(winner.key, imageUrl);

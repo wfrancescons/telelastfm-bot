@@ -29,6 +29,11 @@ export function markDeadImageUrl(url: string, ttlMs = DEAD_URL_TTL_MS): void {
   deadImageUrls.set(url.trim().toLowerCase(), Date.now() + ttlMs);
 }
 
+export function unmarkDeadImageUrl(url?: string | null): void {
+  if (!url) return;
+  deadImageUrls.delete(url.trim().toLowerCase());
+}
+
 export function isDeadImageUrl(url?: string | null): boolean {
   if (!url) return false;
   const key = url.trim().toLowerCase();
@@ -75,6 +80,20 @@ imageCacheDb.exec(`
     image_url LIKE '%default_album%' OR
     image_url LIKE '%default_artist%' OR
     image_url LIKE '%noimage%';
+`);
+
+// Migrate legacy lastfm.freetls.fastly.net to official lastfm-img.freetls.fastly.net CDN
+imageCacheDb.exec(`
+  UPDATE OR IGNORE image_urls
+  SET image_url = REPLACE(image_url, 'lastfm.freetls.fastly.net', 'lastfm-img.freetls.fastly.net')
+  WHERE image_url LIKE '%lastfm.freetls.fastly.net%';
+
+  DELETE FROM image_urls
+  WHERE image_url LIKE '%lastfm.freetls.fastly.net%';
+
+  -- Purge previous Deezer artist cache entries so they re-resolve via the official Last.fm og:image pipeline
+  DELETE FROM image_urls
+  WHERE image_url LIKE '%dzcdn.net%' AND media_type = 'artists';
 `);
 
 const stmtGet = imageCacheDb.prepare(
@@ -174,8 +193,8 @@ export async function getCachedImageUrl(
     }
 
     return row.image_url.replace(
-      "lastfm-img.freetls.fastly.net",
       "lastfm.freetls.fastly.net",
+      "lastfm-img.freetls.fastly.net",
     );
   } catch (error) {
     console.error("ImageCache: read error:", error);
@@ -190,8 +209,8 @@ export async function setCachedImageUrl(
   rawImageUrl: string | null | undefined,
 ): Promise<string | null> {
   const imageUrl = rawImageUrl?.replace(
-    "lastfm-img.freetls.fastly.net",
     "lastfm.freetls.fastly.net",
+    "lastfm-img.freetls.fastly.net",
   );
   if (
     !imageUrl ||
