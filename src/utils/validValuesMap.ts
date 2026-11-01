@@ -79,6 +79,7 @@ export const NO_TITLES_PARAM_ALIASES = [
   "notitulos",
   "semtitulo",
   "semtitulos",
+  "minimal"
 ] as const;
 
 export const NO_PLAYS_PARAM_ALIASES = [
@@ -115,6 +116,7 @@ export const collageParamMap: Record<string, CollageParam> = {
   notitulos: "notitles",
   semtitulo: "notitles",
   semtitulos: "notitles",
+  minimal: "notitles",
 
   // No plays / No scrobbles
   noplays: "noplays",
