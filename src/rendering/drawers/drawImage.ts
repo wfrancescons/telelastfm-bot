@@ -31,8 +31,8 @@ const pendingDownloads = new Map<string, Promise<Uint8Array | null>>();
 
 // Rate-limits actual network image downloads (SQLite blob cache hits bypass this completely)
 const imageDownloadLimiter = new Bottleneck({
-  maxConcurrent: 12,
-  minTime: 15,
+  maxConcurrent: 6,
+  minTime: 30,
 });
 
 function isLocalOrDataUrl(src: string): boolean {
@@ -48,8 +48,8 @@ export function normalizeLastfmImageUrl(rawUrl: string): string {
   if (isLocalOrDataUrl(trimmed)) return trimmed;
 
   const normalized = trimmed.replace(
-    "lastfm-img.freetls.fastly.net",
     "lastfm.freetls.fastly.net",
+    "lastfm-img.freetls.fastly.net",
   );
 
   const cropRegex = /\/(?:\d+x\d+|\d+s|avatar\d+s|ar0)\//;
@@ -63,25 +63,25 @@ function buildLastfmFallbackCandidates(rawUrl: string): string[] {
   const canonical500 = normalizeLastfmImageUrl(rawUrl);
   const candidates = new Set<string>([canonical500]);
 
-  // If rawUrl is different (e.g. ar0, 300x300, or domain variation), add it as fallback
-  if (rawUrl && rawUrl.trim() && rawUrl !== canonical500) {
+  // If rawUrl was a different valid URL (e.g. original ar0/avatar), try it as a secondary fallback
+  if (rawUrl && rawUrl.trim() && rawUrl.trim() !== canonical500) {
     candidates.add(rawUrl.trim());
   }
 
-  // Also try lastfm-img.freetls.fastly.net if canonical500 uses lastfm.freetls.fastly.net
-  if (canonical500.includes("lastfm.freetls.fastly.net")) {
-    candidates.add(
-      canonical500.replace(
-        "lastfm.freetls.fastly.net",
-        "lastfm-img.freetls.fastly.net",
-      ),
-    );
+  // If 500x500 fails, try ar0 or 300x300
+  if (canonical500.includes("/500x500/")) {
+    candidates.add(canonical500.replace("/500x500/", "/ar0/"));
+    candidates.add(canonical500.replace("/500x500/", "/300x300/"));
   }
 
-  // If 500x500 fails, try 300x300 or ar0
-  if (canonical500.includes("/500x500/")) {
-    candidates.add(canonical500.replace("/500x500/", "/300x300/"));
-    candidates.add(canonical500.replace("/500x500/", "/ar0/"));
+  // Also try alternate domain lastfm.freetls.fastly.net if needed
+  if (canonical500.includes("lastfm-img.freetls.fastly.net")) {
+    candidates.add(
+      canonical500.replace(
+        "lastfm-img.freetls.fastly.net",
+        "lastfm.freetls.fastly.net",
+      ),
+    );
   }
 
   // Animated or static GIF avatars on Last.fm Fastly CDN can also be fetched
@@ -89,7 +89,6 @@ function buildLastfmFallbackCandidates(rawUrl: string): string[] {
   if (/\.gif$/i.test(canonical500)) {
     candidates.add(canonical500.replace(/\.gif$/i, ".png"));
     candidates.add(canonical500.replace(/\.gif$/i, ".jpg"));
-    candidates.add(canonical500.replace("/500x500/", "/avatar170s/"));
   }
 
   return [...candidates];
@@ -107,11 +106,12 @@ const fetchRemoteImageBuffer = imageDownloadLimiter.wrap(
             Accept: "image/*,*/*;q=0.8",
           },
         },
-        2,
-        6000,
+        3,
+        8000,
       );
 
       if (!response.ok) {
+        console.warn(`[ImageDownload] HTTP ${response.status} ${response.statusText} for ${url}`);
         return null;
       }
 
@@ -121,7 +121,8 @@ const fetchRemoteImageBuffer = imageDownloadLimiter.wrap(
       }
 
       return Buffer.from(arrayBuffer);
-    } catch {
+    } catch (err) {
+      console.warn(`[ImageDownload] Error fetching ${url}:`, err instanceof Error ? err.message : err);
       return null;
     }
   },

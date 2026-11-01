@@ -4,9 +4,9 @@ import type { LastfmImages } from "./types.ts";
 
 const LASTFM_API_URL = "https://ws.audioscrobbler.com/2.0/";
 export const DEFAULT_IMAGE =
-  "https://lastfm.freetls.fastly.net/i/u/500x500/2a96cbd8b46e442fc41c2b86b821562f.png";
+  "https://lastfm-img.freetls.fastly.net/i/u/500x500/2a96cbd8b46e442fc41c2b86b821562f.png";
 export const DEFAULT_AVATAR_IMAGE =
-  "https://lastfm.freetls.fastly.net/i/u/500x500/818148bf682d429dc215c1705eb27b98.png";
+  "https://lastfm-img.freetls.fastly.net/i/u/500x500/818148bf682d429dc215c1705eb27b98.png";
 
 const REQUEST_TIMEOUT_MS = 5000;
 
@@ -16,8 +16,8 @@ const apiLimiter = new Bottleneck({
 });
 
 const scrapingLimiter = new Bottleneck({
-  maxConcurrent: 8,
-  minTime: 60,
+  maxConcurrent: 4,
+  minTime: 150,
 });
 
 const HTTP_HEADERS: Record<string, string> = {
@@ -134,7 +134,7 @@ export function buildImagesFromUrl(rawUrl?: string | null): LastfmImages {
   const base = rawUrl && rawUrl.trim()
     ? rawUrl
       .trim()
-      .replace("lastfm-img.freetls.fastly.net", "lastfm.freetls.fastly.net")
+      .replace("lastfm.freetls.fastly.net", "lastfm-img.freetls.fastly.net")
     : DEFAULT_IMAGE;
   const cropRegex = /\/(?:\d+x\d+|\d+s|avatar\d+s|ar0)\//;
 
@@ -173,10 +173,13 @@ export const getOgImage = scrapingLimiter.wrap(
       const response = await fetchWithRetry(
         url,
         { headers: HTTP_HEADERS },
-        2,
-        5000,
+        3,
+        7000,
       );
-      if (!response.ok) return DEFAULT_IMAGE;
+      if (!response.ok) {
+        console.warn(`[Scraping] HTTP ${response.status} when fetching ${url}`);
+        return DEFAULT_IMAGE;
+      }
 
       const html = await response.text();
       const match =
@@ -188,7 +191,7 @@ export const getOgImage = scrapingLimiter.wrap(
 
       return ogImage.replace(/\/ar0\//, "/500x500/").replace("ar0", "500x500");
     } catch (error) {
-      console.error("Last.fm og:image scrape error:", error);
+      console.warn(`[Scraping] Error scraping ${url}:`, error instanceof Error ? error.message : error);
       return DEFAULT_IMAGE;
     }
   },

@@ -21,16 +21,28 @@ const PLACEHOLDER_URL_PATTERNS = [
   /lastfm_avatar/i,
 ];
 
-const deadImageUrls = new Set<string>();
+const deadImageUrls = new Map<string, number>();
+const DEAD_URL_TTL_MS = 60 * 1000; // 60 seconds temporary cooldown for failing URLs
 
-export function markDeadImageUrl(url: string): void {
+export function markDeadImageUrl(url: string, ttlMs = DEAD_URL_TTL_MS): void {
   if (!url) return;
-  deadImageUrls.add(url.trim().toLowerCase());
+  deadImageUrls.set(url.trim().toLowerCase(), Date.now() + ttlMs);
 }
 
 export function isDeadImageUrl(url?: string | null): boolean {
   if (!url) return false;
-  return deadImageUrls.has(url.trim().toLowerCase());
+  const key = url.trim().toLowerCase();
+  const expiresAt = deadImageUrls.get(key);
+  if (!expiresAt) return false;
+  if (Date.now() > expiresAt) {
+    deadImageUrls.delete(key);
+    return false;
+  }
+  return true;
+}
+
+export function clearDeadImageUrls(): void {
+  deadImageUrls.clear();
 }
 
 export type ImageCacheMediaInfo = {
