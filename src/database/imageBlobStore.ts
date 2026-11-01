@@ -2,7 +2,7 @@
  * Persistent image byte cache backed by a dedicated SQLite file.
  *
  * Why a separate SQLite file (and not the main DB, disk files or RAM)?
- * - Main DB stays small: BLOBs never bloat users/logs/streaks tables, WAL or backups.
+ * - Main DB stays small: BLOBs never bloat users/logs tables, WAL or backups.
  * - Faster than one-file-per-image for small blobs (~20-100 KB): a single open
  *   file, no inode/dir overhead, atomic writes, no orphan/partial files.
  * - LRU eviction is a single indexed SQL query (ORDER BY last_access).

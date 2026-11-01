@@ -7,7 +7,6 @@ export type FormatArtlfParams = {
   userplaycount: number;
   isNowPlaying?: boolean;
   isCustom?: boolean;
-  streaks_count?: number;
   tags?: LastfmTag[];
   image: LastfmImages;
 };
@@ -28,9 +27,6 @@ export default function formatArtlf(data: FormatArtlfParams) {
     : data.isNowPlaying
     ? "is now listening"
     : "was listening";
-  const streaks = data.streaks_count
-    ? ` (🔥 ${data.streaks_count.toLocaleString("pt-BR")})`
-    : "";
   const playcount = data.isNowPlaying
     ? (Number(data.userplaycount) || 0) + 1
     : Number(data.userplaycount) || 0;
@@ -41,7 +37,7 @@ export default function formatArtlf(data: FormatArtlfParams) {
   const formattedTags = formatTagList(data.tags);
 
   let msg = FormattedString.bold(data.first_name || "User")
-    .plain(`${streaks} ${statusText} to:\n🧑‍🎤 `)
+    .plain(` ${statusText} to:\n🧑‍🎤 `)
     .bold(data.artist || "Unknown Artist");
 
   if (formattedTags) {

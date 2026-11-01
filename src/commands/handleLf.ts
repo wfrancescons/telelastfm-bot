@@ -1,7 +1,6 @@
 import formatLf from "@/commands/formatters/formatLf.ts";
 import { logCommand } from "@/database/services/commandLogs.ts";
 import { getLastfmUser } from "@/database/services/users.ts";
-import { updateStreaks } from "@/database/services/userStreaks.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
 import { getTrackListeningNow } from "@/services/lastfm/index.ts";
 import type { BotContext } from "@/types/context.ts";
@@ -36,14 +35,10 @@ export default async function handleLf(ctx: BotContext) {
       throw "USER_NOT_FOUND";
     }
 
-    const [user_streaks, lastfm_data] = await Promise.all([
-      updateStreaks(telegram_id),
-      getTrackListeningNow(lastfm_user),
-    ]);
+    const lastfm_data = await getTrackListeningNow(lastfm_user);
 
     const message = formatLf({
       first_name,
-      streaks_count: user_streaks.streaks_count,
       ...lastfm_data,
     });
 

@@ -3,7 +3,6 @@ import formatArtlf from "@/commands/formatters/formatArtlf.ts";
 import formatLf from "@/commands/formatters/formatLf.ts";
 import { logCommand } from "@/database/services/commandLogs.ts";
 import { getLastfmUser } from "@/database/services/users.ts";
-import { updateStreaks } from "@/database/services/userStreaks.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
 import {
   getAlbumListeningNow,
@@ -32,8 +31,7 @@ export default async function handleInlineQuery(ctx: BotContext) {
       throw "USER_NOT_FOUND";
     }
 
-    const [user_streaks, lf, alblf, artlf] = await Promise.all([
-      updateStreaks(telegram_id),
+    const [lf, alblf, artlf] = await Promise.all([
       getTrackListeningNow(lastfm_user),
       getAlbumListeningNow(lastfm_user),
       getArtistListeningNow(lastfm_user),
@@ -41,19 +39,16 @@ export default async function handleInlineQuery(ctx: BotContext) {
 
     const lfMessage = formatLf({
       first_name,
-      streaks_count: user_streaks.streaks_count,
       ...lf,
     });
 
     const alblfMessage = formatAlblf({
       first_name,
-      streaks_count: user_streaks.streaks_count,
       ...alblf,
     });
 
     const artlfMessage = formatArtlf({
       first_name,
-      streaks_count: user_streaks.streaks_count,
       ...artlf,
     });
 

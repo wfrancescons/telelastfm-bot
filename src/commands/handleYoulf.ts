@@ -3,7 +3,6 @@ import formatArtlf from "@/commands/formatters/formatArtlf.ts";
 import formatLf from "@/commands/formatters/formatLf.ts";
 import { logCommand } from "@/database/services/commandLogs.ts";
 import { getLastfmUser } from "@/database/services/users.ts";
-import { findStreaksByPkOrCreate } from "@/database/services/userStreaks.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
 import {
   getAlbumInfo,
@@ -119,10 +118,10 @@ export default async function handleYoulf(ctx: BotContext) {
       throw "USER_NOT_FOUND";
     }
 
-    const [user_streaks, sender_lastfm_data] = await Promise.all([
-      findStreaksByPkOrCreate(reply_user_telegram_id),
-      getListeningNowByType(sender_lastfm_user, media_type),
-    ]);
+    const sender_lastfm_data = await getListeningNowByType(
+      sender_lastfm_user,
+      media_type,
+    );
 
     const reply_lastfm_data = await getScrobblesData({
       lastfm_user: reply_lastfm_user,
@@ -133,7 +132,6 @@ export default async function handleYoulf(ctx: BotContext) {
     const formatted = formatByMediaType(
       {
         first_name,
-        streaks_count: user_streaks.streaks_count,
         isCustom: true,
         ...reply_lastfm_data,
       },

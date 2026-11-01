@@ -1,7 +1,6 @@
 import formatArtlf from "@/commands/formatters/formatArtlf.ts";
 import { logCommand } from "@/database/services/commandLogs.ts";
 import { getLastfmUser } from "@/database/services/users.ts";
-import { updateStreaks } from "@/database/services/userStreaks.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
 import {
   getArtistInfo,
@@ -51,15 +50,12 @@ export default async function handleArtlf(ctx: BotContext) {
       throw "USER_NOT_FOUND";
     }
 
-    const user_streaks = await updateStreaks(telegram_id);
-
     const lastfm_data = hasArgs
       ? await getArtistInfo({ artist: rawArgs, username: lastfm_user })
       : await getArtistListeningNow(lastfm_user);
 
     const message = formatArtlf({
       first_name,
-      streaks_count: user_streaks.streaks_count,
       isCustom: hasArgs,
       ...lastfm_data,
     });

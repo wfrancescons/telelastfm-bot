@@ -11,7 +11,6 @@ export type FormatLfParams = {
   isLovedTrack?: boolean;
   isNowPlaying?: boolean;
   isCustom?: boolean;
-  streaks_count?: number;
   tags?: LastfmTag[];
   image: LastfmImages;
 };
@@ -34,9 +33,6 @@ export default function formatLf(data: FormatLfParams) {
     : "was listening";
   const isLoved = Boolean(data.lovedtrack ?? data.isLovedTrack);
   const loveText = isLoved ? " loves ❤️ and" : "";
-  const streaks = data.streaks_count
-    ? ` (🔥 ${data.streaks_count.toLocaleString("pt-BR")})`
-    : "";
   const playcount = data.isNowPlaying
     ? (Number(data.userplaycount) || 0) + 1
     : Number(data.userplaycount) || 0;
@@ -47,7 +43,7 @@ export default function formatLf(data: FormatLfParams) {
   const formattedTags = formatTagList(data.tags);
 
   let msg = FormattedString.bold(data.first_name || "User")
-    .plain(`${streaks}${loveText} ${statusText} to:\n🎶 `)
+    .plain(`${loveText} ${statusText} to:\n🎶 `)
     .bold(data.track || "Unknown Track")
     .plain(`\n💿 ${data.album || ""}\n🧑‍🎤 ${data.artist || ""}`);
 

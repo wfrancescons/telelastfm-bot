@@ -4,7 +4,6 @@ import formatLf from "@/commands/formatters/formatLf.ts";
 import config from "@/config.ts";
 import { logCommand } from "@/database/services/commandLogs.ts";
 import { getLastfmUser } from "@/database/services/users.ts";
-import { updateStreaks } from "@/database/services/userStreaks.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
 import {
   getAlbumInfo,
@@ -168,7 +167,6 @@ export default async function handleMelf(ctx: BotContext) {
         throw "NOT_A_MUSIC_BOT_MESSAGE";
       }
 
-      const userStreaks = await updateStreaks(telegram_id);
       const parsedInfo = parseTextFromThisBot(lines, mediaType);
 
       const parts = rawText.trim().toLowerCase().split(/\s+/).slice(1);
@@ -195,7 +193,6 @@ export default async function handleMelf(ctx: BotContext) {
       const formatted = formatByMediaType(
         {
           first_name,
-          streaks_count: userStreaks.streaks_count,
           isCustom: true,
           ...lastfmData,
         },
@@ -222,7 +219,6 @@ export default async function handleMelf(ctx: BotContext) {
       throw "USER_NOT_FOUND_REPLY";
     }
 
-    const userStreaks = await updateStreaks(telegram_id);
     const replyData = await getListeningNowByType(
       replyLastfm,
       requestedMediaType,
@@ -236,7 +232,6 @@ export default async function handleMelf(ctx: BotContext) {
     const formatted = formatByMediaType(
       {
         first_name,
-        streaks_count: userStreaks.streaks_count,
         isCustom: true,
         ...senderData,
       },

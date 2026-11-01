@@ -18,14 +18,6 @@ export type CommandUsageLogsTable = {
   timestamp: string;
 };
 
-export type UserStreaksTable = {
-  telegram_id: number;
-  streaks_count: number;
-  streaks_peak: number;
-  last_streak_timestamp: string;
-  created_at: string;
-};
-
 export type WeeklyScrobblesPlaycountsTable = {
   telegram_id: number;
   scrobbles_playcount: number;
@@ -53,7 +45,6 @@ export type ImageCacheTable = {
 export type DatabaseSchema = {
   users: UsersTable;
   command_usage_logs: CommandUsageLogsTable;
-  user_streaks: UserStreaksTable;
   weekly_scrobbles_playcounts: WeeklyScrobblesPlaycountsTable;
   rank_group_participants: RankGroupParticipantsTable;
   image_cache: ImageCacheTable;
@@ -97,58 +88,6 @@ function migrateLegacyTables(): void {
       }
     }
 
-    if (tableExists("Users_backup")) {
-      sqlite.exec("DROP TABLE IF EXISTS Users_backup;");
-    }
-
-    if (tableExists("users_backup")) {
-      sqlite.exec("DROP TABLE IF EXISTS users_backup;");
-    }
-
-    if (tableExists("CommandUsageLogs")) {
-      sqlite.exec(`
-        INSERT OR IGNORE INTO command_usage_logs (id, telegram_id, chat_id, command, timestamp)
-        SELECT id, telegram_id, chat_id, command, COALESCE(timestamp, datetime('now'))
-        FROM CommandUsageLogs;
-      `);
-      sqlite.exec("DROP TABLE IF EXISTS CommandUsageLogs;");
-    }
-
-    if (tableExists("UserStreaks")) {
-      sqlite.exec(`
-        INSERT OR IGNORE INTO user_streaks (telegram_id, streaks_count, streaks_peak, last_streak_timestamp, created_at)
-        SELECT telegram_id, COALESCE(streaks_count, 0), COALESCE(streaks_peak, 0), COALESCE(last_streak_timestamp, datetime('now')), COALESCE(timestamp, datetime('now'))
-        FROM UserStreaks;
-      `);
-      sqlite.exec("DROP TABLE IF EXISTS UserStreaks;");
-    }
-
-    if (tableExists("WeeklyScrobblesPlaycounts")) {
-      sqlite.exec(`
-        INSERT OR IGNORE INTO weekly_scrobbles_playcounts (telegram_id, scrobbles_playcount, tracks_playcount, created_at, updated_at)
-        SELECT telegram_id, COALESCE(scrobbles_playcount, 0), COALESCE(tracks_playcount, 0), COALESCE(createdAt, datetime('now')), COALESCE(updatedAt, datetime('now'))
-        FROM WeeklyScrobblesPlaycounts;
-      `);
-      sqlite.exec("DROP TABLE IF EXISTS WeeklyScrobblesPlaycounts;");
-    }
-
-    if (tableExists("RankGroupParticipants")) {
-      sqlite.exec(`
-        INSERT OR IGNORE INTO rank_group_participants (id, chat_id, telegram_id, created_at, updated_at)
-        SELECT id, chat_id, telegram_id, COALESCE(createdAt, datetime('now')), COALESCE(updatedAt, datetime('now'))
-        FROM RankGroupParticipants;
-      `);
-      sqlite.exec("DROP TABLE IF EXISTS RankGroupParticipants;");
-    }
-
-    if (tableExists("image_cache")) {
-      sqlite.exec(`
-        UPDATE image_cache
-        SET image_url = REPLACE(image_url, 'lastfm-img.freetls.fastly.net', 'lastfm.freetls.fastly.net')
-        WHERE image_url LIKE '%lastfm-img.freetls.fastly.net%';
-      `);
-    }
-
     if (
       tableExists("weekly_scrobbles_playcounts") &&
       !hasColumn("weekly_scrobbles_playcounts", "consecutive_zero_weeks")
@@ -184,15 +123,6 @@ export async function initDatabase(): Promise<void> {
     .ifNotExists()
     .on("command_usage_logs")
     .column("timestamp")
-    .execute();
-
-  await db.schema.createTable("user_streaks")
-    .ifNotExists()
-    .addColumn("telegram_id", "integer", (col) => col.primaryKey().notNull())
-    .addColumn("streaks_count", "integer", (col) => col.notNull().defaultTo(0))
-    .addColumn("streaks_peak", "integer", (col) => col.notNull().defaultTo(0))
-    .addColumn("last_streak_timestamp", "text", (col) => col.notNull())
-    .addColumn("created_at", "text", (col) => col.notNull())
     .execute();
 
   await db.schema.createTable("weekly_scrobbles_playcounts")

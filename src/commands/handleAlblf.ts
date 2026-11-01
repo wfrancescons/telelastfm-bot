@@ -1,7 +1,6 @@
 import formatAlblf from "@/commands/formatters/formatAlblf.ts";
 import { logCommand } from "@/database/services/commandLogs.ts";
 import { getLastfmUser } from "@/database/services/users.ts";
-import { updateStreaks } from "@/database/services/userStreaks.ts";
 import errorHandler from "@/handlers/errorHandler.ts";
 import { getAlbumInfo, getAlbumListeningNow } from "@/services/lastfm/index.ts";
 import type { BotContext } from "@/types/context.ts";
@@ -67,8 +66,6 @@ export default async function handleAlblf(ctx: BotContext) {
       throw "USER_NOT_FOUND";
     }
 
-    const user_streaks = await updateStreaks(telegram_id);
-
     let lastfm_data;
     if (hasArgs) {
       const { custom_album, custom_artist } = parseCustomAlbumArg(rawArgs);
@@ -83,7 +80,6 @@ export default async function handleAlblf(ctx: BotContext) {
 
     const message = formatAlblf({
       first_name,
-      streaks_count: user_streaks.streaks_count,
       isCustom: hasArgs,
       ...lastfm_data,
     });
