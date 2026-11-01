@@ -79,6 +79,7 @@ export const NO_TITLES_PARAM_ALIASES = [
   "notitulos",
   "semtitulo",
   "semtitulos",
+  "minimal"
 ] as const;
 
 export const NO_PLAYS_PARAM_ALIASES = [
