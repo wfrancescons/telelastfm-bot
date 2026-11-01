@@ -601,4 +601,39 @@ describe("GrammY Bot Commands (Update Handling & API Transformers)", () => {
       assert.equal(sendMessages.length, 0);
     });
   });
+
+  describe("/rankinlf command", () => {
+    it("should reject ranking in forum / topic groups", async () => {
+      const { bot, filterCalls } = createMockBot();
+      const testUserId = 760004;
+      await setLastfmUsername(testUserId, "forum_test_user");
+
+      const update = {
+        update_id: 888998,
+        message: {
+          message_id: 100,
+          date: Math.floor(Date.now() / 1000),
+          chat: {
+            id: -100555666,
+            title: "Forum Chat",
+            type: "supergroup",
+            is_forum: true,
+          },
+          from: {
+            id: testUserId,
+            is_bot: false,
+            first_name: "ForumTester",
+          },
+          text: "/rankinlf",
+        },
+      } as unknown as Update;
+
+      await bot.handleUpdate(update);
+
+      const sendMessages = filterCalls("sendMessage");
+      assert.equal(sendMessages.length, 1);
+      const text = sendMessages[0].payload.text as string;
+      assert.match(text, /Ranking isn't available for groups with topics \(forums\)/i);
+    });
+  });
 });

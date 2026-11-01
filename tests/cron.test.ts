@@ -167,6 +167,52 @@ describe("Cron Job Weekly Chart Race", () => {
     assert.match(text, /840 scrobbles/);
   });
 
+  it("should remove topic group from rank database when sendMessage fails with TOPIC_CLOSED", async () => {
+    const topicChatId = -100777;
+    const testUser = 880077;
+    await setLastfmUsername(testUser, "topic_user");
+    await setUserScrobbles(testUser, { scrobbles: 100, tracks: 10 });
+
+    try {
+      await findOrCreateRecord(topicChatId, testUser);
+    } catch {
+      // Ignore if already registered
+    }
+
+    const { bot } = createMockBot();
+    bot.api.getChatMember = (_chatId: number, userId: number) => {
+      return Promise.resolve({
+        status: "member",
+        user: {
+          id: userId,
+          is_bot: false,
+          first_name: "TopicUser",
+          username: "topicuser",
+        },
+      } as unknown as ReturnType<typeof bot.api.getChatMember>);
+    };
+
+    // Simulate Telegram 400 Bad Request: TOPIC_CLOSED
+    bot.api.sendMessage = () => {
+      const err = new GrammyError(
+        "Call to 'sendMessage' failed!",
+        {
+          ok: false,
+          error_code: 400,
+          description: "Bad Request: TOPIC_CLOSED",
+        },
+        "sendMessage",
+        {},
+      );
+      return Promise.reject(err);
+    };
+
+    await sendMessages(bot);
+
+    const groups = await getAllRankGroups();
+    assert.equal(groups.includes(topicChatId), false);
+  });
+
   it("should evict user from all rank groups after 2 consecutive weeks of 0 scrobbles", async () => {
     const testChatId = -100999;
     const inactiveUser = 880020;

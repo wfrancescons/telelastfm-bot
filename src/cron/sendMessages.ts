@@ -101,6 +101,17 @@ export default async function sendMessages(
           await deleteGroupFromRank(chat_id);
           continue;
         }
+
+        if (
+          groupError.error_code === 400 &&
+          /topic|thread/i.test(groupError.description)
+        ) {
+          console.log(
+            `CRONJOB: Group ${chat_id} is a forum topic group or topic was closed (${groupError.description}). Removing from ranking database.`,
+          );
+          await deleteGroupFromRank(chat_id);
+          continue;
+        }
       }
       console.error(
         `CRONJOB: Error sending message to group ${chat_id}:`,

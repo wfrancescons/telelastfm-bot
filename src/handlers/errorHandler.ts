@@ -324,6 +324,14 @@ export async function errorHandler(
         break;
       }
 
+      case "RANK_TOPIC_GROUP": {
+        await ctx.reply(
+          "Ranking isn't available for groups with topics (forums) 😔",
+          { reply_parameters: replyParams },
+        );
+        break;
+      }
+
       case "RANK_USER_NOT_FOUND": {
         await ctx.reply(
           "I couldn't find you on the runners list 🤨\n\nUse /rankinlf to join the race",

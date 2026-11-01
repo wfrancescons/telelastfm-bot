@@ -23,6 +23,16 @@ export default async function handleRankinlf(ctx: BotContext) {
       throw "RANK_PERSONAL_CHAT";
     }
 
+    const isForum = Boolean(
+      (ctx.chat as { is_forum?: boolean })?.is_forum ||
+        ctx.message?.is_topic_message ||
+        ctx.message?.message_thread_id,
+    );
+
+    if (isForum) {
+      throw "RANK_TOPIC_GROUP";
+    }
+
     const lastfm_user = await getLastfmUser(telegram_id);
     if (!lastfm_user) {
       throw "USER_NOT_FOUND";
