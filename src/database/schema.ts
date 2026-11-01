@@ -35,19 +35,11 @@ export type RankGroupParticipantsTable = {
   updated_at: string;
 };
 
-export type ImageCacheTable = {
-  cache_key: string;
-  media_type: string;
-  image_url: string;
-  updated_at: string;
-};
-
 export type DatabaseSchema = {
   users: UsersTable;
   command_usage_logs: CommandUsageLogsTable;
   weekly_scrobbles_playcounts: WeeklyScrobblesPlaycountsTable;
   rank_group_participants: RankGroupParticipantsTable;
-  image_cache: ImageCacheTable;
 };
 
 const sqlite = new DatabaseSync(config.database.path);
@@ -149,20 +141,6 @@ export async function initDatabase(): Promise<void> {
     .on("rank_group_participants")
     .columns(["chat_id", "telegram_id"])
     .unique()
-    .execute();
-
-  await db.schema.createTable("image_cache")
-    .ifNotExists()
-    .addColumn("cache_key", "text", (col) => col.primaryKey().notNull())
-    .addColumn("media_type", "text", (col) => col.notNull())
-    .addColumn("image_url", "text", (col) => col.notNull())
-    .addColumn("updated_at", "text", (col) => col.notNull())
-    .execute();
-
-  await db.schema.createIndex("idx_image_cache_updated_at")
-    .ifNotExists()
-    .on("image_cache")
-    .column("updated_at")
     .execute();
 
   migrateLegacyTables();

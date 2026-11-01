@@ -14,7 +14,7 @@
  * path of every rendered collage and statements are compiled only once.
  */
 import config from "@/config.ts";
-import { DatabaseSync } from "node:sqlite";
+import { imageCacheDb as sqlite } from "./imageCacheDb.ts";
 
 const MAX_BYTES = config.imageCache.maxSizeMb * 1024 * 1024;
 // Evict down to this fraction of the cap to avoid evicting on every insert
@@ -24,13 +24,6 @@ const TOUCH_INTERVAL_MS = 6 * 60 * 60 * 1000;
 // Check the size cap every N inserts
 const EVICT_CHECK_EVERY = 50;
 
-const sqlite = new DatabaseSync(config.imageCache.path);
-
-// auto_vacuum must be set before the first table is created
-sqlite.exec("PRAGMA auto_vacuum = INCREMENTAL;");
-sqlite.exec("PRAGMA journal_mode = WAL;");
-sqlite.exec("PRAGMA synchronous = NORMAL;");
-sqlite.exec("PRAGMA busy_timeout = 5000;");
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS image_blobs (
     url         TEXT PRIMARY KEY,
