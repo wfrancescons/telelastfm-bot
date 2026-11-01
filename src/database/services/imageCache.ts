@@ -4,6 +4,35 @@ const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 export const LASTFM_PLACEHOLDER_HASH = "2a96cbd8b46e442fc41c2b86b821562f";
 export const LASTFM_DEFAULT_AVATAR_HASH = "818148bf682d429dc215c1705eb27b98";
 
+export const KNOWN_PLACEHOLDER_HASHES = new Set([
+  "2a96cbd8b46e442fc41c2b86b821562f", // standard album/track 500x500 star
+  "4128a6eb29f94943c9d206c08e625904", // standard artist & album 300x300 / 500x500 star
+  "818148bf682d429dc215c1705eb27b98", // default user avatar silhouette
+  "c6f59c1e5e7240a4c0d427abd71f3dbb", // secondary default avatar
+  "52a504a12da6",                     // lastfm_avatar_twitter
+]);
+
+const PLACEHOLDER_URL_PATTERNS = [
+  /default_album/i,
+  /default_artist/i,
+  /noimage/i,
+  /no-image/i,
+  /placeholder/i,
+  /lastfm_avatar/i,
+];
+
+const deadImageUrls = new Set<string>();
+
+export function markDeadImageUrl(url: string): void {
+  if (!url) return;
+  deadImageUrls.add(url.trim().toLowerCase());
+}
+
+export function isDeadImageUrl(url?: string | null): boolean {
+  if (!url) return false;
+  return deadImageUrls.has(url.trim().toLowerCase());
+}
+
 export type ImageCacheMediaInfo = {
   track?: string;
   album?: string;
@@ -21,6 +50,20 @@ imageCacheDb.exec(`
 imageCacheDb.exec(
   "CREATE INDEX IF NOT EXISTS idx_image_urls_updated_at ON image_urls (updated_at);",
 );
+
+// Purge any placeholder URLs that may have been cached in past executions
+imageCacheDb.exec(`
+  DELETE FROM image_urls
+  WHERE
+    image_url LIKE '%2a96cbd8b46e442fc41c2b86b821562f%' OR
+    image_url LIKE '%4128a6eb29f94943c9d206c08e625904%' OR
+    image_url LIKE '%818148bf682d429dc215c1705eb27b98%' OR
+    image_url LIKE '%c6f59c1e5e7240a4c0d427abd71f3dbb%' OR
+    image_url LIKE '%52a504a12da6%' OR
+    image_url LIKE '%default_album%' OR
+    image_url LIKE '%default_artist%' OR
+    image_url LIKE '%noimage%';
+`);
 
 const stmtGet = imageCacheDb.prepare(
   "SELECT image_url, updated_at FROM image_urls WHERE cache_key = ?",
@@ -77,11 +120,19 @@ export function buildImageCacheKey(
 }
 
 export function isPlaceholderImageUrl(url?: string | null): boolean {
-  if (!url) return true;
-  return (
-    url.includes(LASTFM_PLACEHOLDER_HASH) ||
-    url.includes(LASTFM_DEFAULT_AVATAR_HASH)
-  );
+  if (!url || typeof url !== "string") return true;
+  const trimmed = url.trim().toLowerCase();
+  if (!trimmed || trimmed === "null" || trimmed === "undefined") return true;
+
+  for (const hash of KNOWN_PLACEHOLDER_HASHES) {
+    if (trimmed.includes(hash)) return true;
+  }
+
+  for (const pattern of PLACEHOLDER_URL_PATTERNS) {
+    if (pattern.test(trimmed)) return true;
+  }
+
+  return false;
 }
 
 // deno-lint-ignore require-await
@@ -105,7 +156,8 @@ export async function getCachedImageUrl(
       return null;
     }
 
-    if (isPlaceholderImageUrl(row.image_url)) {
+    if (isPlaceholderImageUrl(row.image_url) || isDeadImageUrl(row.image_url)) {
+      stmtDeleteByKey.run(cacheKey);
       return null;
     }
 
@@ -129,7 +181,11 @@ export async function setCachedImageUrl(
     "lastfm-img.freetls.fastly.net",
     "lastfm.freetls.fastly.net",
   );
-  if (!imageUrl || isPlaceholderImageUrl(imageUrl)) {
+  if (
+    !imageUrl ||
+    isPlaceholderImageUrl(imageUrl) ||
+    isDeadImageUrl(imageUrl)
+  ) {
     return imageUrl || null;
   }
 
@@ -163,7 +219,13 @@ export async function updateCachedImageUrl(
 // deno-lint-ignore require-await
 export async function deleteCachedImageByUrl(imageUrl: string): Promise<void> {
   try {
+    markDeadImageUrl(imageUrl);
     stmtDeleteByUrl.run(imageUrl);
+    const cropRegex = /\/(?:\d+x\d+|\d+s|avatar\d+s|ar0)\//;
+    if (cropRegex.test(imageUrl)) {
+      stmtDeleteByUrl.run(imageUrl.replace(cropRegex, "/500x500/"));
+      stmtDeleteByUrl.run(imageUrl.replace(cropRegex, "/300x300/"));
+    }
   } catch (error) {
     console.error("ImageCache: delete error:", error);
   }

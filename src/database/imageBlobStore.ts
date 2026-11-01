@@ -15,6 +15,7 @@
  */
 import config from "@/config.ts";
 import { imageCacheDb as sqlite } from "./imageCacheDb.ts";
+import { isPlaceholderImageUrl } from "./services/imageCache.ts";
 
 const MAX_BYTES = config.imageCache.maxSizeMb * 1024 * 1024;
 // Evict down to this fraction of the cap to avoid evicting on every insert
@@ -36,6 +37,21 @@ sqlite.exec(`
 sqlite.exec(
   "CREATE INDEX IF NOT EXISTS idx_image_blobs_last_access ON image_blobs (last_access);",
 );
+
+// Purge placeholder images other than the official default image
+sqlite.exec(`
+  DELETE FROM image_blobs
+  WHERE url NOT LIKE '%2a96cbd8b46e442fc41c2b86b821562f%'
+    AND (
+      url LIKE '%4128a6eb29f94943c9d206c08e625904%' OR
+      url LIKE '%818148bf682d429dc215c1705eb27b98%' OR
+      url LIKE '%c6f59c1e5e7240a4c0d427abd71f3dbb%' OR
+      url LIKE '%52a504a12da6%' OR
+      url LIKE '%default_album%' OR
+      url LIKE '%default_artist%' OR
+      url LIKE '%noimage%'
+    );
+`);
 
 const stmtGet = sqlite.prepare(
   "SELECT data, last_access FROM image_blobs WHERE url = ?",
@@ -80,6 +96,10 @@ export function getImageBlob(url: string): Uint8Array | null {
 }
 
 export function setImageBlob(url: string, data: Uint8Array): void {
+  if (!data || data.byteLength < 100) return;
+  if (isPlaceholderImageUrl(url) && !url.includes("2a96cbd8b46e442fc41c2b86b821562f")) {
+    return;
+  }
   try {
     const now = Date.now();
     stmtUpsert.run(url, data, data.byteLength, now, now);

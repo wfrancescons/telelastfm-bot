@@ -30,7 +30,7 @@ const limiter = new Bottleneck({
  * synchronous Skia / pixel-buffer rendering passes.
  */
 function yieldToEventLoop(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 0));
+  return new Promise((resolve) => setImmediate(resolve));
 }
 
 function isHeavyElement(element: CanvasTemplateData["elements"][number]): boolean {
@@ -102,7 +102,7 @@ async function renderCanvasInternal(
     }
 
     opsSinceLastYield += isHeavyElement(element) ? 4 : 1;
-    if (opsSinceLastYield >= 8) {
+    if (opsSinceLastYield >= 16) {
       opsSinceLastYield = 0;
       await yieldToEventLoop();
     }

@@ -5,6 +5,8 @@ import {
 } from "@/database/imageBlobStore.ts";
 import {
   deleteCachedImageByUrl,
+  isDeadImageUrl,
+  markDeadImageUrl,
   updateCachedImageUrl,
 } from "@/database/services/imageCache.ts";
 import { DEFAULT_IMAGE, fetchWithRetry } from "@/services/lastfm/client.ts";
@@ -29,8 +31,8 @@ const pendingDownloads = new Map<string, Promise<Uint8Array | null>>();
 
 // Rate-limits actual network image downloads (SQLite blob cache hits bypass this completely)
 const imageDownloadLimiter = new Bottleneck({
-  maxConcurrent: 6,
-  minTime: 40,
+  maxConcurrent: 12,
+  minTime: 15,
 });
 
 function isLocalOrDataUrl(src: string): boolean {
@@ -61,6 +63,27 @@ function buildLastfmFallbackCandidates(rawUrl: string): string[] {
   const canonical500 = normalizeLastfmImageUrl(rawUrl);
   const candidates = new Set<string>([canonical500]);
 
+  // If rawUrl is different (e.g. ar0, 300x300, or domain variation), add it as fallback
+  if (rawUrl && rawUrl.trim() && rawUrl !== canonical500) {
+    candidates.add(rawUrl.trim());
+  }
+
+  // Also try lastfm-img.freetls.fastly.net if canonical500 uses lastfm.freetls.fastly.net
+  if (canonical500.includes("lastfm.freetls.fastly.net")) {
+    candidates.add(
+      canonical500.replace(
+        "lastfm.freetls.fastly.net",
+        "lastfm-img.freetls.fastly.net",
+      ),
+    );
+  }
+
+  // If 500x500 fails, try 300x300 or ar0
+  if (canonical500.includes("/500x500/")) {
+    candidates.add(canonical500.replace("/500x500/", "/300x300/"));
+    candidates.add(canonical500.replace("/500x500/", "/ar0/"));
+  }
+
   // Animated or static GIF avatars on Last.fm Fastly CDN can also be fetched
   // as transcoded static PNG/JPG at 500x500 or original avatar170s if needed
   if (/\.gif$/i.test(canonical500)) {
@@ -81,7 +104,7 @@ const fetchRemoteImageBuffer = imageDownloadLimiter.wrap(
           headers: {
             "User-Agent":
               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+            Accept: "image/*,*/*;q=0.8",
           },
         },
         2,
@@ -112,12 +135,20 @@ function getImageBytes(url: string): Promise<Uint8Array | null> {
   const cached = getImageBlob(url);
   if (cached) return Promise.resolve(cached);
 
+  if (url !== DEFAULT_IMAGE && isDeadImageUrl(url)) {
+    return Promise.resolve(null);
+  }
+
   const pending = pendingDownloads.get(url);
   if (pending) return pending;
 
   const download = fetchRemoteImageBuffer(url)
     .then((buffer) => {
-      if (buffer) setImageBlob(url, buffer);
+      if (buffer) {
+        setImageBlob(url, buffer);
+      } else {
+        markDeadImageUrl(url);
+      }
       return buffer;
     })
     .finally(() => pendingDownloads.delete(url));
@@ -160,12 +191,16 @@ async function loadCachedImage(src: string): Promise<Image> {
     } catch {
       // Corrupted/undecodable bytes: drop them and try the next candidate
       deleteImageBlob(candidateUrl);
+      markDeadImageUrl(candidateUrl);
     }
   }
 
-  // Self-healing: remove broken URL from the URL cache so next run re-resolves it
+  // Self-healing: mark broken URL as dead and remove from URL cache so next run re-resolves it
+  markDeadImageUrl(src);
+  markDeadImageUrl(canonicalSrc);
   await deleteCachedImageByUrl(src);
   if (candidates[0] && candidates[0] !== src) {
+    markDeadImageUrl(candidates[0]);
     await deleteCachedImageByUrl(candidates[0]);
   }
 

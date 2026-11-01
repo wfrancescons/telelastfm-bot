@@ -1,4 +1,3 @@
-import { DOMParser } from "@b-fuze/deno-dom";
 import Bottleneck from "bottleneck";
 import config from "@/config.ts";
 import type { LastfmImages } from "./types.ts";
@@ -17,8 +16,8 @@ const apiLimiter = new Bottleneck({
 });
 
 const scrapingLimiter = new Bottleneck({
-  maxConcurrent: 4,
-  minTime: 180,
+  maxConcurrent: 8,
+  minTime: 60,
 });
 
 const HTTP_HEADERS: Record<string, string> = {
@@ -180,11 +179,11 @@ export const getOgImage = scrapingLimiter.wrap(
       if (!response.ok) return DEFAULT_IMAGE;
 
       const html = await response.text();
-      const doc = new DOMParser().parseFromString(html, "text/html");
-      const ogImage = doc
-        ?.querySelector('meta[property="og:image"]')
-        ?.getAttribute("content");
+      const match =
+        html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) ||
+        html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
 
+      const ogImage = match ? match[1] : null;
       if (!ogImage) return DEFAULT_IMAGE;
 
       return ogImage.replace(/\/ar0\//, "/500x500/").replace("ar0", "500x500");
