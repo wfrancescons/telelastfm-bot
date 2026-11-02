@@ -24,7 +24,6 @@ export type ToplfTemplateParams = {
   profileData: UserProfileData;
   period?: LastfmPeriod;
   fallbackDisplayName?: string;
-  fallbackAvatarUrl?: string | null;
   glassOptions?: GlassEffectOptions;
 };
 
@@ -47,16 +46,14 @@ const TOPLF_GLASS_OPTIONS: GlassEffectOptions = {
   },
 };
 
-function pickBackgroundCover(
+export function pickBackgroundCover(
   profileData: UserProfileData,
-  avatarUrl: string,
 ): string | null {
-  // Priority: User Avatar -> Top Artist -> Top Album -> Top Track
+  // Prioridade: Artista -> Álbum -> Track -> Fallback (fundo escuro / null)
   const candidates = [
-    avatarUrl,
-    profileData.topArtists[0]?.image,
-    profileData.topAlbums[0]?.image,
-    profileData.topTracks[0]?.image,
+    profileData.topArtists?.[0]?.image,
+    profileData.topAlbums?.[0]?.image,
+    profileData.topTracks?.[0]?.image,
   ];
 
   for (const url of candidates) {
@@ -64,7 +61,7 @@ function pickBackgroundCover(
       return url;
     }
   }
-  return candidates[0] || null;
+  return null;
 }
 
 export function getPeriodHeadline(period: LastfmPeriod = "7day"): {
@@ -93,7 +90,6 @@ export function getPeriodHeadline(period: LastfmPeriod = "7day"): {
 export function toplfTemplate({
   profileData,
   period = "7day",
-  fallbackAvatarUrl,
   glassOptions,
 }: ToplfTemplateParams): CanvasTemplateData {
   // 9:16 aspect ratio: 760 x 1350
@@ -108,14 +104,8 @@ export function toplfTemplate({
 
   const elements: CanvasElement[] = [];
 
-  const avatarUrl =
-    profileData.avatar ||
-    fallbackAvatarUrl ||
-    profileData.topArtists[0]?.image ||
-    DEFAULT_IMAGE;
-
-  // Background: blurred cover + dark vignette overlay
-  const bgCover = pickBackgroundCover(profileData, avatarUrl);
+  // Background: blurred cover (artista -> album -> track) + dark vignette overlay
+  const bgCover = pickBackgroundCover(profileData);
   if (bgCover) {
     const bleed = 100;
     elements.push(

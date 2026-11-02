@@ -6,6 +6,7 @@ import { parseTopArgs } from "@/commands/handleToplf.ts";
 import { toplfTemplate } from "@/commands/templates/toplfTemplate.ts";
 import { vinyllfTemplate } from "@/commands/templates/vinyllfTemplate.ts";
 import { gridlfTemplate } from "@/commands/templates/gridlfTemplate.ts";
+import type { ImageElement } from "@/rendering/types.ts";
 import type { TopAlbumItem } from "@/services/lastfm/types.ts";
 
 describe("Templates Generation", () => {
@@ -158,6 +159,52 @@ describe("Templates Generation", () => {
         (el) => el.type === "text" && el.text === "last 7 days",
       );
       assert.notEqual(headlineEl, undefined);
+
+      // Verify backdrop pick order: artist -> album -> track -> dark fallback
+      const bgImage = template.elements.find(
+        (el): el is ImageElement => el.type === "image",
+      );
+      assert.equal(bgImage?.src, "https://example.com/a1.jpg");
+
+      // When artist image is missing, falls back to album
+      const templateNoArtist = toplfTemplate({
+        profileData: {
+          username: "usuariolastfm",
+          realname: null,
+          avatar: null,
+          scrobbles: 100,
+          artistsCount: 1,
+          lovedTracksCount: 0,
+          topArtists: [{ rank: 1, artist: { name: "A" }, scrobbles: 10, image: "" }],
+          topAlbums: [{ rank: 1, album: { name: "Alb", artist: "A" }, scrobbles: 10, image: "https://example.com/alb.jpg" }],
+          topTracks: [],
+        },
+      });
+      const bgNoArtist = templateNoArtist.elements.find(
+        (el): el is ImageElement => el.type === "image",
+      );
+      assert.equal(bgNoArtist?.src, "https://example.com/alb.jpg");
+
+      // When all are missing or placeholder, dark background fallback (no background image)
+      const templateDark = toplfTemplate({
+        profileData: {
+          username: "usuariolastfm",
+          realname: null,
+          avatar: null,
+          scrobbles: 100,
+          artistsCount: 1,
+          lovedTracksCount: 0,
+          topArtists: [],
+          topAlbums: [],
+          topTracks: [],
+        },
+      });
+      // There shouldn't be a background image element (blur)
+      const bgDarkImage = templateDark.elements.find(
+        (el) => el.type === "image" && (el.filter?.includes("blur") || false),
+      );
+      assert.equal(bgDarkImage, undefined);
+      assert.equal(templateDark.background, "#080808");
 
       // Should parse top args with default 7day and custom period
       const defaultParsed = parseTopArgs("/toplf");
