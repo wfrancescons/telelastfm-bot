@@ -44,10 +44,7 @@ export default function formatArtlf(data: FormatArtlfParams) {
     msg = msg.plain("\n🏷️ ").italic(formattedTags);
   }
 
-  msg = msg
-    .plain("\n\n")
-    .link("📈", data.image.large)
-    .plain(` ${scrobbles}`);
+  msg = msg.plain(`\n\n📈 ${scrobbles}`);
 
   return {
     text: msg.text,
