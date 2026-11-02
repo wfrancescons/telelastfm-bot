@@ -30,7 +30,7 @@ export default async function handleSetlf(ctx: BotContext) {
       throw "REG_WITHOUT_ARGS";
     }
 
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     try {
       await getLastfmUserData(targetUsername);

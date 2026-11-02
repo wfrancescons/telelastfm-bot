@@ -59,7 +59,7 @@ export default async function handleAlblf(ctx: BotContext) {
   const hasArgs = rawArgs.length > 0;
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     const lastfm_user = await getLastfmUser(telegram_id);
     if (!lastfm_user) {

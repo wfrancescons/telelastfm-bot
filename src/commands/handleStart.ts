@@ -14,7 +14,7 @@ export default async function handleStart(ctx: BotContext) {
   logCommand("start", telegram_id, chat_id);
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     const firstName = ctx.from?.first_name || "there";
     const botUsername = config.bot.username.replace("@", "");

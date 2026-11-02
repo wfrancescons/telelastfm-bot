@@ -93,7 +93,7 @@ export default async function handleYoulf(ctx: BotContext) {
   logCommand("youlf", telegram_id, chat_id);
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     const replyMsg = ctx.message?.reply_to_message;
     const isReplyToChannel = replyMsg?.sender_chat?.type === "channel";

@@ -13,7 +13,7 @@ export default async function handlePrivacy(ctx: BotContext) {
   logCommand("privacy", telegram_id, chat_id);
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     const msg = FormattedString
       .bold("Termos de Uso e Política de Privacidade do telelastfm\n\n")

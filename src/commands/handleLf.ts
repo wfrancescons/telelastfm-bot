@@ -28,7 +28,7 @@ export default async function handleLf(ctx: BotContext) {
   }
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     const lastfm_user = await getLastfmUser(telegram_id);
     if (!lastfm_user) {

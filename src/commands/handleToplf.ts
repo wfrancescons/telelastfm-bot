@@ -42,7 +42,7 @@ export default async function handleToplf(ctx: BotContext) {
   logCommand("toplf", telegram_id, chat_id);
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     const lastfm_user = await getLastfmUser(telegram_id);
     if (!lastfm_user) {
@@ -67,7 +67,7 @@ export default async function handleToplf(ctx: BotContext) {
     await runWithCollageQueue(ctx, tip, async () => {
       const profileData = await getUserProfileData(lastfm_user, period);
 
-      await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
+      ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo").catch(() => {});
 
       const template = toplfTemplate({
         profileData,

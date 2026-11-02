@@ -16,7 +16,7 @@ export default async function handleRankoutlf(ctx: BotContext) {
   logCommand("rankoutlf", telegram_id, chat_id);
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     if (chat_id > 0) {
       throw "RANK_PERSONAL_CHAT";

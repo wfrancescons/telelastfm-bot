@@ -48,7 +48,7 @@ export default async function handleVinyllf(ctx: BotContext) {
   logCommand("vinyllf", telegram_id, chat_id);
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     const lastfm_user = await getLastfmUser(telegram_id);
     if (!lastfm_user) {
@@ -68,7 +68,7 @@ export default async function handleVinyllf(ctx: BotContext) {
       const lastfm_data = await fetchVinylData(lastfm_user, media_type);
 
       const isHd = hasHdParam(ctx.message?.text || "");
-      await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
+      ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo").catch(() => {});
 
       const template = vinyllfTemplate({
         lastfm_data: {

@@ -110,7 +110,7 @@ export default async function handleGridlf(ctx: BotContext) {
   logCommand("gridlf", telegram_id, chat_id);
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     const lastfm_user = await getLastfmUser(telegram_id);
     if (!lastfm_user) {
@@ -156,7 +156,9 @@ export default async function handleGridlf(ctx: BotContext) {
       }
 
       const isHd = hasHdParam(ctx.message?.text || "");
-      await ctx.replyWithChatAction(isHd ? "upload_document" : "upload_photo");
+      ctx
+        .replyWithChatAction(isHd ? "upload_document" : "upload_photo")
+        .catch(() => {});
 
       const template = gridlfTemplate({
         lastfm_data,

@@ -144,7 +144,7 @@ export default async function handleMelf(ctx: BotContext) {
   const isReplyToChannel = replyMsg?.sender_chat?.type === "channel";
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     if (!replyMsg?.from || isReplyToChannel) {
       throw "NOT_A_REPLY_MESSAGE";

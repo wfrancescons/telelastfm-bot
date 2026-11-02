@@ -17,7 +17,7 @@ export default async function handleProfilelf(ctx: BotContext) {
   logCommand("profilelf", telegram_id, chat_id);
 
   try {
-    await ctx.replyWithChatAction("typing");
+    ctx.replyWithChatAction("typing").catch(() => {});
 
     const lastfm_user = await getLastfmUser(telegram_id);
     if (!lastfm_user) {
